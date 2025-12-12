@@ -214,7 +214,7 @@ function App() {
     }
   }
 
-  async function loadBetHistory(limit = 500000) {
+  async function loadBetHistory(limit = 200000) {
     setBetHistoryLoading(true);
     setBetHistoryError("");
     try {
