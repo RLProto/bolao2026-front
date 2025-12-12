@@ -153,7 +153,7 @@ export async function fetchPublicBets() {
  * Histórico de apostas (tabela bet_history) – somente admin
  * GET /admin/bet-history?limit=500
  */
-export async function fetchBetHistory(limit = 500) {
+export async function fetchBetHistory(limit = 500000) {
   const res = await fetch(
     `${API_URL}/admin/bet-history?limit=${encodeURIComponent(limit)}`,
     {
