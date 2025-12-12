@@ -1,5 +1,6 @@
 // src/components/BetHistoryTab.jsx
 import React, { useMemo, useState } from "react";
+import { fetchBetHistory } from "../api";
 
 function formatDateTime(iso) {
   if (!iso) return "";
@@ -11,83 +12,87 @@ function formatDateTime(iso) {
   return `${dd}/${mm} ${hh}:${mi}`;
 }
 
-export default function BetHistoryTab({ history, loading, error, onReload }) {
-  const [userFilter, setUserFilter] = useState("");
-  const [matchFilter, setMatchFilter] = useState("");
+export default function BetHistoryTab({ matches = [] }) {
+  const [userId, setUserId] = useState("");          // obrigatório
+  const [matchId, setMatchId] = useState("");        // opcional ("" = todos)
+  const [limit, setLimit] = useState(5000);
 
-  // opções de usuários e partidas com base no resultado carregado
-  const { userOptions, matchOptions, filtered } = useMemo(() => {
-    const usersMap = new Map();
-    const matchesMap = new Map();
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-    history.forEach((h) => {
-      if (!usersMap.has(h.user_id)) {
-        usersMap.set(h.user_id, h.user_name);
-      }
-      const labelMatch = `${h.match_id} – ${h.home_team_name || "???"} x ${
-        h.away_team_name || "???"
-      }`;
-      if (!matchesMap.has(h.match_id)) {
-        matchesMap.set(h.match_id, labelMatch);
-      }
-    });
+  const matchOptions = useMemo(() => {
+    return matches
+      .slice()
+      .sort((a, b) => new Date(a.kickoff_at_utc) - new Date(b.kickoff_at_utc))
+      .map((m) => ({
+        id: m.id,
+        label: `#${m.id} – ${m.home_team?.name || "???"} x ${m.away_team?.name || "???"}`,
+      }));
+  }, [matches]);
 
-    const uOpts = Array.from(usersMap.entries()).map(([id, name]) => ({
-      id,
-      name,
-    }));
-    const mOpts = Array.from(matchesMap.entries()).map(([id, label]) => ({
-      id,
-      label,
-    }));
+  async function onSearch() {
+    setError("");
+    setRows([]);
 
-    return {
-      userOptions: uOpts,
-      matchOptions: mOpts,
-      filtered: history,
-    };
-  }, [history]);
+    const uid = Number(userId);
+    if (!userId || Number.isNaN(uid) || uid <= 0) {
+      setError("Selecione um usuário válido (user_id).");
+      return;
+    }
 
-  const rows = useMemo(() => {
-    return filtered.filter((h) => {
-      if (userFilter && h.user_id !== Number(userFilter)) return false;
-      if (matchFilter && h.match_id !== Number(matchFilter)) return false;
-      return true;
-    });
-  }, [filtered, userFilter, matchFilter]);
+    const lim = Number(limit);
+    if (Number.isNaN(lim) || lim < 1 || lim > 200000) {
+      setError("Limit inválido (1 a 200000).");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const data = await fetchBetHistory({
+        userId: uid,
+        matchId: matchId ? Number(matchId) : undefined,
+        limit: lim,
+      });
+      setRows(data);
+    } catch (e) {
+      setError(e.message || "Erro ao buscar histórico.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <section className="section">
       <div className="info-card">
-        <h2>Histórico de apostas </h2>
+        <h2>Histórico de apostas</h2>
         <p className="subtitle">
-          Últimos registros da tabela <code>bet_history</code>. Apenas admins
-          conseguem ver esta tela.
+          Para evitar travar, selecione um <b>usuário</b> e (opcionalmente) uma <b>partida</b>,
+          depois clique em <b>Procurar</b>.
         </p>
 
-        {/* toolbar de filtros + botão recarregar */}
         <div className="matches-toolbar" style={{ marginTop: "0.4rem" }}>
+          {/* usuário obrigatório */}
           <div className="matches-filter-control">
-            <span className="filter-label">Usuário:</span>
-            <select
-              value={userFilter}
-              onChange={(e) => setUserFilter(e.target.value)}
+            <span className="filter-label">Usuário (ID):</span>
+            <input
               className="filter-select"
-            >
-              <option value="">Todos</option>
-              {userOptions.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name} (#{u.id})
-                </option>
-              ))}
-            </select>
+              type="number"
+              inputMode="numeric"
+              min="1"
+              placeholder="Ex: 1"
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
+              style={{ maxWidth: 140 }}
+            />
           </div>
 
+          {/* partida opcional */}
           <div className="matches-filter-control">
             <span className="filter-label">Partida:</span>
             <select
-              value={matchFilter}
-              onChange={(e) => setMatchFilter(e.target.value)}
+              value={matchId}
+              onChange={(e) => setMatchId(e.target.value)}
               className="filter-select"
             >
               <option value="">Todas</option>
@@ -99,32 +104,50 @@ export default function BetHistoryTab({ history, loading, error, onReload }) {
             </select>
           </div>
 
+          {/* limit */}
+          <div className="matches-filter-control">
+            <span className="filter-label">Limit:</span>
+            <input
+              className="filter-select"
+              type="number"
+              min="1"
+              max="200000"
+              value={limit}
+              onChange={(e) => setLimit(e.target.value)}
+              style={{ maxWidth: 120 }}
+            />
+          </div>
+
           <button
             type="button"
             className="btn ghost small"
-            onClick={onReload}
+            onClick={onSearch}
             disabled={loading}
           >
-            {loading ? "Recarregando..." : "Recarregar"}
+            {loading ? "Procurando..." : "Procurar"}
           </button>
         </div>
 
         {error && <div className="alert alert-error">{error}</div>}
 
-        {loading && !rows.length && (
+        {!loading && rows.length === 0 && !error && (
           <div className="small" style={{ marginTop: "0.4rem" }}>
-            Carregando histórico…
+            Selecione um usuário e clique em <b>Procurar</b>.
           </div>
         )}
 
-        {!loading && !rows.length && !error && (
+        {loading && (
           <div className="small" style={{ marginTop: "0.4rem" }}>
-            Nenhum registro encontrado para os filtros atuais.
+            Buscando histórico…
           </div>
         )}
 
         {rows.length > 0 && (
           <div style={{ marginTop: "0.6rem", maxHeight: "60vh", overflow: "auto" }}>
+            <div className="small" style={{ marginBottom: "0.4rem" }}>
+              Retornou <b>{rows.length}</b> registros.
+            </div>
+
             <table className="ranking-table">
               <thead>
                 <tr>
@@ -155,12 +178,9 @@ export default function BetHistoryTab({ history, loading, error, onReload }) {
                       <span className="small">{h.match_stage}</span>
                     </td>
                     <td>{h.action_type}</td>
+                    <td>{h.home_score_prediction} x {h.away_score_prediction}</td>
                     <td>
-                      {h.home_score_prediction} x {h.away_score_prediction}
-                    </td>
-                    <td>
-                      {h.prev_home_score_prediction ?? "-"} x{" "}
-                      {h.prev_away_score_prediction ?? "-"}
+                      {h.prev_home_score_prediction ?? "-"} x {h.prev_away_score_prediction ?? "-"}
                     </td>
                   </tr>
                 ))}

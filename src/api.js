@@ -149,20 +149,20 @@ export async function fetchPublicBets() {
   return data;
 }
 
-/**
- * Histórico de apostas (tabela bet_history) – somente admin
- * GET /admin/bet-history?limit=500
- */
-export async function fetchBetHistory(limit = 200000) {
-  const res = await fetch(
-    `${API_URL}/admin/bet-history?limit=${encodeURIComponent(limit)}`,
-    {
-      headers: {
-        "Content-Type": "application/json",
-        ...getHeadersWithAuth(),
-      },
-    }
-  );
+// Histórico de apostas (tabela bet_history) – somente admin
+// GET /admin/bet-history?user_id=...&match_id=...&limit=...
+export async function fetchBetHistory({ userId, matchId, limit = 5000 } = {}) {
+  const params = new URLSearchParams();
+  if (userId != null && userId !== "") params.set("user_id", String(userId));
+  if (matchId != null && matchId !== "") params.set("match_id", String(matchId));
+  if (limit != null && limit !== "") params.set("limit", String(limit));
+
+  const res = await fetch(`${API_URL}/admin/bet-history?${params.toString()}`, {
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeadersWithAuth(),
+    },
+  });
 
   const data = await res.json();
   if (!res.ok) {
