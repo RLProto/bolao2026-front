@@ -12,7 +12,6 @@ function formatDateTime(iso) {
   return `${dd}/${mm} ${hh}:${mi}`;
 }
 
-// ordenação "natural" p/ strings com números: Usuario 2 < Usuario 10
 function naturalCompare(a, b) {
   return String(a).localeCompare(String(b), "pt-BR", {
     numeric: true,
@@ -20,9 +19,26 @@ function naturalCompare(a, b) {
   });
 }
 
+function badgeClassForAction(action) {
+  const a = String(action || "").toLowerCase();
+  if (a === "insert") return "badge badge-ok";
+  if (a === "update") return "badge badge-warn";
+  return "badge";
+}
+
+function badgeClassForGroup(group) {
+  const g = String(group || "").toLowerCase();
+  if (g.includes("group") || g.includes("grupo")) return "badge badge-neutral";
+  if (g.includes("oitav")) return "badge badge-stage";
+  if (g.includes("quart")) return "badge badge-stage";
+  if (g.includes("semi")) return "badge badge-stage";
+  if (g.includes("final")) return "badge badge-final";
+  return "badge badge-neutral";
+}
+
 export default function BetHistoryTab() {
-  const [userId, setUserId] = useState("");     // obrigatório
-  const [matchId, setMatchId] = useState("");   // opcional ("" = todos)
+  const [userId, setUserId] = useState("");
+  const [matchId, setMatchId] = useState("");
 
   const [users, setUsers] = useState([]);
   const [matches, setMatches] = useState([]);
@@ -32,7 +48,6 @@ export default function BetHistoryTab() {
   const [loadingLists, setLoadingLists] = useState(false);
   const [error, setError] = useState("");
 
-  // carrega listas (users + matches) ao abrir a aba
   useEffect(() => {
     let alive = true;
 
@@ -58,19 +73,17 @@ export default function BetHistoryTab() {
     };
   }, []);
 
-  // ✅ Users: alfabético + natural (Usuario 2 antes do 10)
   const userOptions = useMemo(() => {
     return users
       .slice()
       .sort((a, b) => {
         const nameCmp = naturalCompare(a?.name ?? "", b?.name ?? "");
         if (nameCmp !== 0) return nameCmp;
-        return (a?.id ?? 0) - (b?.id ?? 0); // desempate por id
+        return (a?.id ?? 0) - (b?.id ?? 0);
       })
-      .map((u) => ({ id: u.id, label: `${u.name} (#${u.id})` }));
+      .map((u) => ({ id: u.id, label: `${u.name}` }));
   }, [users]);
 
-  // ✅ Matches: ordem numérica por id (#1, #2, #3...)
   const matchOptions = useMemo(() => {
     return matches
       .slice()
@@ -103,13 +116,9 @@ export default function BetHistoryTab() {
     try {
       const data = await fetchBetHistory({ userId: uid, matchId: mid });
       const arr = Array.isArray(data) ? data : [];
-
-      // ✅ Bets: mais antiga -> mais nova
       arr.sort(
-        (a, b) =>
-          new Date(a.changed_at_utc).getTime() - new Date(b.changed_at_utc).getTime()
+        (a, b) => new Date(a.changed_at_utc).getTime() - new Date(b.changed_at_utc).getTime()
       );
-
       setRows(arr);
     } catch (e) {
       setError(e.message || "Erro ao buscar histórico.");
@@ -121,16 +130,24 @@ export default function BetHistoryTab() {
   return (
     <section className="section">
       <div className="info-card">
-        <h2>Histórico de apostas</h2>
-        <p className="subtitle">
-          Selecione um <b>usuário</b> e (opcionalmente) uma <b>partida</b>, depois clique em{" "}
-          <b>Procurar</b>.
-        </p>
+        <div className="bh-header">
+          <div>
+            <h2 style={{ marginBottom: 4 }}>Histórico de apostas</h2>
+            <p className="subtitle" style={{ marginTop: 0 }}>
+              Selecione um <b>usuário</b> e (opcionalmente) uma <b>partida</b>.
+            </p>
+          </div>
 
-        <div className="matches-toolbar" style={{ marginTop: "0.4rem" }}>
-          {/* usuário obrigatório */}
-          <div className="matches-filter-control">
-            <span className="filter-label">Usuário:</span>
+          <div className="bh-meta">
+            <span className="bh-meta-pill">
+              {loading ? "Buscando..." : `${rows.length} registros`}
+            </span>
+          </div>
+        </div>
+
+        <div className="bh-toolbar">
+          <div className="bh-field">
+            <span className="filter-label">Usuário</span>
             <select
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
@@ -146,9 +163,8 @@ export default function BetHistoryTab() {
             </select>
           </div>
 
-          {/* partida opcional */}
-          <div className="matches-filter-control">
-            <span className="filter-label">Partida:</span>
+          <div className="bh-field">
+            <span className="filter-label">Partida</span>
             <select
               value={matchId}
               onChange={(e) => setMatchId(e.target.value)}
@@ -167,7 +183,7 @@ export default function BetHistoryTab() {
 
           <button
             type="button"
-            className="btn ghost small"
+            className="btn ghost small bh-btn"
             onClick={onSearch}
             disabled={loading || loadingLists || !userId}
           >
@@ -184,55 +200,69 @@ export default function BetHistoryTab() {
         )}
 
         {!loading && !loadingLists && rows.length === 0 && !error && (
-          <div className="small" style={{ marginTop: "0.4rem" }}>
+          <div className="bh-empty">
             Selecione um usuário e clique em <b>Procurar</b>.
           </div>
         )}
 
-        {loading && (
-          <div className="small" style={{ marginTop: "0.4rem" }}>
-            Buscando histórico…
-          </div>
-        )}
-
         {rows.length > 0 && (
-          <div style={{ marginTop: "0.6rem", maxHeight: "60vh", overflow: "auto" }}>
-            <div className="small" style={{ marginBottom: "0.4rem" }}>
-              Retornou <b>{rows.length}</b> registros.
-            </div>
-
-            <table className="ranking-table">
+          <div className="bh-table-wrap">
+            <table className="ranking-table bh-table">
               <thead>
                 <tr>
-                  <th>#</th>
-                  <th>Quando</th>
-                  {/* ✅ removido: Usuário */}
-                  <th>Partida</th>
-                  <th>Ação</th>
-                  <th>Palpite novo</th>
-                  <th>Palpite anterior</th>
+                  <th className="col-id">#</th>
+                  <th className="col-when">Quando</th>
+                  <th className="col-match">Partida</th>
+                  <th className="col-group">Grupo</th>
+                  <th className="col-action">Ação</th>
+                  <th className="col-new">Palpite novo</th>
+                  <th className="col-prev">Palpite anterior</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((h) => (
                   <tr key={h.id}>
-                    <td>{h.id}</td>
-                    <td>{formatDateTime(h.changed_at_utc)}</td>
-                    <td>
-                      #{h.match_id}
-                      <br />
-                      <span className="small">
-                        {h.home_team_name || "???"} x {h.away_team_name || "???"}
+                    <td className="col-id">{h.id}</td>
+
+                    <td className="col-when">
+                      <span className="bh-mono">{formatDateTime(h.changed_at_utc)}</span>
+                    </td>
+
+                    <td className="col-match">
+                      <div className="bh-match-title">
+                        <span className="bh-mono">#{h.match_id}</span>
+                        <span className="bh-dot">•</span>
+                        <span className="bh-teamline">
+                          {h.home_team_name || "???"} x {h.away_team_name || "???"}
+                        </span>
+                      </div>
+                    </td>
+
+                    <td className="col-group">
+                      <span className={badgeClassForGroup(h.match_stage)}>
+                        {h.match_stage || "-"}
                       </span>
-                      <br />
-                      <span className="small">{h.match_stage}</span>
                     </td>
-                    <td>{h.action_type}</td>
-                    <td>
-                      {h.home_score_prediction} x {h.away_score_prediction}
+
+                    <td className="col-action">
+                      <span className={badgeClassForAction(h.action_type)}>
+                        {h.action_type}
+                      </span>
                     </td>
-                    <td>
-                      {h.prev_home_score_prediction ?? "-"} x {h.prev_away_score_prediction ?? "-"}
+
+                    <td className="col-new">
+                      <span className="bh-score">
+                        {h.home_score_prediction} <span className="bh-x">x</span>{" "}
+                        {h.away_score_prediction}
+                      </span>
+                    </td>
+
+                    <td className="col-prev">
+                      <span className="bh-score muted">
+                        {h.prev_home_score_prediction ?? "-"}{" "}
+                        <span className="bh-x">x</span>{" "}
+                        {h.prev_away_score_prediction ?? "-"}
+                      </span>
                     </td>
                   </tr>
                 ))}
