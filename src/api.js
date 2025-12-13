@@ -149,26 +149,39 @@ export async function fetchPublicBets() {
   return data;
 }
 
-// Histórico de apostas (tabela bet_history) – somente admin
-// GET /admin/bet-history?user_id=...&match_id=...&limit=...
-export async function fetchBetHistory({ userId, matchId, limit = 5000 } = {}) {
-  const params = new URLSearchParams();
-  if (userId != null && userId !== "") params.set("user_id", String(userId));
-  if (matchId != null && matchId !== "") params.set("match_id", String(matchId));
-  if (limit != null && limit !== "") params.set("limit", String(limit));
+export async function fetchAdminUsers() {
+  const res = await fetch(`${API_URL}/admin/users`, {
+    headers: { "Content-Type": "application/json", ...getHeadersWithAuth() },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || "Erro ao carregar usuários");
+  return data; // [{id, name}]
+}
 
-  const res = await fetch(`${API_URL}/admin/bet-history?${params.toString()}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...getHeadersWithAuth(),
-    },
+export async function fetchAdminMatches() {
+  const res = await fetch(`${API_URL}/admin/matches`, {
+    headers: { "Content-Type": "application/json", ...getHeadersWithAuth() },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || "Erro ao carregar jogos");
+  return data; // [{id, label, stage, kickoff_at_utc}]
+}
+
+// Agora sem limit e com user_id obrigatório
+export async function fetchBetHistory({ userId, matchId } = {}) {
+  if (!userId) throw new Error("userId é obrigatório");
+
+  const qs = new URLSearchParams();
+  qs.set("user_id", String(userId));
+  if (matchId) qs.set("match_id", String(matchId));
+
+  const res = await fetch(`${API_URL}/admin/bet-history?${qs.toString()}`, {
+    headers: { "Content-Type": "application/json", ...getHeadersWithAuth() },
   });
 
   const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.detail || "Erro ao carregar histórico de apostas");
-  }
-  return data; // lista de BetHistoryOut
+  if (!res.ok) throw new Error(data.detail || "Erro ao carregar histórico de apostas");
+  return data;
 }
 
 
