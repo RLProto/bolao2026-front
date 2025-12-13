@@ -1,6 +1,6 @@
 // src/components/BetHistoryTab.jsx
-import React, { useMemo, useState } from "react";
-import { fetchBetHistory } from "../api";
+import React, { useEffect, useMemo, useState } from "react";
+import { fetchBetHistory, fetchAdminUsers, fetchAdminMatches } from "../api";
 
 function formatDateTime(iso) {
   if (!iso) return "";
@@ -12,34 +12,74 @@ function formatDateTime(iso) {
   return `${dd}/${mm} ${hh}:${mi}`;
 }
 
-export default function BetHistoryTab({ matches = [] }) {
-  const [userId, setUserId] = useState("");          // obrigatório
-  const [matchId, setMatchId] = useState("");        // opcional ("" = todos)
-  const [limit, setLimit] = useState(5000);
+// ordenação "natural" p/ strings com números: Usuario 2 < Usuario 10
+function naturalCompare(a, b) {
+  return String(a).localeCompare(String(b), "pt-BR", {
+    numeric: true,
+    sensitivity: "base",
+  });
+}
+
+export default function BetHistoryTab() {
+  const [userId, setUserId] = useState("");     // obrigatório
+  const [matchId, setMatchId] = useState("");   // opcional ("" = todos)
+
+  const [users, setUsers] = useState([]);
+  const [matches, setMatches] = useState([]);
 
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingLists, setLoadingLists] = useState(false);
   const [error, setError] = useState("");
 
-  // Ordenação dos usuários alfanumérica (para evitar o problema de 10 vir depois de 2)
-  const userOptions = useMemo(() => {
-    return matches
-      .slice()
-      .sort((a, b) => a.name.localeCompare(b.name)) // Alfabética
-      .map((m) => ({
-        id: m.id,
-        label: `#${m.id} ${m.name}`,
-      }));
-  }, [matches]);
+  // carrega listas (users + matches) ao abrir a aba
+  useEffect(() => {
+    let alive = true;
 
-  // Ordenação das partidas numérica
+    async function loadLists() {
+      setLoadingLists(true);
+      setError("");
+      try {
+        const [u, m] = await Promise.all([fetchAdminUsers(), fetchAdminMatches()]);
+        if (!alive) return;
+        setUsers(Array.isArray(u) ? u : []);
+        setMatches(Array.isArray(m) ? m : []);
+      } catch (e) {
+        if (!alive) return;
+        setError(e.message || "Erro ao carregar listas (usuários/jogos).");
+      } finally {
+        if (alive) setLoadingLists(false);
+      }
+    }
+
+    loadLists();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // ✅ Users: alfabético + natural (Usuario 2 antes do 10)
+  const userOptions = useMemo(() => {
+    return users
+      .slice()
+      .sort((a, b) => {
+        const nameCmp = naturalCompare(a?.name ?? "", b?.name ?? "");
+        if (nameCmp !== 0) return nameCmp;
+        return (a?.id ?? 0) - (b?.id ?? 0); // desempate por id
+      })
+      .map((u) => ({ id: u.id, label: `${u.name} (#${u.id})` }));
+  }, [users]);
+
+  // ✅ Matches: ordem numérica por id (#1, #2, #3...)
   const matchOptions = useMemo(() => {
     return matches
       .slice()
-      .sort((a, b) => a.id - b.id)  // Ordenação numérica
+      .sort((a, b) => (a?.id ?? 0) - (b?.id ?? 0))
       .map((m) => ({
         id: m.id,
-        label: `#${m.id} – ${m.home_team?.name || "???"} x ${m.away_team?.name || "???"}`,
+        label: `#${m.id} – ${m.label}${m.stage ? ` • ${m.stage}` : ""} • ${formatDateTime(
+          m.kickoff_at_utc
+        )}`,
       }));
   }, [matches]);
 
@@ -49,24 +89,28 @@ export default function BetHistoryTab({ matches = [] }) {
 
     const uid = Number(userId);
     if (!userId || Number.isNaN(uid) || uid <= 0) {
-      setError("Selecione um usuário válido (user_id).");
+      setError("Selecione um usuário.");
       return;
     }
 
-    const lim = Number(limit);
-    if (Number.isNaN(lim) || lim < 1 || lim > 200000) {
-      setError("Limit inválido (1 a 200000).");
+    const mid = matchId ? Number(matchId) : undefined;
+    if (matchId && (Number.isNaN(mid) || mid <= 0)) {
+      setError("Partida inválida.");
       return;
     }
 
     setLoading(true);
     try {
-      const data = await fetchBetHistory({
-        userId: uid,
-        matchId: matchId ? Number(matchId) : undefined,
-        limit: lim,
-      });
-      setRows(data);
+      const data = await fetchBetHistory({ userId: uid, matchId: mid });
+      const arr = Array.isArray(data) ? data : [];
+
+      // ✅ Bets: mais antiga -> mais nova
+      arr.sort(
+        (a, b) =>
+          new Date(a.changed_at_utc).getTime() - new Date(b.changed_at_utc).getTime()
+      );
+
+      setRows(arr);
     } catch (e) {
       setError(e.message || "Erro ao buscar histórico.");
     } finally {
@@ -79,24 +123,27 @@ export default function BetHistoryTab({ matches = [] }) {
       <div className="info-card">
         <h2>Histórico de apostas</h2>
         <p className="subtitle">
-          Para evitar travar, selecione um <b>usuário</b> e (opcionalmente) uma <b>partida</b>,
-          depois clique em <b>Procurar</b>.
+          Selecione um <b>usuário</b> e (opcionalmente) uma <b>partida</b>, depois clique em{" "}
+          <b>Procurar</b>.
         </p>
 
         <div className="matches-toolbar" style={{ marginTop: "0.4rem" }}>
           {/* usuário obrigatório */}
           <div className="matches-filter-control">
-            <span className="filter-label">Usuário (ID):</span>
-            <input
-              className="filter-select"
-              type="number"
-              inputMode="numeric"
-              min="1"
-              placeholder="Ex: 1"
+            <span className="filter-label">Usuário:</span>
+            <select
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
-              style={{ maxWidth: 140 }}
-            />
+              className="filter-select"
+              disabled={loadingLists}
+            >
+              <option value="">Selecione…</option>
+              {userOptions.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* partida opcional */}
@@ -106,6 +153,8 @@ export default function BetHistoryTab({ matches = [] }) {
               value={matchId}
               onChange={(e) => setMatchId(e.target.value)}
               className="filter-select"
+              disabled={loadingLists || !userId}
+              title={!userId ? "Selecione um usuário primeiro" : ""}
             >
               <option value="">Todas</option>
               {matchOptions.map((m) => (
@@ -116,25 +165,11 @@ export default function BetHistoryTab({ matches = [] }) {
             </select>
           </div>
 
-          {/* limit */}
-          <div className="matches-filter-control">
-            <span className="filter-label">Limit:</span>
-            <input
-              className="filter-select"
-              type="number"
-              min="1"
-              max="200000"
-              value={limit}
-              onChange={(e) => setLimit(e.target.value)}
-              style={{ maxWidth: 120 }}
-            />
-          </div>
-
           <button
             type="button"
             className="btn ghost small"
             onClick={onSearch}
-            disabled={loading}
+            disabled={loading || loadingLists || !userId}
           >
             {loading ? "Procurando..." : "Procurar"}
           </button>
@@ -142,7 +177,13 @@ export default function BetHistoryTab({ matches = [] }) {
 
         {error && <div className="alert alert-error">{error}</div>}
 
-        {!loading && rows.length === 0 && !error && (
+        {loadingLists && (
+          <div className="small" style={{ marginTop: "0.4rem" }}>
+            Carregando usuários e jogos…
+          </div>
+        )}
+
+        {!loading && !loadingLists && rows.length === 0 && !error && (
           <div className="small" style={{ marginTop: "0.4rem" }}>
             Selecione um usuário e clique em <b>Procurar</b>.
           </div>
@@ -165,6 +206,7 @@ export default function BetHistoryTab({ matches = [] }) {
                 <tr>
                   <th>#</th>
                   <th>Quando</th>
+                  {/* ✅ removido: Usuário */}
                   <th>Partida</th>
                   <th>Ação</th>
                   <th>Palpite novo</th>
@@ -172,8 +214,7 @@ export default function BetHistoryTab({ matches = [] }) {
                 </tr>
               </thead>
               <tbody>
-                {rows.sort((a, b) => new Date(a.changed_at_utc) - new Date(b.changed_at_utc))  // Ordenação por data/hora
-                .map((h) => (
+                {rows.map((h) => (
                   <tr key={h.id}>
                     <td>{h.id}</td>
                     <td>{formatDateTime(h.changed_at_utc)}</td>
@@ -187,7 +228,9 @@ export default function BetHistoryTab({ matches = [] }) {
                       <span className="small">{h.match_stage}</span>
                     </td>
                     <td>{h.action_type}</td>
-                    <td>{h.home_score_prediction} x {h.away_score_prediction}</td>
+                    <td>
+                      {h.home_score_prediction} x {h.away_score_prediction}
+                    </td>
                     <td>
                       {h.prev_home_score_prediction ?? "-"} x {h.prev_away_score_prediction ?? "-"}
                     </td>
