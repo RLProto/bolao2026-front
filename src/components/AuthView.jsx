@@ -271,7 +271,7 @@ export default function AuthView({
               Informe seu email cadastrado:
               <br />
               <span className="small">
-                (Em dev, o link aparece no console do backend)
+                (Tela em desenvolvimento)
               </span>
             </p>
 
