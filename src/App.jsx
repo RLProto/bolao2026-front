@@ -611,7 +611,7 @@ function App() {
           <>
             <section className="hero hero-compact hero-worldcup">
               <div className="hero-text">
-                <h1>Seus palpites da Copa 2026</h1>
+                <h1>COPA DO MUNDO 2026</h1>
                 <p>
                   Faça seus palpites até 30 minutos antes de cada jogo. A
                   pontuação é calculada automaticamente com base no resultado da partida.
