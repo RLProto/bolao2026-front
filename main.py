@@ -16,10 +16,10 @@ from sqlalchemy import (
     Integer,
     String,
     DateTime,
+    Boolean,
     ForeignKey,
     UniqueConstraint,
     CheckConstraint,
-    NullPool,
 )
 from sqlalchemy.orm import (
     sessionmaker,
@@ -264,6 +264,7 @@ class UserRegister(BaseModel):
     name: str
     email: EmailStr
     password: str
+    accessCode: str
 
 
 class UserLogin(BaseModel):
@@ -387,6 +388,18 @@ class BetHistoryOut(BaseModel):
     class Config(_OrmConfig):
         pass
 
+class AccessCode(Base):
+    __tablename__ = "access_codes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String, unique=True, nullable=False, index=True)
+    is_master = Column(Boolean, nullable=False, default=False)
+    is_active = Column(Boolean, nullable=False, default=True)
+    used_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    used_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    used_by_user = relationship("User")
 
 # -----------------------------------
 # Regras de pontuação
@@ -395,7 +408,7 @@ class BetHistoryOut(BaseModel):
 POINT_EXACT = 18
 POINT_RESULT_AND_ONE_SCORE = 12
 POINT_RESULT_ONLY = 9
-POINT_WRONG_RESULT_ONE_SCORE = 6
+POINT_WRONG_RESULT_ONE_SCORE = 3
 POINT_PREDICTED_DRAW_ACTUAL_WIN = 3
 
 
@@ -444,22 +457,60 @@ def is_match_locked(match: Match) -> bool:
 
 @app.post("/auth/register", response_model=UserAuthOut)
 def register_user(payload: UserRegister, db: Session = Depends(get_db)):
-    if len(payload.password) < 8:
+    name = payload.name.strip()
+    email = payload.email.strip().lower()
+    password = payload.password
+    access_code_value = payload.accessCode.strip().lower()
+
+    if not name:
+        raise HTTPException(status_code=400, detail="Nome é obrigatório.")
+
+    if not access_code_value:
+        raise HTTPException(status_code=400, detail="Código de acesso é obrigatório.")
+
+    if len(password) < 8:
         raise HTTPException(status_code=400, detail="Senha muito curta (mínimo 8 caracteres).")
 
-    existing = db.query(User).filter(User.email == payload.email).first()
+    existing = db.query(User).filter(User.email == email).first()
     if existing:
         raise HTTPException(status_code=400, detail="Email já registrado")
 
-    user = User(
-        name=payload.name,
-        email=payload.email,
-        password_hash=hash_password(payload.password),
-        auth_token=generate_auth_token(),
+    access_code = (
+        db.query(AccessCode)
+        .filter(AccessCode.code == access_code_value)
+        .with_for_update()
+        .first()
     )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+
+    if not access_code:
+        raise HTTPException(status_code=400, detail="Código de acesso inválido.")
+
+    if not access_code.is_active:
+        raise HTTPException(status_code=400, detail="Código de acesso desativado.")
+
+    if not access_code.is_master and access_code.used_at is not None:
+        raise HTTPException(status_code=400, detail="Código de acesso já utilizado.")
+
+    try:
+        user = User(
+            name=name,
+            email=email,
+            password_hash=hash_password(password),
+            auth_token=generate_auth_token(),
+        )
+        db.add(user)
+        db.flush()
+
+        if not access_code.is_master:
+            access_code.used_by_user_id = user.id
+            access_code.used_at = datetime.now(timezone.utc)
+
+        db.commit()
+        db.refresh(user)
+
+    except Exception:
+        db.rollback()
+        raise
 
     return UserAuthOut(
         id=user.id,
@@ -468,7 +519,6 @@ def register_user(payload: UserRegister, db: Session = Depends(get_db)):
         auth_token=user.auth_token,
         profile=user.profile,
     )
-
 
 @app.post("/auth/login", response_model=UserAuthOut)
 def login_user(payload: UserLogin, db: Session = Depends(get_db)):
