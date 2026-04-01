@@ -1,16 +1,24 @@
 // src/api.js
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
-export async function registerUser(name, email, password) {
+export async function registerUser(name, email, password, accessCode) {
   const res = await fetch(`${API_URL}/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email, password }),
+    body: JSON.stringify({
+      name: name?.trim(),
+      email: email?.trim(),
+      password,
+      accessCode: accessCode?.trim(),
+    }),
   });
+
   const data = await res.json();
+
   if (!res.ok) {
     throw new Error(data.detail || "Erro ao registrar usuário");
   }
+
   return data; // { id, name, email, auth_token }
 }
 

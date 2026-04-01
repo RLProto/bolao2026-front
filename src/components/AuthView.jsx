@@ -14,6 +14,7 @@ export default function AuthView({
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [showAuthPassword, setShowAuthPassword] = useState(false);
+  const [authCode, setAuthCode] = useState("");
 
   // Mensagens
   const [authError, setAuthError] = useState("");
@@ -34,7 +35,11 @@ export default function AuthView({
     setAuthError("");
     setAuthMessage("");
 
-    if (!authEmail || !authPassword || (authMode === "register" && !authName)) {
+    if (
+      !authEmail ||
+      !authPassword ||
+      (authMode === "register" && (!authName || !authCode))
+    ) {
       setAuthError("Preencha todos os campos.");
       return;
     }
@@ -45,18 +50,26 @@ export default function AuthView({
     }
 
     setAuthLoading(true);
+
     try {
       let data;
+
       if (authMode === "register") {
-        data = await registerUser(authName.trim(), authEmail.trim(), authPassword);
+        data = await registerUser(
+          authName.trim(),
+          authEmail.trim(),
+          authPassword,
+          authCode.trim()
+        );
         setAuthMessage("Cadastro realizado com sucesso! Você já está logado.");
       } else {
         data = await loginUser(authEmail.trim(), authPassword);
       }
 
       onAuthSuccess(data);
-      setAuthPassword("");
 
+      setAuthPassword("");
+      setAuthCode("");
     } catch (err) {
       setAuthError(err.message || "Erro na autenticação");
     } finally {
@@ -95,13 +108,10 @@ export default function AuthView({
   // -------------------------------
   return (
     <>
-      {/* HERO */}
       <section className="hero hero-worldcup">
         <div className="hero-text">
           <h1>Bolão 2026</h1>
-          <p>
-            Faça seus palpites e acompanhe o ranking em tempo real.
-          </p>
+          <p>Faça seus palpites e acompanhe o ranking em tempo real.</p>
         </div>
 
         <div className="hero-badge">
@@ -111,9 +121,6 @@ export default function AuthView({
       </section>
 
       <div className="auth-layout">
-        {/* ==========================
-            PAINEL LOGIN / REGISTER
-           ========================== */}
         {authMode !== "reset" && (
           <div className="auth-card">
             <div className="auth-toggle">
@@ -151,6 +158,7 @@ export default function AuthView({
                     value={authName}
                     onChange={(e) => setAuthName(e.target.value)}
                     placeholder="Como quer aparecer no ranking"
+                    required
                   />
                 </div>
               )}
@@ -181,10 +189,11 @@ export default function AuthView({
                     type="button"
                     className="eye-btn"
                     onClick={() => setShowAuthPassword((v) => !v)}
-                    aria-label={showAuthPassword ? "Ocultar senha" : "Mostrar senha"}
+                    aria-label={
+                      showAuthPassword ? "Ocultar senha" : "Mostrar senha"
+                    }
                   >
                     {showAuthPassword ? (
-                      // Olho cortado
                       <svg
                         viewBox="0 0 24 24"
                         fill="none"
@@ -197,7 +206,6 @@ export default function AuthView({
                         <line x1="1" y1="1" x2="23" y2="23" />
                       </svg>
                     ) : (
-                      // Olho normal
                       <svg
                         viewBox="0 0 24 24"
                         fill="none"
@@ -212,10 +220,32 @@ export default function AuthView({
                 </div>
               </div>
 
-              {authError && <div className="alert alert-error">{authError}</div>}
-              {authMessage && <div className="alert alert-success">{authMessage}</div>}
+              {authMode === "register" && (
+                <div className="form-group">
+                  <label>Código de acesso</label>
+                  <input
+                    type="text"
+                    value={authCode}
+                    onChange={(e) => setAuthCode(e.target.value)}
+                    placeholder="Informe seu código"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    required
+                  />
+                </div>
+              )}
 
-              <button className="btn primary w-100" disabled={authLoading} type="submit">
+              {authError && <div className="alert alert-error">{authError}</div>}
+              {authMessage && (
+                <div className="alert alert-success">{authMessage}</div>
+              )}
+
+              <button
+                className="btn primary w-100"
+                disabled={authLoading}
+                type="submit"
+              >
                 {authLoading
                   ? "Enviando..."
                   : authMode === "login"
@@ -239,16 +269,15 @@ export default function AuthView({
           </div>
         )}
 
-        {/* ==========================
-            PAINEL RESET DE SENHA
-           ========================== */}
         {authMode === "reset" && (
           <div className="auth-card secondary">
             <h2>Redefinir senha</h2>
             <p className="subtitle">
               Informe seu email cadastrado:
               <br />
-              <span className="small">(Em dev, o link aparece no console do backend)</span>
+              <span className="small">
+                (Em dev, o link aparece no console do backend)
+              </span>
             </p>
 
             <form onSubmit={handleRequestReset} className="form">
@@ -268,7 +297,11 @@ export default function AuthView({
                 <div className="alert alert-success">{resetMessage}</div>
               )}
 
-              <button className="btn ghost w-100" disabled={resetLoading} type="submit">
+              <button
+                className="btn ghost w-100"
+                disabled={resetLoading}
+                type="submit"
+              >
                 {resetLoading ? "Enviando..." : "Enviar link de reset"}
               </button>
             </form>
