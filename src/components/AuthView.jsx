@@ -110,13 +110,8 @@ export default function AuthView({
     <>
       <section className="hero hero-worldcup">
         <div className="hero-text">
-          <h1>Bolão 2026</h1>
+          <h1>Bolão da Copa 2026</h1>
           <p>Faça seus palpites e acompanhe o ranking em tempo real.</p>
-        </div>
-
-        <div className="hero-badge">
-          <span>2026</span>
-          <small>World Cup</small>
         </div>
       </section>
 
