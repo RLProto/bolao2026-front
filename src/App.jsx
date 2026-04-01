@@ -458,7 +458,7 @@ function App() {
       <div className="app-shell">
         <header className="topbar">
           <div className="logo">
-            <span className="logo-mark">🏆</span> Bolão 2026
+            <span className="logo-mark"> </span> Bolão da Rafa 2026
           </div>
         </header>
         <ResetPasswordView
@@ -614,7 +614,7 @@ function App() {
                 <h1>Seus palpites da Copa 2026</h1>
                 <p>
                   Faça seus chutes até 30 minutos antes de cada jogo. A
-                  pontuação é calculada automaticamente com base no resultado.
+                  pontuação é calculada automaticamente com base no resultado do jogo.
                 </p>
               </div>
             </section>
