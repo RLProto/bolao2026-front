@@ -613,7 +613,7 @@ function App() {
               <div className="hero-text">
                 <h1>Seus palpites da Copa 2026</h1>
                 <p>
-                  Faça seus chutes até 5 minutos antes de cada jogo. A
+                  Faça seus chutes até 30 minutos antes de cada jogo. A
                   pontuação é calculada automaticamente com base no resultado.
                 </p>
               </div>
@@ -691,45 +691,34 @@ function App() {
             <div className="info-card">
               <h2>Regras de pontuação</h2>
               <p>
-                A pontuação de cada palpite é definida de acordo com a proximidade entre
-                o seu placar e o resultado final do jogo.
+                A pontuação de cada palpite depende do quão perto ele fica do placar
+                final da partida.
               </p>
 
               <ul className="rules-list">
                 <li>
                   <strong>18 pontos — Placar exato</strong>
-                  <span>Você acerta exatamente o placar final da partida.</span>
+                  <span>Acertou exatamente o placar final.</span>
                 </li>
 
                 <li>
                   <strong>12 pontos — Resultado correto + gols de um time</strong>
                   <span>
-                    Você acerta o vencedor (ou o empate) e também acerta os gols de um
-                    dos times.
+                    Acertou o vencedor (ou empate) e também os gols de um dos times.
                   </span>
                 </li>
 
                 <li>
                   <strong>9 pontos — Resultado correto</strong>
-                  <span>
-                    Você acerta apenas o vencedor da partida ou o empate, sem acertar
-                    nenhum dos placares.
-                  </span>
+                  <span>Acertou apenas o vencedor da partida ou o empate.</span>
                 </li>
 
                 <li>
-                  <strong>3 pontos — Acertou os gols de um time</strong>
+                  <strong>3 pontos — Acerto parcial</strong>
                   <span>
-                    Mesmo sem acertar o resultado final do jogo, você acerta exatamente
-                    os gols marcados por um dos times.
-                  </span>
-                </li>
-
-                <li>
-                  <strong>3 pontos — Apostou em empate, mas houve vencedor</strong>
-                  <span>
-                    Seu palpite foi empate, mas a partida terminou com vitória de um dos
-                    times.
+                    Vale 3 pontos quando você acerta os gols de apenas um dos times,
+                    mesmo errando o resultado, ou quando aposta em empate mas o jogo
+                    termina com vencedor.
                   </span>
                 </li>
               </ul>
