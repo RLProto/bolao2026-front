@@ -613,8 +613,8 @@ function App() {
               <div className="hero-text">
                 <h1>Seus palpites da Copa 2026</h1>
                 <p>
-                  Faça seus chutes até 30 minutos antes de cada jogo. A
-                  pontuação é calculada automaticamente com base no resultado do jogo.
+                  Faça seus palpites até 30 minutos antes de cada jogo. A
+                  pontuação é calculada automaticamente com base no resultado da partida.
                 </p>
               </div>
             </section>
