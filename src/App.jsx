@@ -691,58 +691,48 @@ function App() {
             <div className="info-card">
               <h2>Regras de pontuação</h2>
               <p>
-                A pontuação de cada palpite é calculada com base no placar final da
-                partida. Quanto mais perto do resultado real, mais pontos você marca.
+                A pontuação de cada palpite é definida de acordo com a proximidade entre
+                o seu placar e o resultado final do jogo.
               </p>
 
-              <div className="rules-list">
-                <div className="rule-item">
+              <ul className="rules-list">
+                <li>
                   <strong>18 pontos — Placar exato</strong>
-                  <span>
-                    Você acerta exatamente o placar do jogo.
-                  </span>
-                </div>
+                  <span>Você acerta exatamente o placar final da partida.</span>
+                </li>
 
-                <div className="rule-item">
-                  <strong>12 pontos — Resultado + 1 placar correto</strong>
+                <li>
+                  <strong>12 pontos — Resultado correto + gols de um time</strong>
                   <span>
-                    Você acerta o vencedor (ou empate) e também acerta o número de gols
-                    de um dos times.
+                    Você acerta o vencedor (ou o empate) e também acerta os gols de um
+                    dos times.
                   </span>
-                </div>
+                </li>
 
-                <div className="rule-item">
+                <li>
                   <strong>9 pontos — Resultado correto</strong>
                   <span>
                     Você acerta apenas o vencedor da partida ou o empate, sem acertar
                     nenhum dos placares.
                   </span>
-                </div>
+                </li>
 
-                <div className="rule-item">
-                  <strong>6 pontos — Resultado errado + 1 placar correto</strong>
+                <li>
+                  <strong>3 pontos — Acertou os gols de um time</strong>
                   <span>
-                    Você erra o vencedor da partida, mas acerta o número de gols de um
-                    dos times.
+                    Mesmo sem acertar o resultado final do jogo, você acerta exatamente
+                    os gols marcados por um dos times.
                   </span>
-                </div>
+                </li>
 
-                <div className="rule-item">
-                  <strong>3 pontos — Cravou empate, mas teve vencedor</strong>
+                <li>
+                  <strong>3 pontos — Apostou em empate, mas houve vencedor</strong>
                   <span>
-                    Você apostou em empate, mas a partida terminou com vitória de um dos
+                    Seu palpite foi empate, mas a partida terminou com vitória de um dos
                     times.
                   </span>
-                </div>
-              </div>
-
-              <div className="rules-note">
-                <p>
-                  <strong>Importante:</strong> a pontuação considera somente o resultado
-                  final do jogo no tempo regulamentar, salvo indicação contrária na fase
-                  eliminatória.
-                </p>
-              </div>
+                </li>
+              </ul>
             </div>
           </section>
         )}
