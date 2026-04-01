@@ -100,7 +100,7 @@ export default function AuthView({
         <div className="hero-text">
           <h1>Bolão 2026</h1>
           <p>
-            Monte seus palpites e acompanhe o ranking em tempo real.
+            Faça seus palpites e acompanhe o ranking em tempo real.
           </p>
         </div>
 

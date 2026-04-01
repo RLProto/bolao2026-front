@@ -458,7 +458,7 @@ function App() {
       <div className="app-shell">
         <header className="topbar">
           <div className="logo">
-            <span className="logo-mark"></span> Bolão da Rafa 2026
+            Bolão da Rafa 2026
           </div>
         </header>
         <ResetPasswordView
@@ -478,7 +478,7 @@ function App() {
       <div className="app-shell">
         <header className="topbar">
           <div className="logo">
-            <span className="logo-mark"></span> Bolão da Rafa 2026
+            Bolão da Rafa 2026
           </div>
         </header>
         <main className="main">
