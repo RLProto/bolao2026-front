@@ -691,16 +691,58 @@ function App() {
             <div className="info-card">
               <h2>Regras de pontuação</h2>
               <p>
-                Pontuação usada para cada palpite, de acordo com o resultado
-                final do jogo:
+                A pontuação de cada palpite é calculada com base no placar final da
+                partida. Quanto mais perto do resultado real, mais pontos você marca.
               </p>
-              <ul>
-                <li>Placar exato: 18 pontos</li>
-                <li>Resultado + 1 placar correto: 12 pontos</li>
-                <li>Resultado correto: 9 pontos</li>
-                <li>Resultado errado + 1 placar correto: 6 pontos</li>
-                <li>Cravou empate, mas teve vencedor: 3 pontos</li>
-              </ul>
+
+              <div className="rules-list">
+                <div className="rule-item">
+                  <strong>18 pontos — Placar exato</strong>
+                  <span>
+                    Você acerta exatamente o placar do jogo.
+                  </span>
+                </div>
+
+                <div className="rule-item">
+                  <strong>12 pontos — Resultado + 1 placar correto</strong>
+                  <span>
+                    Você acerta o vencedor (ou empate) e também acerta o número de gols
+                    de um dos times.
+                  </span>
+                </div>
+
+                <div className="rule-item">
+                  <strong>9 pontos — Resultado correto</strong>
+                  <span>
+                    Você acerta apenas o vencedor da partida ou o empate, sem acertar
+                    nenhum dos placares.
+                  </span>
+                </div>
+
+                <div className="rule-item">
+                  <strong>6 pontos — Resultado errado + 1 placar correto</strong>
+                  <span>
+                    Você erra o vencedor da partida, mas acerta o número de gols de um
+                    dos times.
+                  </span>
+                </div>
+
+                <div className="rule-item">
+                  <strong>3 pontos — Cravou empate, mas teve vencedor</strong>
+                  <span>
+                    Você apostou em empate, mas a partida terminou com vitória de um dos
+                    times.
+                  </span>
+                </div>
+              </div>
+
+              <div className="rules-note">
+                <p>
+                  <strong>Importante:</strong> a pontuação considera somente o resultado
+                  final do jogo no tempo regulamentar, salvo indicação contrária na fase
+                  eliminatória.
+                </p>
+              </div>
             </div>
           </section>
         )}
