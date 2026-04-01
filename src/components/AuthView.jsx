@@ -101,7 +101,6 @@ export default function AuthView({
           <h1>Bolão 2026</h1>
           <p>
             Monte seus palpites e acompanhe o ranking em tempo real.
-            Visual otimizado para celular • Estilo app oficial.
           </p>
         </div>
 

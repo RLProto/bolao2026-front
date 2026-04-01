@@ -478,7 +478,7 @@ function App() {
       <div className="app-shell">
         <header className="topbar">
           <div className="logo">
-            <span className="logo-mark">🏆</span> Bolão 2026
+            <span className="logo-mark"></span> Bolão da Rafa 2026
           </div>
         </header>
         <main className="main">
@@ -539,7 +539,7 @@ function App() {
       {/* Sidebar lateral */}
       <aside className={`menu-sidebar ${menuOpen ? "open" : ""}`}>
         <div className="menu-sidebar-header">
-          <span className="menu-sidebar-title">Bolão 2026</span>
+          <span className="menu-sidebar-title">COPA DO MUNDO 2026</span>
           <button
             className="menu-close-btn"
             onClick={() => setMenuOpen(false)}
