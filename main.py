@@ -50,7 +50,12 @@ SMTP_USER = os.getenv("SMTP_USER")
 SMTP_PASS = os.getenv("SMTP_PASS")
 SMTP_FROM = os.getenv("SMTP_FROM")
 
-origins = ["*"]
+cors_origins_env = os.getenv("CORS_ORIGINS", "*")
+origins = (
+    ["*"]
+    if cors_origins_env == "*"
+    else [origin.strip() for origin in cors_origins_env.split(",") if origin.strip()]
+)
 
 # IMPORTANT:
 # - NullPool evita problemas em ambientes tipo Render + Supabase pooler/session mode
@@ -522,7 +527,7 @@ def register_user(payload: UserRegister, db: Session = Depends(get_db)):
 
 @app.post("/auth/login", response_model=UserAuthOut)
 def login_user(payload: UserLogin, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == payload.email).first()
+    user = db.query(User).filter(User.email == payload.email.strip().lower()).first()
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Email ou senha inválidos")
 
@@ -542,7 +547,8 @@ def login_user(payload: UserLogin, db: Session = Depends(get_db)):
 
 @app.post("/auth/request-password-reset")
 def request_password_reset(payload: ResetPasswordRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == payload.email).first()
+    email = payload.email.strip().lower()
+    user = db.query(User).filter(User.email == email).first()
     if user:
         token = secrets.token_urlsafe(32)
         expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
