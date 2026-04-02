@@ -94,7 +94,7 @@ export default function AuthView({
     try {
       await requestPasswordReset(resetEmail.trim());
       setResetMessage(
-        "Se este email estiver cadastrado, você receberá um link de redefinição (em ambiente dev, veja o console do backend)."
+        "Se este email estiver cadastrado, você receberá um link para redefinir sua senha."
       );
     } catch (err) {
       setResetError(err.message || "Erro ao solicitar reset de senha.");
@@ -256,6 +256,8 @@ export default function AuthView({
                 onClick={() => {
                   setAuthMode("reset");
                   setResetEmail(authEmail || "");
+                  setResetMessage("");
+                  setResetError("");
                 }}
               >
                 Esqueceu a senha?
@@ -271,7 +273,7 @@ export default function AuthView({
               Informe seu email cadastrado:
               <br />
               <span className="small">
-                (Tela em desenvolvimento)
+                (Tela em desenvolvimento..)
               </span>
             </p>
 
@@ -308,6 +310,7 @@ export default function AuthView({
                 setAuthMode("login");
                 setResetMessage("");
                 setResetError("");
+                setResetEmail("");
               }}
             >
               Voltar
