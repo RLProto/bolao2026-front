@@ -102,9 +102,6 @@ export default function ViewBetsTab({
         {/* Linha do slider */}
         <div className="matches-filter-control">
           <div className="switch-row">
-            <span className="switch-label">
-              Ocultar jogos já com resultado oficial
-            </span>
             <div className="switch">
               <input
                 type="checkbox"

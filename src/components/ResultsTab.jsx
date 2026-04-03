@@ -88,6 +88,9 @@ export default function ResultsTab({
 
         <div className="matches-filter-control">
           {/* 👇 Slider de filtro */}
+          <span className="filter-label">
+            Ocultar jogos já postados e bloqueados
+          </span>
           <label className="switch">
             <input
               type="checkbox"
