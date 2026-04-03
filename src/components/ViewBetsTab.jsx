@@ -26,9 +26,7 @@ export default function ViewBetsTab({
     if (!hideCompleted) return base;
 
     // esconder jogos que já têm resultado oficial
-    return base.filter(
-      (m) => m.home_score == null && m.away_score == null
-    );
+    return base.filter((m) => m.home_score == null && m.away_score == null);
   }, [matches, hideCompleted]);
 
   const lockedMatchIds = useMemo(
@@ -70,10 +68,12 @@ export default function ViewBetsTab({
   const filteredBets = useMemo(
     () =>
       lockedBets.filter((b) => {
-        if (selectedMatchId !== "all" && b.match_id !== selectedMatchId)
+        if (selectedMatchId !== "all" && b.match_id !== selectedMatchId) {
           return false;
-        if (selectedUserId !== "all" && b.user_id !== selectedUserId)
+        }
+        if (selectedUserId !== "all" && b.user_id !== selectedUserId) {
           return false;
+        }
         return true;
       }),
     [lockedBets, selectedMatchId, selectedUserId]
@@ -98,10 +98,75 @@ export default function ViewBetsTab({
 
   return (
     <section className="section">
-      <div className="matches-filter">
-        {/* Linha do slider */}
-        <div className="matches-filter-control">
-          <div className="switch-row">
+      <div
+        className="view-bets-toolbar"
+        style={{
+          marginTop: "1.25rem",
+          marginBottom: "1.25rem",
+          padding: "1rem 1.1rem",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
+          borderRadius: "16px",
+          background: "rgba(255, 255, 255, 0.03)",
+        }}
+      >
+        <div
+          className="view-bets-toolbar-header"
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: "1rem",
+            marginBottom: "1rem",
+            flexWrap: "wrap",
+          }}
+        >
+          <div>
+            <h3
+              className="view-bets-title"
+              style={{
+                margin: "0 0 0.25rem 0",
+                fontSize: "1rem",
+                fontWeight: 700,
+              }}
+            >
+              Palpites públicos
+            </h3>
+
+            <p
+              className="view-bets-description"
+              style={{
+                margin: 0,
+                color: "rgba(255, 255, 255, 0.78)",
+                fontSize: "0.95rem",
+                lineHeight: 1.45,
+              }}
+            >
+              Veja os palpites dos outros jogadores para partidas cujo prazo já
+              encerrou.
+            </p>
+          </div>
+
+          <label
+            className="view-bets-switch-label"
+            htmlFor="hideCompletedSwitch"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.75rem",
+              cursor: "pointer",
+            }}
+          >
+            <span
+              className="view-bets-switch-text"
+              style={{
+                fontSize: "0.9rem",
+                color: "rgba(255, 255, 255, 0.82)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Ocultar jogos já finalizados
+            </span>
+
             <div className="switch">
               <input
                 type="checkbox"
@@ -111,54 +176,82 @@ export default function ViewBetsTab({
               />
               <span className="switch-slider" />
             </div>
-          </div>
-
-          <div className="matches-hint" style={{ marginTop: "0.4rem" }}>
-            Veja os palpites dos outros jogadores para partidas cujo prazo já
-            encerrou.
-          </div>
+          </label>
         </div>
 
-        {/* Filtro por jogo */}
-        <div className="matches-filter-control">
-          <label className="filter-label">Jogo</label>
-          <select
-            className="filter-select"
-            value={selectedMatchId}
-            onChange={(e) =>
-              setSelectedMatchId(
-                e.target.value === "all" ? "all" : Number(e.target.value)
-              )
-            }
+        <div
+          className="view-bets-filters-grid"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: "1rem",
+          }}
+        >
+          <div
+            className="matches-filter-control"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.45rem",
+            }}
           >
-            <option value="all">Todos os jogos</option>
-            {lockedMatches.map((m) => (
-              <option key={m.id} value={m.id}>
-                {matchLabelById[m.id]}
-              </option>
-            ))}
-          </select>
-        </div>
+            <label
+              className="filter-label"
+              style={{ fontSize: "0.9rem", fontWeight: 600 }}
+            >
+              Jogo
+            </label>
+            <select
+              className="filter-select"
+              style={{ minHeight: "44px" }}
+              value={selectedMatchId}
+              onChange={(e) =>
+                setSelectedMatchId(
+                  e.target.value === "all" ? "all" : Number(e.target.value)
+                )
+              }
+            >
+              <option value="all">Todos os jogos</option>
+              {lockedMatches.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {matchLabelById[m.id]}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        {/* Filtro por usuário */}
-        <div className="matches-filter-control">
-          <label className="filter-label">Usuário</label>
-          <select
-            className="filter-select"
-            value={selectedUserId}
-            onChange={(e) =>
-              setSelectedUserId(
-                e.target.value === "all" ? "all" : Number(e.target.value)
-              )
-            }
+          <div
+            className="matches-filter-control"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.45rem",
+            }}
           >
-            <option value="all">Todos os usuários</option>
-            {users.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name}
-              </option>
-            ))}
-          </select>
+            <label
+              className="filter-label"
+              style={{ fontSize: "0.9rem", fontWeight: 600 }}
+            >
+              Usuário
+            </label>
+            <select
+              className="filter-select"
+              style={{ minHeight: "44px" }}
+              value={selectedUserId}
+              onChange={(e) =>
+                setSelectedUserId(
+                  e.target.value === "all" ? "all" : Number(e.target.value)
+                )
+              }
+            >
+              <option value="all">Todos os usuários</option>
+              {users.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -166,9 +259,7 @@ export default function ViewBetsTab({
       {error && <div className="alert alert-error">{error}</div>}
 
       {!loading && !error && groupedByMatch.length === 0 && (
-        <p>
-          Ainda não há palpites públicos para exibir com os filtros atuais.
-        </p>
+        <p>Ainda não há palpites públicos para exibir com os filtros atuais.</p>
       )}
 
       {!loading &&

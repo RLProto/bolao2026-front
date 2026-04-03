@@ -1483,3 +1483,123 @@ select:focus {
     font-size: 0.9rem;
   }
 }
+
+/* ===== ViewBetsTab ===== */
+
+.view-bets-toolbar {
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(6px);
+}
+
+.view-bets-toolbar-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.view-bets-title {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.view-bets-description {
+  margin: 0;
+  max-width: 680px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.view-bets-switch-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.view-bets-switch-text {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.82);
+  white-space: nowrap;
+}
+
+.view-bets-filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.matches-filter-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.filter-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.filter-select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(8, 16, 40, 0.9);
+  color: #ffffff;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.filter-select:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.filter-select:focus {
+  border-color: rgba(193, 255, 74, 0.7);
+  box-shadow: 0 0 0 3px rgba(193, 255, 74, 0.12);
+}
+
+.filter-select option {
+  background: #0b1430;
+  color: #ffffff;
+}
+
+/* responsividade */
+@media (max-width: 640px) {
+  .view-bets-toolbar {
+    padding: 0.95rem;
+  }
+
+  .view-bets-toolbar-header {
+    margin-bottom: 0.9rem;
+  }
+
+  .view-bets-switch-label {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .view-bets-switch-text {
+    white-space: normal;
+  }
+
+  .view-bets-filters-grid {
+    grid-template-columns: 1fr;
+  }
+}
