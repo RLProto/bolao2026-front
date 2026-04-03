@@ -662,9 +662,9 @@ select:focus {
 
 .match-teams {
   display: grid;
-  grid-template-columns: minmax(0, 1.18fr) auto minmax(110px, 0.92fr);
+  grid-template-columns: minmax(0, 1.24fr) 100px minmax(92px, 0.86fr);
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
 }
 
 .team {
@@ -1626,15 +1626,14 @@ select:focus {
     grid-template-columns: 1fr;
   }
 }
-
 @media (max-width: 480px) {
   .match-teams {
-    grid-template-columns: minmax(0, 1.22fr) 96px minmax(92px, 0.88fr);
-    gap: 0.4rem;
+    grid-template-columns: minmax(0, 1.28fr) 100px minmax(88px, 0.82fr);
+    gap: 0.35rem;
   }
 
   .team {
-    gap: 0.35rem;
+    gap: 0.32rem;
   }
 
   .team-name {
@@ -1643,9 +1642,9 @@ select:focus {
   }
 
   .score-inputs {
-    min-width: 96px;
+    min-width: 100px;
     padding: 0.22rem 0.45rem;
-    transform: translateX(8px);
+    transform: none;
   }
 
   .score-inputs input {
