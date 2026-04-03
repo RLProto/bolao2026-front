@@ -272,9 +272,6 @@ export default function AuthView({
             <p className="subtitle">
               Informe seu email cadastrado:
               <br />
-              <span className="small">
-                (Tela em desenvolvimento..)
-              </span>
             </p>
 
             <form onSubmit={handleRequestReset} className="form">
