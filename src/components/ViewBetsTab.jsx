@@ -156,17 +156,6 @@ export default function ViewBetsTab({
               cursor: "pointer",
             }}
           >
-            <span
-              className="view-bets-switch-text"
-              style={{
-                fontSize: "0.9rem",
-                color: "rgba(255, 255, 255, 0.82)",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Ocultar jogos já finalizados
-            </span>
-
             <div className="switch">
               <input
                 type="checkbox"
