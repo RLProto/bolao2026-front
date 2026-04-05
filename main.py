@@ -747,7 +747,12 @@ def list_matches(
 
 @app.get("/teams")
 def list_teams(db: Session = Depends(get_db)):
-    teams = db.query(Team).order_by(Team.name.asc()).all()
+    teams = (
+        db.query(Team)
+        .filter(Team.id != 49)
+        .order_by(Team.name.asc())
+        .all()
+    )
     return [
         {
             "id": t.id,
@@ -805,6 +810,12 @@ def upsert_champion_pick(
     team = db.query(Team).filter(Team.id == payload.team_id).first()
     if not team:
         raise HTTPException(status_code=404, detail="Seleção não encontrada.")
+
+    if team.id == 49:
+        raise HTTPException(
+            status_code=400,
+            detail="A seleção 'A definir' não pode ser escolhida como campeã.",
+        )
 
     pick = db.query(ChampionPick).filter(ChampionPick.user_id == current_user.id).first()
     now = datetime.now(timezone.utc)
