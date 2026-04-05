@@ -86,7 +86,6 @@ app.add_middleware(
 # Models
 # -----------------------------------
 
-
 class User(Base):
     __tablename__ = "users"
 
@@ -189,7 +188,14 @@ class BetHistory(Base):
     user = relationship("User")
     match = relationship("Match")
 
+class ChampionConfig(Base):
+    __tablename__ = "champion_config"
 
+    id = Column(Integer, primary_key=True)
+    champion_team_id = Column(Integer, ForeignKey("teams.id", ondelete="RESTRICT"), nullable=True)
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    champion_team = relationship("Team")
 
 # -----------------------------------
 # Utils / Auth helpers
@@ -282,6 +288,12 @@ def is_champion_pick_locked(db: Session) -> bool:
     lock_at = get_champion_pick_lock_at(db)
     return now_utc >= lock_at
 
+
+def get_official_champion_team_id(db: Session) -> Optional[int]:
+    config = db.query(ChampionConfig).filter(ChampionConfig.id == 1).first()
+    if not config:
+        return None
+    return config.champion_team_id
 
 # -----------------------------------
 # Schemas (Pydantic)
@@ -460,7 +472,6 @@ POINT_RESULT_ONLY = 9
 POINT_WRONG_RESULT_ONE_SCORE = 3
 POINT_PREDICTED_DRAW_ACTUAL_WIN = 3
 CHAMPION_BONUS_POINTS = 40
-OFFICIAL_CHAMPION_TEAM_ID = None  # trocar depois manualmente
 
 
 def calculate_points_for_bet(match: Match, bet: Bet) -> int:
@@ -500,19 +511,22 @@ def is_match_locked(match: Match) -> bool:
     lock_time = match.kickoff_at_utc - timedelta(minutes=5)
     return now_utc >= lock_time
 
-def calculate_champion_bonus_for_user(user_id: int, champion_pick_by_user: Dict[int, int]) -> int:
-    if OFFICIAL_CHAMPION_TEAM_ID is None:
+def calculate_champion_bonus_for_user(
+    user_id: int,
+    champion_pick_by_user: Dict[int, int],
+    official_champion_team_id: Optional[int],
+) -> int:
+    if official_champion_team_id is None:
         return 0
 
     picked_team_id = champion_pick_by_user.get(user_id)
     if picked_team_id is None:
         return 0
 
-    if picked_team_id == OFFICIAL_CHAMPION_TEAM_ID:
+    if picked_team_id == official_champion_team_id:
         return CHAMPION_BONUS_POINTS
 
     return 0
-
 # -----------------------------------
 # Endpoints de Auth
 # -----------------------------------
@@ -997,6 +1011,7 @@ def get_ranking(db: Session = Depends(get_db)):
     matches_dict = {m.id: m for m in matches}
     points_by_user = {u.id: 0 for u in users}
     champion_pick_by_user = {cp.user_id: cp.team_id for cp in champion_picks}
+    official_champion_team_id = get_official_champion_team_id(db)
 
     for bet in bets:
         match = matches_dict.get(bet.match_id)
@@ -1007,6 +1022,7 @@ def get_ranking(db: Session = Depends(get_db)):
         points_by_user[user.id] += calculate_champion_bonus_for_user(
             user.id,
             champion_pick_by_user,
+            official_champion_team_id,
         )
 
     ranking = [
