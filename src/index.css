@@ -1659,3 +1659,101 @@ select:focus {
     width: 1.8rem;
   }
 }
+
+/* ================== PALPITE NO CAMPEÃO ================== */
+
+.champion-pick-box {
+  margin-top: 0.2rem;
+  margin-bottom: 0.95rem;
+  padding: 0.95rem 1rem;
+  border-radius: 16px;
+  border: 1px solid var(--card-border);
+  background:
+    radial-gradient(circle at top left, rgba(234, 179, 8, 0.12), transparent 55%),
+    var(--card-bg);
+  box-shadow: var(--shadow-soft);
+}
+
+.champion-pick-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.champion-pick-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.champion-pick-subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.86rem;
+  color: var(--text-soft);
+  line-height: 1.4;
+}
+
+.champion-pick-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem;
+}
+
+.champion-pick-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1 1 260px;
+}
+
+.champion-pick-select {
+  min-width: 220px;
+}
+
+.champion-pick-save-btn {
+  min-width: 190px;
+  height: 34px;
+  margin-left: auto;
+}
+
+.champion-pick-current {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+.champion-pick-info {
+  margin-top: 0.45rem;
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  line-height: 1.4;
+}
+
+.champion-pick-info-locked {
+  color: #fecaca;
+}
+
+.champion-pick-loading {
+  font-size: 0.88rem;
+  color: var(--text-soft);
+}
+
+@media (max-width: 768px) {
+  .champion-pick-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .champion-pick-save-btn {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .champion-pick-select {
+    width: 100%;
+    min-width: 0;
+  }
+}

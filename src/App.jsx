@@ -9,8 +9,11 @@ import {
   fetchRanking,
   saveBetsBulk,
   fetchPublicBets,
-  fetchBetHistory,           // histórico (admin)
-  saveMatchResultsBulk,      // 👈 NOVO
+  fetchBetHistory,
+  saveMatchResultsBulk,
+  fetchTeams,
+  fetchChampionPick,
+  saveChampionPick,
 } from "./api";
 
 import AuthView from "./components/AuthView";
@@ -112,6 +115,14 @@ function App() {
 
   const [tab, setTab] = useState("matches"); // matches | ranking | view-bets
 
+   // Palpite no campeão
+  const [teams, setTeams] = useState([]);
+  const [championPick, setChampionPick] = useState(null);
+  const [selectedChampionTeamId, setSelectedChampionTeamId] = useState("");
+  const [championPickLoading, setChampionPickLoading] = useState(false);
+  const [savingChampionPick, setSavingChampionPick] = useState(false);
+  const [championPickError, setChampionPickError] = useState("");
+
   // páginas controladas pelo menu lateral
   const [page, setPage] = useState("main"); // main | rules | prize | history | results
   const [menuOpen, setMenuOpen] = useState(false);
@@ -153,7 +164,60 @@ function App() {
     if (!session) return;
     loadMatches();
     loadRanking();
+    loadChampionFeatureData();
   }, [session]);
+
+
+  async function loadChampionFeatureData() {
+    setChampionPickLoading(true);
+    setChampionPickError("");
+
+    try {
+      const [teamsData, pickData] = await Promise.all([
+        fetchTeams(),
+        fetchChampionPick(),
+      ]);
+
+      setTeams(teamsData || []);
+      setChampionPick(pickData || null);
+      setSelectedChampionTeamId(
+        pickData?.team_id ? String(pickData.team_id) : ""
+      );
+    } catch (err) {
+      setChampionPickError(
+        err.message || "Erro ao carregar palpite do campeão."
+      );
+    } finally {
+      setChampionPickLoading(false);
+    }
+  }
+
+  async function handleSaveChampionPick() {
+    if (!selectedChampionTeamId) {
+      showToast("info", "Selecione uma equipe para palpitar o campeão.");
+      return;
+    }
+
+    try {
+      setSavingChampionPick(true);
+      setChampionPickError("");
+
+      const data = await saveChampionPick(Number(selectedChampionTeamId));
+
+      setChampionPick(data);
+      setSelectedChampionTeamId(
+        data?.team_id ? String(data.team_id) : ""
+      );
+
+      showToast("success", "Palpite no campeão salvo com sucesso!");
+    } catch (err) {
+      const msg = err.message || "Erro ao salvar palpite do campeão.";
+      setChampionPickError(msg);
+      showToast("error", msg);
+    } finally {
+      setSavingChampionPick(false);
+    }
+  }
 
   function showToast(type, message) {
     setToast({ type, message });
@@ -214,11 +278,12 @@ function App() {
     }
   }
 
-  async function loadBetHistory(limit = 200000) {
+  async function loadBetHistory({ userId, matchId } = {}) {
     setBetHistoryLoading(true);
     setBetHistoryError("");
+
     try {
-      const data = await fetchBetHistory(limit);
+      const data = await fetchBetHistory({ userId, matchId });
       setBetHistory(data);
     } catch (err) {
       setBetHistoryError(
@@ -241,6 +306,10 @@ function App() {
     setPage("main");
     setMenuOpen(false);
     setView("auth");
+    setTeams([]);
+    setChampionPick(null);
+    setSelectedChampionTeamId("");
+    setChampionPickError("");
   }
 
   function handleAuthSuccess(data) {
@@ -586,7 +655,7 @@ function App() {
               onClick={() => {
                 setPage("history");
                 setMenuOpen(false);
-                loadBetHistory();
+                loadBetHistory({ userId: session?.id });
               }}
             >
               Histórico de apostas
@@ -662,6 +731,14 @@ function App() {
                 orderMode={orderMode}
                 onOrderModeChange={setOrderMode}
                 isGroupRound={isGroupRound}
+                teams={teams}
+                championPick={championPick}
+                championPickLoading={championPickLoading}
+                championPickError={championPickError}
+                selectedChampionTeamId={selectedChampionTeamId}
+                onSelectedChampionTeamIdChange={setSelectedChampionTeamId}
+                onSaveChampionPick={handleSaveChampionPick}
+                savingChampionPick={savingChampionPick}
               />
             )}
 

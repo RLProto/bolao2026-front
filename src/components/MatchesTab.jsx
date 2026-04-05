@@ -17,10 +17,100 @@ export default function MatchesTab({
   orderMode,
   onOrderModeChange,
   isGroupRound,
+  teams,
+  championPick,
+  championPickLoading,
+  championPickError,
+  selectedChampionTeamId,
+  onSelectedChampionTeamIdChange,
+  onSaveChampionPick,
+  savingChampionPick,
 }) {
   return (
     <section className="section">
-      {/* Toolbar de filtros + botão salvar (topo) */}
+      <div className="champion-pick-box">
+        <div className="champion-pick-header">
+          <div>
+            <h3 className="champion-pick-title">Palpite no campeão</h3>
+            <p className="champion-pick-subtitle">
+              Quem acertar o campeão ganha <strong>40 pontos bônus</strong>.
+            </p>
+          </div>
+        </div>
+
+        {championPickLoading ? (
+          <div className="champion-pick-loading">
+            Carregando palpite do campeão...
+          </div>
+        ) : (
+          <>
+            <div className="champion-pick-controls">
+              <div className="champion-pick-field">
+                <label className="filter-label" htmlFor="champion-team-select">
+                  Campeão
+                </label>
+                <select
+                  id="champion-team-select"
+                  className="filter-select champion-pick-select"
+                  value={selectedChampionTeamId}
+                  onChange={(e) =>
+                    onSelectedChampionTeamIdChange(e.target.value)
+                  }
+                  disabled={championPick?.locked || savingChampionPick}
+                >
+                  <option value="">Selecione uma seleção</option>
+                  {teams.map((team) => (
+                    <option key={team.id} value={team.id}>
+                      {team.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                className="btn primary small champion-pick-save-btn"
+                onClick={onSaveChampionPick}
+                disabled={
+                  championPick?.locked ||
+                  savingChampionPick ||
+                  !selectedChampionTeamId
+                }
+              >
+                {savingChampionPick
+                  ? "Salvando..."
+                  : championPick?.team_id
+                  ? "Alterar palpite"
+                  : "Salvar palpite"}
+              </button>
+            </div>
+
+            {championPick?.team_name && (
+              <div className="champion-pick-current">
+                Seu palpite atual: <strong>{championPick.team_name}</strong>
+              </div>
+            )}
+
+            {!championPick?.locked ? (
+              <div className="champion-pick-info">
+                Você pode alterar seu palpite até{" "}
+                <strong>{formatDateTime(championPick?.lock_at_utc)}</strong>.
+              </div>
+            ) : (
+              <div className="champion-pick-info champion-pick-info-locked">
+                O prazo para palpitar o campeão foi encerrado em{" "}
+                <strong>{formatDateTime(championPick?.lock_at_utc)}</strong>.
+              </div>
+            )}
+
+            {championPickError && (
+              <div className="alert alert-error mt-8">
+                {championPickError}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
       <div className="matches-toolbar">
         <div className="matches-toolbar-actions">
           <div className="toolbar-control">
@@ -68,7 +158,6 @@ export default function MatchesTab({
         </div>
       </div>
 
-      {/* ✅ Só mostra "Carregando partidas..." quando NÃO está salvando */}
       {matchesLoading && !savingAll && <p>Carregando partidas...</p>}
 
       {matchesError && (
@@ -155,7 +244,6 @@ export default function MatchesTab({
         })}
       </div>
 
-      {/* Botão salvar (rodapé) */}
       <div className="matches-toolbar bottom-toolbar">
         <button
           className="btn primary small btn-save-all"

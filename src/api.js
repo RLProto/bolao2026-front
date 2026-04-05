@@ -231,3 +231,54 @@ export async function saveMatchResultsBulk(matches, officialResults) {
   }
   return data; // { status, updated, errors }
 }
+export async function fetchTeams() {
+  const res = await fetch(`${API_URL}/teams`, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.detail || "Erro ao carregar seleções.");
+  }
+
+  return data;
+}
+
+export async function fetchChampionPick() {
+  const res = await fetch(`${API_URL}/champion-pick`, {
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeadersWithAuth(),
+    },
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.detail || "Erro ao carregar palpite do campeão.");
+  }
+
+  return data;
+}
+
+export async function saveChampionPick(teamId) {
+  const res = await fetch(`${API_URL}/champion-pick`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeadersWithAuth(),
+    },
+    body: JSON.stringify({ team_id: teamId }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.detail || "Erro ao salvar palpite do campeão.");
+  }
+
+  return data;
+}
