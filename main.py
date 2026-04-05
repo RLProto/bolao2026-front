@@ -146,6 +146,18 @@ class Bet(Base):
     user = relationship("User", back_populates="bets")
     match = relationship("Match", back_populates="bets")
 
+class ChampionPick(Base):
+    __tablename__ = "champion_picks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True)
+    team_id = Column(Integer, ForeignKey("teams.id", ondelete="RESTRICT"), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    user = relationship("User")
+    team = relationship("Team")
+
 
 class BetHistory(Base):
     __tablename__ = "bet_history"
@@ -176,6 +188,7 @@ class BetHistory(Base):
 
     user = relationship("User")
     match = relationship("Match")
+
 
 
 # -----------------------------------
@@ -250,6 +263,24 @@ def get_current_user(
     if not user:
         raise HTTPException(status_code=401, detail="Sessão inválida")
     return user
+
+def get_champion_pick_lock_at(db: Session) -> datetime:
+    first_match = (
+        db.query(Match)
+        .order_by(Match.kickoff_at_utc.asc())
+        .first()
+    )
+
+    if not first_match:
+        raise HTTPException(status_code=500, detail="Nenhuma partida cadastrada.")
+
+    return first_match.kickoff_at_utc - timedelta(minutes=30)
+
+
+def is_champion_pick_locked(db: Session) -> bool:
+    now_utc = datetime.now(timezone.utc)
+    lock_at = get_champion_pick_lock_at(db)
+    return now_utc >= lock_at
 
 
 # -----------------------------------
@@ -405,6 +436,20 @@ class AccessCode(Base):
 
     used_by_user = relationship("User")
 
+class ChampionPickCreate(BaseModel):
+    team_id: int
+
+
+class ChampionPickOut(BaseModel):
+    user_id: int
+    team_id: Optional[int]
+    team_name: Optional[str]
+    locked: bool
+    lock_at_utc: datetime
+
+    class Config(_OrmConfig):
+        pass
+
 # -----------------------------------
 # Regras de pontuação
 # -----------------------------------
@@ -414,6 +459,8 @@ POINT_RESULT_AND_ONE_SCORE = 12
 POINT_RESULT_ONLY = 9
 POINT_WRONG_RESULT_ONE_SCORE = 3
 POINT_PREDICTED_DRAW_ACTUAL_WIN = 3
+CHAMPION_BONUS_POINTS = 40
+OFFICIAL_CHAMPION_TEAM_ID = None  # trocar depois manualmente
 
 
 def calculate_points_for_bet(match: Match, bet: Bet) -> int:
@@ -453,6 +500,18 @@ def is_match_locked(match: Match) -> bool:
     lock_time = match.kickoff_at_utc - timedelta(minutes=5)
     return now_utc >= lock_time
 
+def calculate_champion_bonus_for_user(user_id: int, champion_pick_by_user: Dict[int, int]) -> int:
+    if OFFICIAL_CHAMPION_TEAM_ID is None:
+        return 0
+
+    picked_team_id = champion_pick_by_user.get(user_id)
+    if picked_team_id is None:
+        return 0
+
+    if picked_team_id == OFFICIAL_CHAMPION_TEAM_ID:
+        return CHAMPION_BONUS_POINTS
+
+    return 0
 
 # -----------------------------------
 # Endpoints de Auth
@@ -672,6 +731,92 @@ def list_matches(
 
     return result
 
+@app.get("/teams")
+def list_teams(db: Session = Depends(get_db)):
+    teams = db.query(Team).order_by(Team.name.asc()).all()
+    return [
+        {
+            "id": t.id,
+            "name": t.name,
+            "fifa_code": t.fifa_code,
+            "group": t.group,
+        }
+        for t in teams
+    ]
+
+@app.get("/champion-pick", response_model=ChampionPickOut)
+def get_my_champion_pick(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    lock_at = get_champion_pick_lock_at(db)
+    locked = is_champion_pick_locked(db)
+
+    pick = (
+        db.query(ChampionPick)
+        .join(Team, Team.id == ChampionPick.team_id)
+        .filter(ChampionPick.user_id == current_user.id)
+        .first()
+    )
+
+    if not pick:
+        return ChampionPickOut(
+            user_id=current_user.id,
+            team_id=None,
+            team_name=None,
+            locked=locked,
+            lock_at_utc=lock_at,
+        )
+
+    return ChampionPickOut(
+        user_id=current_user.id,
+        team_id=pick.team_id,
+        team_name=pick.team.name,
+        locked=locked,
+        lock_at_utc=lock_at,
+    )
+
+@app.post("/champion-pick", response_model=ChampionPickOut)
+def upsert_champion_pick(
+    payload: ChampionPickCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if is_champion_pick_locked(db):
+        raise HTTPException(
+            status_code=403,
+            detail="O prazo para palpitar o campeão já foi encerrado.",
+        )
+
+    team = db.query(Team).filter(Team.id == payload.team_id).first()
+    if not team:
+        raise HTTPException(status_code=404, detail="Seleção não encontrada.")
+
+    pick = db.query(ChampionPick).filter(ChampionPick.user_id == current_user.id).first()
+    now = datetime.now(timezone.utc)
+
+    if pick is None:
+        pick = ChampionPick(
+            user_id=current_user.id,
+            team_id=payload.team_id,
+            created_at=now,
+            updated_at=now,
+        )
+        db.add(pick)
+    else:
+        pick.team_id = payload.team_id
+        pick.updated_at = now
+
+    db.commit()
+    db.refresh(pick)
+
+    return ChampionPickOut(
+        user_id=current_user.id,
+        team_id=pick.team_id,
+        team_name=team.name,
+        locked=False,
+        lock_at_utc=get_champion_pick_lock_at(db),
+    )
 
 @app.post("/bets", response_model=BetOut)
 def upsert_bet(
@@ -846,15 +991,23 @@ def upsert_bets_bulk(
 def get_ranking(db: Session = Depends(get_db)):
     users = db.query(User).all()
     matches = db.query(Match).all()
-    matches_dict = {m.id: m for m in matches}
     bets = db.query(Bet).all()
+    champion_picks = db.query(ChampionPick).all()
 
+    matches_dict = {m.id: m for m in matches}
     points_by_user = {u.id: 0 for u in users}
+    champion_pick_by_user = {cp.user_id: cp.team_id for cp in champion_picks}
 
     for bet in bets:
         match = matches_dict.get(bet.match_id)
         if match:
             points_by_user[bet.user_id] += calculate_points_for_bet(match, bet)
+
+    for user in users:
+        points_by_user[user.id] += calculate_champion_bonus_for_user(
+            user.id,
+            champion_pick_by_user,
+        )
 
     ranking = [
         RankingItem(
@@ -864,9 +1017,8 @@ def get_ranking(db: Session = Depends(get_db)):
         )
         for u in users
     ]
-    ranking.sort(key=lambda r: r.total_points, reverse=True)
+    ranking.sort(key=lambda r: (-r.total_points, r.user_name.lower()))
     return ranking
-
 
 @app.get("/bets/public", response_model=List[PublicBetOut])
 def list_public_bets(
