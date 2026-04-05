@@ -1700,6 +1700,7 @@ select:focus {
   flex-wrap: wrap;
   align-items: end;
   gap: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
 .champion-pick-field {
@@ -1717,10 +1718,11 @@ select:focus {
   min-width: 190px;
   height: 34px;
   margin-left: auto;
+  flex: 0 0 auto;
 }
 
 .champion-pick-current {
-  margin-top: 0.75rem;
+  margin-top: 0;
   font-size: 0.9rem;
   color: var(--text-main);
 }
@@ -1742,14 +1744,26 @@ select:focus {
 }
 
 @media (max-width: 768px) {
+  .champion-pick-box {
+    padding: 0.9rem;
+  }
+
   .champion-pick-controls {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.65rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .champion-pick-field {
+    flex: none;
+    width: 100%;
   }
 
   .champion-pick-save-btn {
     width: 100%;
     margin-left: 0;
+    min-width: 0;
   }
 
   .champion-pick-select {
