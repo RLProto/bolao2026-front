@@ -3,7 +3,6 @@ import React from "react";
 import FlagIcon from "./FlagIcon";
 
 export default function MatchesTab({
-  matches,
   visibleMatches,
   matchesLoading,
   matchesError,
@@ -28,11 +27,6 @@ export default function MatchesTab({
   onSaveChampionPick,
   savingChampionPick,
 }) {
-  const matchById = React.useMemo(() => {
-    const map = {};
-    (matches || []).forEach((m) => { map[m.id] = m; });
-    return map;
-  }, [matches]);
   return (
     <section className="section">
       <div className="champion-pick-box">
@@ -175,15 +169,11 @@ export default function MatchesTab({
 
       {saveBetsResult?.errors?.length > 0 && (
         <div className="alert alert-warning save-bets-errors">
-          <strong>Alguns palpites não foram salvos:</strong>
+          <strong>Alguns palpites não foram salvos ({saveBetsResult.saved} salvo(s)):</strong>
           <ul>
-            {saveBetsResult.errors.map((e) => {
-              const m = matchById[e.match_id];
-              const label = m
-                ? `${m.home_team_name || "TBD"} x ${m.away_team_name || "TBD"}`
-                : `Jogo #${e.match_id}`;
-              return <li key={e.match_id}>{label}: {e.error}</li>;
-            })}
+            {saveBetsResult.errors.map((msg, i) => (
+              <li key={i}>{msg}</li>
+            ))}
           </ul>
         </div>
       )}

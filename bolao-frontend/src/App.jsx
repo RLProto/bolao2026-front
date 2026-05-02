@@ -689,7 +689,6 @@ function App() {
 
             {tab === "matches" && (
               <MatchesTab
-                matches={matches}
                 visibleMatches={visibleMatches}
                 matchesLoading={matchesLoading}
                 matchesError={matchesError}
