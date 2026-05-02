@@ -24,6 +24,7 @@ from sqlalchemy import (
     ForeignKey,
     UniqueConstraint,
     CheckConstraint,
+    text,
 )
 from sqlalchemy.orm import (
     sessionmaker,
@@ -558,6 +559,8 @@ def register_user(payload: UserRegister, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Codigo de acesso e obrigatorio.")
     if len(password) < 8:
         raise HTTPException(status_code=400, detail="Senha muito curta (minimo 8 caracteres).")
+    if not any(c.isdigit() for c in password) or not any(c.isalpha() for c in password):
+        raise HTTPException(status_code=400, detail="Senha deve conter ao menos uma letra e um numero.")
 
     existing = db.query(User).filter(User.email == email).first()
     if existing:
@@ -880,36 +883,84 @@ def upsert_bets_bulk(payload: BetBulkCreate, db: Session = Depends(get_db), curr
 
 
 @app.get("/ranking", response_model=List[RankingItem])
-def get_ranking(db: Session = Depends(get_db)):
-    users = db.query(User.id, User.name).all()
-    bets_and_matches = (
-        db.query(Bet, Match)
-        .join(Match, Bet.match_id == Match.id)
-        .filter(Match.home_score.isnot(None), Match.away_score.isnot(None))
-        .all()
-    )
-    champion_picks = db.query(ChampionPick.user_id, ChampionPick.team_id).all()
-    official_champion_team_id = get_official_champion_team_id(db)
-    points_by_user: Dict[int, int] = {u.id: 0 for u in users}
-    champion_pick_by_user: Dict[int, int] = {cp.user_id: cp.team_id for cp in champion_picks}
-    for bet, match in bets_and_matches:
-        if bet.user_id in points_by_user:
-            points_by_user[bet.user_id] += calculate_points_for_bet(match, bet)
-    for user in users:
-        points_by_user[user.id] += calculate_champion_bonus_for_user(user.id, champion_pick_by_user, official_champion_team_id)
-    ranking = [RankingItem(user_id=u.id, user_name=u.name, total_points=points_by_user.get(u.id, 0)) for u in users]
-    ranking.sort(key=lambda r: (-r.total_points, r.user_name.lower()))
-    return ranking
+def get_ranking(
+    limit: int = Query(200, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    # Official champion (-1 never matches any real team id)
+    official_team_id = get_official_champion_team_id(db) or -1
+
+    # Single SQL query: CTE aggregates match points per user, outer query adds champion bonus
+    sql = text("""
+        WITH match_pts AS (
+            SELECT b.user_id,
+                   SUM(CASE
+                       WHEN b.home_score_prediction = m.home_score
+                        AND b.away_score_prediction = m.away_score
+                        THEN 18
+                       WHEN b.home_score_prediction = b.away_score_prediction
+                        AND m.home_score != m.away_score
+                        THEN 3
+                       WHEN (
+                               (b.home_score_prediction > b.away_score_prediction AND m.home_score > m.away_score)
+                            OR (b.home_score_prediction < b.away_score_prediction AND m.home_score < m.away_score)
+                            OR (b.home_score_prediction = b.away_score_prediction AND m.home_score = m.away_score)
+                           )
+                        AND (b.home_score_prediction = m.home_score OR b.away_score_prediction = m.away_score)
+                        THEN 12
+                       WHEN (
+                               (b.home_score_prediction > b.away_score_prediction AND m.home_score > m.away_score)
+                            OR (b.home_score_prediction < b.away_score_prediction AND m.home_score < m.away_score)
+                            OR (b.home_score_prediction = b.away_score_prediction AND m.home_score = m.away_score)
+                           )
+                        THEN 9
+                       WHEN b.home_score_prediction = m.home_score
+                         OR b.away_score_prediction = m.away_score
+                        THEN 3
+                       ELSE 0
+                   END) AS pts
+            FROM bets b
+            JOIN matches m ON m.id = b.match_id
+                AND m.home_score IS NOT NULL
+                AND m.away_score IS NOT NULL
+            GROUP BY b.user_id
+        )
+        SELECT
+            u.id        AS user_id,
+            u.name      AS user_name,
+            COALESCE(mp.pts, 0)
+            + CASE WHEN cp.team_id = :official_team_id THEN 40 ELSE 0 END
+            AS total_points
+        FROM users u
+        LEFT JOIN match_pts mp ON mp.user_id = u.id
+        LEFT JOIN champion_picks cp ON cp.user_id = u.id
+        ORDER BY total_points DESC, lower(u.name) ASC
+        LIMIT :lim OFFSET :off
+    """)
+
+    rows = db.execute(sql, {"official_team_id": official_team_id, "lim": limit, "off": offset}).fetchall()
+    return [
+        RankingItem(user_id=row.user_id, user_name=row.user_name, total_points=row.total_points)
+        for row in rows
+    ]
 
 
 @app.get("/bets/public", response_model=List[PublicBetOut])
-def list_public_bets(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def list_public_bets(
+    limit: int = Query(500, ge=1, le=2000),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     lock_cutoff = datetime.now(timezone.utc) + timedelta(minutes=5)
     bets = (
         db.query(Bet)
         .join(Match, Match.id == Bet.match_id)
         .filter(Match.kickoff_at_utc <= lock_cutoff)
         .options(joinedload(Bet.user))
+        .offset(offset)
+        .limit(limit)
         .all()
     )
     return [
@@ -948,6 +999,8 @@ def update_match_results_bulk(payload: MatchResultBulkUpdate, db: Session = Depe
 def list_bet_history(
     user_id: int = Query(..., ge=1),
     match_id: Optional[int] = Query(None),
+    limit: int = Query(200, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -961,7 +1014,7 @@ def list_bet_history(
     )
     if match_id is not None:
         q = q.filter(BetHistory.match_id == match_id)
-    rows = q.all()
+    rows = q.offset(offset).limit(limit).all()
     result: List[BetHistoryOut] = []
     for h in rows:
         m = h.match
