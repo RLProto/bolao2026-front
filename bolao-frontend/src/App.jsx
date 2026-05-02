@@ -14,6 +14,8 @@ import {
   fetchTeams,
   fetchChampionPick,
   saveChampionPick,
+  fetchAdminChampionConfig,
+  saveAdminChampionConfig,
 } from "./api";
 
 import AuthView from "./components/AuthView";
@@ -59,37 +61,6 @@ const ROUND_OPTIONS = [
   { value: "finais", label: "Finais" },
 ];
 
-// Heurística para descobrir etapa de mata-mata a partir do stage
-function getRoundFromStage(stage) {
-  const s = (stage || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
-
-  if (s.includes("16 avos") || s.includes("round of 32")) return "16 avos";
-  if (s.includes("oitavas") || s.includes("round of 16")) return "oitavas";
-  if (s.includes("quartas") || s.includes("quarter")) return "quartas";
-  if (s.includes("semi")) return "semi";
-
-  if (
-    s.includes("3º colocado") ||
-    s.includes("3o colocado") ||
-    s.includes("third place")
-  ) {
-    return "finais";
-  }
-
-  if (
-    s.includes("final") &&
-    !s.includes("semi") &&
-    !s.includes("quartas") &&
-    !s.includes("oitavas")
-  ) {
-    return "finais";
-  }
-
-  return null;
-}
 
 function App() {
   const [session, setSession] = useState(getInitialSession);
@@ -129,10 +100,18 @@ function App() {
 
   const [predictions, setPredictions] = useState({});
   const [savingAll, setSavingAll] = useState(false);
+  const [saveBetsResult, setSaveBetsResult] = useState(null); // { saved, errors }
 
   // resultados oficiais (admin)
   const [officialResults, setOfficialResults] = useState({}); // { [matchId]: { home, away } }
   const [savingResults, setSavingResults] = useState(false);
+
+  // campeão oficial (admin)
+  const [adminChampionConfig, setAdminChampionConfig] = useState(null);
+  const [adminChampionConfigLoading, setAdminChampionConfigLoading] = useState(false);
+  const [adminChampionConfigError, setAdminChampionConfigError] = useState("");
+  const [selectedAdminChampionTeamId, setSelectedAdminChampionTeamId] = useState("");
+  const [savingAdminChampion, setSavingAdminChampion] = useState(false);
 
   const [toast, setToast] = useState(null); // { type, message }
 
@@ -216,6 +195,38 @@ function App() {
       showToast("error", msg);
     } finally {
       setSavingChampionPick(false);
+    }
+  }
+
+  async function loadAdminChampionConfig() {
+    setAdminChampionConfigLoading(true);
+    setAdminChampionConfigError("");
+    try {
+      const data = await fetchAdminChampionConfig();
+      setAdminChampionConfig(data);
+      setSelectedAdminChampionTeamId(data?.team_id ? String(data.team_id) : "");
+    } catch (err) {
+      setAdminChampionConfigError(err.message || "Erro ao carregar campeão oficial.");
+    } finally {
+      setAdminChampionConfigLoading(false);
+    }
+  }
+
+  async function handleSaveAdminChampionConfig() {
+    try {
+      setSavingAdminChampion(true);
+      setAdminChampionConfigError("");
+      const teamId = selectedAdminChampionTeamId ? Number(selectedAdminChampionTeamId) : null;
+      const data = await saveAdminChampionConfig(teamId);
+      setAdminChampionConfig(data);
+      setSelectedAdminChampionTeamId(data?.team_id ? String(data.team_id) : "");
+      showToast("success", "Campeão oficial definido com sucesso!");
+    } catch (err) {
+      const msg = err.message || "Erro ao salvar campeão oficial.";
+      setAdminChampionConfigError(msg);
+      showToast("error", msg);
+    } finally {
+      setSavingAdminChampion(false);
     }
   }
 
@@ -377,16 +388,16 @@ function App() {
 
     try {
       setSavingAll(true);
+      setSaveBetsResult(null);
 
-      // 1) Salva os palpites
       const result = await saveBetsBulk(matches, predictions);
 
-      // 2) Recarrega as partidas (pode demorar por causa do Supabase)
+      setSaveBetsResult({ saved: result.saved, errors: result.errors || [] });
+
       await loadMatches();
 
-      // 3) Só agora mostra o toast
       if (result.saved > 0) {
-        showToast("success", "Seus palpites foram salvos com sucesso!");
+        showToast("success", `${result.saved} palpite(s) salvo(s) com sucesso!`);
       } else {
         showToast(
           "info",
@@ -436,52 +447,12 @@ function App() {
   }
 
   // --------- MAPA DE RODADA POR PARTIDA ---------
+  // Backend já calcula o campo `round` em cada partida — apenas indexamos por id.
   const roundByMatchId = useMemo(() => {
     const map = {};
-
-    const groups = matches.reduce((acc, m) => {
-      const key = m.stage || "";
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(m);
-      return acc;
-    }, {});
-
-    Object.entries(groups).forEach(([stage, groupMatches]) => {
-      const lowerStage = (stage || "").toLowerCase();
-
-      if (lowerStage.startsWith("grupo")) {
-        const sorted = groupMatches
-          .slice()
-          .sort(
-            (a, b) =>
-              new Date(a.kickoff_at_utc).getTime() -
-              new Date(b.kickoff_at_utc).getTime()
-          );
-
-        sorted.forEach((m, idx) => {
-          const roundIndex = Math.floor(idx / 2); // 2 jogos por rodada
-          const roundLabel =
-            roundIndex === 0
-              ? "1a rodada"
-              : roundIndex === 1
-              ? "2a rodada"
-              : roundIndex === 2
-              ? "3a rodada"
-              : null;
-          if (roundLabel) {
-            map[m.id] = roundLabel;
-          }
-        });
-      } else {
-        groupMatches.forEach((m) => {
-          const round = getRoundFromStage(m.stage);
-          if (round) {
-            map[m.id] = round;
-          }
-        });
-      }
+    matches.forEach((m) => {
+      if (m.round) map[m.id] = m.round;
     });
-
     return map;
   }, [matches]);
 
@@ -666,7 +637,8 @@ function App() {
               onClick={() => {
                 setPage("results");
                 setMenuOpen(false);
-                loadMatches(); // garante lista atualizada
+                loadMatches();
+                loadAdminChampionConfig();
               }}
             >
               Postar resultado
@@ -717,6 +689,7 @@ function App() {
 
             {tab === "matches" && (
               <MatchesTab
+                matches={matches}
                 visibleMatches={visibleMatches}
                 matchesLoading={matchesLoading}
                 matchesError={matchesError}
@@ -724,6 +697,7 @@ function App() {
                 onUpdatePrediction={updatePrediction}
                 onSaveAllBets={handleSaveAllBets}
                 savingAll={savingAll}
+                saveBetsResult={saveBetsResult}
                 formatDateTime={formatDateTime}
                 ROUND_OPTIONS={ROUND_OPTIONS}
                 selectedRound={selectedRound}
@@ -847,6 +821,14 @@ function App() {
                 onSaveAllResults={handleSaveAllResults}
                 savingResults={savingResults}
                 formatDateTime={formatDateTime}
+                teams={teams}
+                adminChampionConfig={adminChampionConfig}
+                adminChampionConfigLoading={adminChampionConfigLoading}
+                adminChampionConfigError={adminChampionConfigError}
+                selectedAdminChampionTeamId={selectedAdminChampionTeamId}
+                onSelectedAdminChampionTeamIdChange={setSelectedAdminChampionTeamId}
+                onSaveAdminChampionConfig={handleSaveAdminChampionConfig}
+                savingAdminChampion={savingAdminChampion}
               />
             ) : (
               <section className="section">

@@ -443,6 +443,28 @@ select:focus {
   color: #bbf7d0;
 }
 
+.alert-warning {
+  background: rgba(250, 204, 21, 0.1);
+  border: 1px solid rgba(250, 204, 21, 0.5);
+  color: #fef08a;
+}
+
+.alert-warning ul {
+  margin: 0.3rem 0 0 1rem;
+  padding: 0;
+}
+
+.save-bets-errors {
+  margin-bottom: 0.75rem;
+}
+
+.tz-hint {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.38);
+  margin: 0 0 0.5rem 0;
+  text-align: right;
+}
+
 .toast {
   position: fixed;
   bottom: 1rem;
