@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   registerUser,
   loginUser,
@@ -9,7 +9,6 @@ import {
   fetchRanking,
   saveBetsBulk,
   fetchPublicBets,
-  fetchBetHistory,
   saveMatchResultsBulk,
   fetchTeams,
   fetchChampionPick,
@@ -79,10 +78,7 @@ function App() {
   const [publicBetsLoading, setPublicBetsLoading] = useState(false);
   const [publicBetsError, setPublicBetsError] = useState("");
 
-  // histórico de apostas (admin/debug)
-  const [betHistory, setBetHistory] = useState([]);
-  const [betHistoryLoading, setBetHistoryLoading] = useState(false);
-  const [betHistoryError, setBetHistoryError] = useState("");
+  const rankingFetchedAt = useRef(null);
 
   const [tab, setTab] = useState("matches"); // matches | ranking | view-bets
 
@@ -264,16 +260,24 @@ function App() {
   }
 
   async function loadRanking() {
+    const now = Date.now();
+    if (rankingFetchedAt.current && now - rankingFetchedAt.current < 60_000) return;
     setRankingLoading(true);
     setRankingError("");
     try {
       const data = await fetchRanking();
       setRanking(data);
+      rankingFetchedAt.current = Date.now();
     } catch (err) {
       setRankingError(err.message || "Erro ao carregar ranking");
     } finally {
       setRankingLoading(false);
     }
+  }
+
+  async function loadRankingForced() {
+    rankingFetchedAt.current = null;
+    await loadRanking();
   }
 
   async function loadPublicBets() {
@@ -289,30 +293,14 @@ function App() {
     }
   }
 
-  async function loadBetHistory({ userId, matchId } = {}) {
-    setBetHistoryLoading(true);
-    setBetHistoryError("");
-
-    try {
-      const data = await fetchBetHistory({ userId, matchId });
-      setBetHistory(data);
-    } catch (err) {
-      setBetHistoryError(
-        err.message || "Erro ao carregar histórico de apostas"
-      );
-    } finally {
-      setBetHistoryLoading(false);
-    }
-  }
-
   function handleLogout() {
     localStorage.removeItem("bolao_user");
     setSession(null);
     setMatches([]);
     setRanking([]);
+    rankingFetchedAt.current = null;
     setPredictions({});
     setPublicBets([]);
-    setBetHistory([]);
     setOfficialResults({});
     setPage("main");
     setMenuOpen(false);
@@ -335,15 +323,13 @@ function App() {
     setView("main");
   }
 
-  function updatePrediction(matchId, field, value) {
+  const updatePrediction = useCallback((matchId, field, value) => {
     let cleaned = value.replace(/\D/g, "").slice(0, 2);
-
     if (cleaned !== "") {
       let num = Number(cleaned);
       if (num > 10) num = 10;
       cleaned = String(num);
     }
-
     setPredictions((prev) => ({
       ...prev,
       [matchId]: {
@@ -351,7 +337,7 @@ function App() {
         [field]: cleaned,
       },
     }));
-  }
+  }, []);
 
   function updateOfficialResult(matchId, field, value) {
     let cleaned = value.replace(/\D/g, "").slice(0, 2);
@@ -545,6 +531,8 @@ function App() {
             className={`menu-btn ${menuOpen ? "open" : ""}`}
             onClick={() => setMenuOpen((open) => !open)}
             aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
+            aria-expanded={menuOpen}
+            aria-controls="main-sidebar"
           >
             <span className="menu-icon" />
           </button>
@@ -577,7 +565,7 @@ function App() {
       )}
 
       {/* Sidebar lateral */}
-      <aside className={`menu-sidebar ${menuOpen ? "open" : ""}`}>
+      <aside id="main-sidebar" className={`menu-sidebar ${menuOpen ? "open" : ""}`}>
         <div className="menu-sidebar-header">
           <span className="menu-sidebar-title">COPA DO MUNDO 2026</span>
           <button
@@ -626,7 +614,6 @@ function App() {
               onClick={() => {
                 setPage("history");
                 setMenuOpen(false);
-                loadBetHistory({ userId: session?.id });
               }}
             >
               Histórico de apostas
@@ -692,6 +679,7 @@ function App() {
                 visibleMatches={visibleMatches}
                 matchesLoading={matchesLoading}
                 matchesError={matchesError}
+                onRetry={loadMatches}
                 predictions={predictions}
                 onUpdatePrediction={updatePrediction}
                 onSaveAllBets={handleSaveAllBets}
@@ -720,6 +708,7 @@ function App() {
                 ranking={ranking}
                 rankingLoading={rankingLoading}
                 rankingError={rankingError}
+                onRetry={loadRankingForced}
                 session={session}
               />
             )}
@@ -791,12 +780,7 @@ function App() {
         {page === "history" && (
           <>
             {isAdmin ? (
-              <BetHistoryTab
-                history={betHistory}
-                loading={betHistoryLoading}
-                error={betHistoryError}
-                formatDateTime={formatDateTime}
-              />
+              <BetHistoryTab />
             ) : (
               <section className="section">
                 <div className="info-card">

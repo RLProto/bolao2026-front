@@ -1,13 +1,31 @@
 // src/components/RankingTab.jsx
 import React from "react";
 
-export default function RankingTab({ ranking, rankingLoading, rankingError, session }) {
+export default function RankingTab({ ranking, rankingLoading, rankingError, onRetry, session }) {
   return (
     <section className="section">
-      {rankingLoading && <p>Carregando ranking...</p>}
-      {rankingError && <div className="alert alert-error">{rankingError}</div>}
+      {rankingLoading && (
+        <div className="loading-state">
+          <span className="spinner" aria-hidden="true" />
+          Carregando ranking...
+        </div>
+      )}
+
+      {rankingError && (
+        <div className="alert alert-error error-with-retry">
+          {rankingError}
+          {onRetry && (
+            <button className="btn ghost small retry-btn" onClick={onRetry}>
+              Tentar novamente
+            </button>
+          )}
+        </div>
+      )}
+
       {!rankingLoading && !rankingError && ranking.length === 0 && (
-        <p>Ainda não há usuários no ranking.</p>
+        <p className="empty-state">
+          O ranking será exibido após o primeiro jogo com resultado oficial.
+        </p>
       )}
 
       {ranking.length > 0 && (

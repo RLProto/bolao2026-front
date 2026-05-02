@@ -2,10 +2,79 @@
 import React from "react";
 import FlagIcon from "./FlagIcon";
 
+const MatchCard = React.memo(function MatchCard({
+  m,
+  predHome,
+  predAway,
+  onUpdatePrediction,
+  formatDateTime,
+}) {
+  const homeName = m.home_team_name || "TBD";
+  const awayName = m.away_team_name || "TBD";
+  const homeCode = m.home_team_name ? m.home_team_code : null;
+  const awayCode = m.away_team_name ? m.away_team_code : null;
+
+  return (
+    <div className={`match-card ${m.is_locked ? "locked" : ""}`}>
+      <div className="match-header">
+        <span className="match-stage">{m.stage}</span>
+        <span className="match-datetime">{formatDateTime(m.kickoff_at_utc)}</span>
+      </div>
+
+      <div className="match-teams">
+        <div className="team">
+          <FlagIcon code={homeCode} name={homeName} />
+          <span className="team-name">{homeName}</span>
+        </div>
+
+        <div className="score-inputs">
+          <input
+            type="text"
+            inputMode="numeric"
+            value={predHome}
+            onChange={(e) => onUpdatePrediction(m.id, "home", e.target.value)}
+            disabled={m.is_locked}
+            aria-label={`Gols ${homeName}`}
+          />
+          <span className="x">x</span>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={predAway}
+            onChange={(e) => onUpdatePrediction(m.id, "away", e.target.value)}
+            disabled={m.is_locked}
+            aria-label={`Gols ${awayName}`}
+          />
+        </div>
+
+        <div className="team away">
+          <FlagIcon code={awayCode} name={awayName} />
+          <span className="team-name">{awayName}</span>
+        </div>
+      </div>
+
+      <div className="match-footer">
+        {m.home_score != null && m.away_score != null && (
+          <div className="final-score">
+            Resultado oficial:{" "}
+            <strong>{m.home_score} x {m.away_score}</strong>
+          </div>
+        )}
+        {m.is_locked && (
+          <div className="match-actions">
+            <span className="badge locked">Palpites bloqueados</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
 export default function MatchesTab({
   visibleMatches,
   matchesLoading,
   matchesError,
+  onRetry,
   predictions,
   onUpdatePrediction,
   onSaveAllBets,
@@ -40,8 +109,9 @@ export default function MatchesTab({
         </div>
 
         {championPickLoading ? (
-          <div className="champion-pick-loading">
-            Carregando palpite do campeão...
+          <div className="loading-state">
+            <span className="spinner" aria-hidden="true" />
+            Carregando...
           </div>
         ) : (
           <>
@@ -54,9 +124,7 @@ export default function MatchesTab({
                   id="champion-team-select"
                   className="filter-select champion-pick-select"
                   value={selectedChampionTeamId}
-                  onChange={(e) =>
-                    onSelectedChampionTeamIdChange(e.target.value)
-                  }
+                  onChange={(e) => onSelectedChampionTeamIdChange(e.target.value)}
                   disabled={championPick?.locked || savingChampionPick}
                 >
                   <option value="">Selecione uma seleção</option>
@@ -71,11 +139,7 @@ export default function MatchesTab({
               <button
                 className="btn primary small champion-pick-save-btn"
                 onClick={onSaveChampionPick}
-                disabled={
-                  championPick?.locked ||
-                  savingChampionPick ||
-                  !selectedChampionTeamId
-                }
+                disabled={championPick?.locked || savingChampionPick || !selectedChampionTeamId}
               >
                 {savingChampionPick
                   ? "Salvando..."
@@ -104,9 +168,7 @@ export default function MatchesTab({
             )}
 
             {championPickError && (
-              <div className="alert alert-error mt-8">
-                {championPickError}
-              </div>
+              <div className="alert alert-error mt-8">{championPickError}</div>
             )}
           </>
         )}
@@ -161,10 +223,22 @@ export default function MatchesTab({
 
       <p className="tz-hint">Horários exibidos no fuso horário local do seu dispositivo.</p>
 
-      {matchesLoading && !savingAll && <p>Carregando partidas...</p>}
+      {matchesLoading && !savingAll && (
+        <div className="loading-state">
+          <span className="spinner" aria-hidden="true" />
+          Carregando partidas...
+        </div>
+      )}
 
       {matchesError && (
-        <div className="alert alert-error">{matchesError}</div>
+        <div className="alert alert-error error-with-retry">
+          {matchesError}
+          {onRetry && (
+            <button className="btn ghost small retry-btn" onClick={onRetry}>
+              Tentar novamente
+            </button>
+          )}
+        </div>
       )}
 
       {saveBetsResult?.errors?.length > 0 && (
@@ -179,83 +253,20 @@ export default function MatchesTab({
       )}
 
       {!matchesLoading && !matchesError && visibleMatches.length === 0 && (
-        <p>Nenhuma partida cadastrada ainda.</p>
+        <p className="empty-state">Nenhuma partida cadastrada ainda.</p>
       )}
 
       <div className="match-grid">
-        {visibleMatches.map((m) => {
-          const pred = predictions[m.id] || { home: "", away: "" };
-
-          const homeName = m.home_team_name || "TBD";
-          const awayName = m.away_team_name || "TBD";
-          const homeCode = m.home_team_name ? m.home_team_code : null;
-          const awayCode = m.away_team_name ? m.away_team_code : null;
-          const stageLabel = m.stage;
-
-          return (
-            <div
-              className={`match-card ${m.is_locked ? "locked" : ""}`}
-              key={m.id}
-            >
-              <div className="match-header">
-                <span className="match-stage">{stageLabel}</span>
-                <span className="match-datetime">
-                  {formatDateTime(m.kickoff_at_utc)}
-                </span>
-              </div>
-
-              <div className="match-teams">
-                <div className="team">
-                  <FlagIcon code={homeCode} name={homeName} />
-                  <span className="team-name">{homeName}</span>
-                </div>
-
-                <div className="score-inputs">
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={pred.home}
-                    onChange={(e) =>
-                      onUpdatePrediction(m.id, "home", e.target.value)
-                    }
-                    disabled={m.is_locked}
-                  />
-                  <span className="x">x</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={pred.away}
-                    onChange={(e) =>
-                      onUpdatePrediction(m.id, "away", e.target.value)
-                    }
-                    disabled={m.is_locked}
-                  />
-                </div>
-
-                <div className="team away">
-                  <FlagIcon code={awayCode} name={awayName} />
-                  <span className="team-name">{awayName}</span>
-                </div>
-              </div>
-
-              <div className="match-footer">
-                {m.home_score != null && m.away_score != null && (
-                  <div className="final-score">
-                    Resultado oficial:{" "}
-                    <strong>
-                      {m.home_score} x {m.away_score}
-                    </strong>
-                  </div>
-                )}
-                {m.is_locked && (
-                  <div className="match-actions">
-                    <span className="badge locked">Palpites bloqueados</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
+        {visibleMatches.map((m) => (
+          <MatchCard
+            key={m.id}
+            m={m}
+            predHome={predictions[m.id]?.home ?? ""}
+            predAway={predictions[m.id]?.away ?? ""}
+            onUpdatePrediction={onUpdatePrediction}
+            formatDateTime={formatDateTime}
+          />
+        ))}
       </div>
 
       <div className="matches-toolbar bottom-toolbar">
