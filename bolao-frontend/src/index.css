@@ -595,11 +595,12 @@ select:focus {
 }
 
 .toast-success {
-  background: rgba(15, 30, 20, 0.92);
-  color: #dcfce7;
+  background: rgba(22, 163, 74, 0.95);
+  color: #f0fdf4;
+  border-color: rgba(74, 222, 128, 0.4);
 }
-.toast-success .toast-icon { background: #22c55e; color: #052e16; }
-.toast-success .toast-bar { background: #22c55e; }
+.toast-success .toast-icon { background: rgba(0, 0, 0, 0.2); color: #f0fdf4; }
+.toast-success .toast-bar { background: rgba(255, 255, 255, 0.5); }
 
 .toast-error {
   background: rgba(30, 10, 10, 0.93);

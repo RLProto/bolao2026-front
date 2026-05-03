@@ -247,9 +247,22 @@ export default function MatchesTab({
         </div>
       )}
 
+      {saveBetsResult?.incomplete?.length > 0 && (
+        <div className="alert alert-warning save-bets-errors">
+          <strong>Atenção: {saveBetsResult.incomplete.length} palpite(s) incompleto(s) não foram salvos:</strong>
+          <ul>
+            {saveBetsResult.incomplete.map((m) => (
+              <li key={m.id}>
+                {m.home_team_name || "TBD"} x {m.away_team_name || "TBD"}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {saveBetsResult?.errors?.length > 0 && (
         <div className="alert alert-warning save-bets-errors">
-          <strong>Alguns palpites não foram salvos ({saveBetsResult.saved} salvo(s)):</strong>
+          <strong>Alguns palpites não foram salvos:</strong>
           <ul>
             {saveBetsResult.errors.map((msg, i) => (
               <li key={i}>{msg}</li>

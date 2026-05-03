@@ -379,13 +379,22 @@ function App() {
       return;
     }
 
+    const incompleteMatches = matches.filter((m) => {
+      if (m.is_locked) return false;
+      const p = predictions[m.id];
+      if (!p) return false;
+      const homeOk = p.home !== "";
+      const awayOk = p.away !== "";
+      return homeOk !== awayOk;
+    });
+
     try {
       setSavingAll(true);
       setSaveBetsResult(null);
 
       const result = await saveBetsBulk(matches, predictions);
 
-      setSaveBetsResult({ saved: result.saved, errors: result.errors || [] });
+      setSaveBetsResult({ saved: result.saved, errors: result.errors || [], incomplete: incompleteMatches });
       setDirtyIds(new Set());
 
       await loadMatches();
