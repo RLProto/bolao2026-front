@@ -400,10 +400,7 @@ function App() {
       await loadMatches();
 
       if (incompleteMatches.length > 0) {
-        const names = incompleteMatches
-          .map((m) => `${m.home_team_name || "TBD"} x ${m.away_team_name || "TBD"}`)
-          .join(", ");
-        showToast("warning", `Palpite(s) incompleto(s) não salvo(s): ${names}`);
+        showToast("warning", "Alguns palpites não foram salvos. Verifique acima.");
       } else if (result.saved > 0) {
         showToast("success", "Palpites salvos com sucesso!");
       } else {

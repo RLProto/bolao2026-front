@@ -953,7 +953,8 @@ select:focus {
 }
 
 .match-card.unsaved {
-  border-color: rgba(245, 158, 11, 0.45);
+  border-color: #f59e0b;
+  box-shadow: var(--shadow-soft), 0 0 0 1px rgba(245, 158, 11, 0.3);
 }
 
 .match-card.unsaved::after {
