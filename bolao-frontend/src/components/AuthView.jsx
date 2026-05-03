@@ -1,6 +1,22 @@
 // src/components/AuthView.jsx
 import React, { useState } from "react";
 
+function getPasswordStrength(pw) {
+  if (!pw) return { level: 0, label: "", color: "" };
+  if (pw.length < 8) return { level: 1, label: "Muito fraca", color: "#ef4444" };
+  const hasLetter = /[a-zA-Z]/.test(pw);
+  const hasDigit = /\d/.test(pw);
+  const hasSpecial = /[^a-zA-Z0-9]/.test(pw);
+  const isLong = pw.length >= 12;
+  if (hasLetter && hasDigit && (hasSpecial || isLong)) {
+    return { level: 3, label: "Forte", color: "#22c55e" };
+  }
+  if (hasLetter && hasDigit) {
+    return { level: 2, label: "Média", color: "#eab308" };
+  }
+  return { level: 1, label: "Fraca", color: "#ef4444" };
+}
+
 export default function AuthView({
   onAuthSuccess,
   registerUser,
@@ -179,6 +195,22 @@ export default function AuthView({
                     placeholder="Mínimo 8 caracteres"
                     required
                   />
+                  {authMode === "register" && authPassword.length > 0 && (() => {
+                    const { level, label, color } = getPasswordStrength(authPassword);
+                    return (
+                      <div className="pw-strength" aria-live="polite">
+                        <div className="pw-strength-bar">
+                          <div
+                            className="pw-strength-fill"
+                            style={{ width: `${(level / 3) * 100}%`, background: color }}
+                          />
+                        </div>
+                        <span className="pw-strength-text" style={{ color }}>
+                          {label}
+                        </span>
+                      </div>
+                    );
+                  })()}
 
                   <button
                     type="button"

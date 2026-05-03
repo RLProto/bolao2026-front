@@ -282,3 +282,23 @@ export async function saveChampionPick(teamId) {
 
   return data;
 }
+
+export async function fetchAdminChampionConfig() {
+  const res = await fetch(`${API_URL}/admin/champion-config`, {
+    headers: { "Content-Type": "application/json", ...getHeadersWithAuth() },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || "Erro ao carregar campeão oficial");
+  return data;
+}
+
+export async function saveAdminChampionConfig(teamId) {
+  const res = await fetch(`${API_URL}/admin/champion-config`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getHeadersWithAuth() },
+    body: JSON.stringify({ team_id: teamId ?? null }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || "Erro ao salvar campeão oficial");
+  return data;
+}

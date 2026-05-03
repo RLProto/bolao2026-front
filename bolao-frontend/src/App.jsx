@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   registerUser,
   loginUser,
@@ -9,11 +9,12 @@ import {
   fetchRanking,
   saveBetsBulk,
   fetchPublicBets,
-  fetchBetHistory,
   saveMatchResultsBulk,
   fetchTeams,
   fetchChampionPick,
   saveChampionPick,
+  fetchAdminChampionConfig,
+  saveAdminChampionConfig,
 } from "./api";
 
 import AuthView from "./components/AuthView";
@@ -59,37 +60,6 @@ const ROUND_OPTIONS = [
   { value: "finais", label: "Finais" },
 ];
 
-// Heurística para descobrir etapa de mata-mata a partir do stage
-function getRoundFromStage(stage) {
-  const s = (stage || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
-
-  if (s.includes("16 avos") || s.includes("round of 32")) return "16 avos";
-  if (s.includes("oitavas") || s.includes("round of 16")) return "oitavas";
-  if (s.includes("quartas") || s.includes("quarter")) return "quartas";
-  if (s.includes("semi")) return "semi";
-
-  if (
-    s.includes("3º colocado") ||
-    s.includes("3o colocado") ||
-    s.includes("third place")
-  ) {
-    return "finais";
-  }
-
-  if (
-    s.includes("final") &&
-    !s.includes("semi") &&
-    !s.includes("quartas") &&
-    !s.includes("oitavas")
-  ) {
-    return "finais";
-  }
-
-  return null;
-}
 
 function App() {
   const [session, setSession] = useState(getInitialSession);
@@ -108,10 +78,7 @@ function App() {
   const [publicBetsLoading, setPublicBetsLoading] = useState(false);
   const [publicBetsError, setPublicBetsError] = useState("");
 
-  // histórico de apostas (admin/debug)
-  const [betHistory, setBetHistory] = useState([]);
-  const [betHistoryLoading, setBetHistoryLoading] = useState(false);
-  const [betHistoryError, setBetHistoryError] = useState("");
+  const rankingFetchedAt = useRef(null);
 
   const [tab, setTab] = useState("matches"); // matches | ranking | view-bets
 
@@ -128,11 +95,20 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const [predictions, setPredictions] = useState({});
+  const [dirtyIds, setDirtyIds] = useState(new Set());
   const [savingAll, setSavingAll] = useState(false);
+  const [saveBetsResult, setSaveBetsResult] = useState(null); // { saved, errors }
 
   // resultados oficiais (admin)
   const [officialResults, setOfficialResults] = useState({}); // { [matchId]: { home, away } }
   const [savingResults, setSavingResults] = useState(false);
+
+  // campeão oficial (admin)
+  const [adminChampionConfig, setAdminChampionConfig] = useState(null);
+  const [adminChampionConfigLoading, setAdminChampionConfigLoading] = useState(false);
+  const [adminChampionConfigError, setAdminChampionConfigError] = useState("");
+  const [selectedAdminChampionTeamId, setSelectedAdminChampionTeamId] = useState("");
+  const [savingAdminChampion, setSavingAdminChampion] = useState(false);
 
   const [toast, setToast] = useState(null); // { type, message }
 
@@ -219,9 +195,41 @@ function App() {
     }
   }
 
+  async function loadAdminChampionConfig() {
+    setAdminChampionConfigLoading(true);
+    setAdminChampionConfigError("");
+    try {
+      const data = await fetchAdminChampionConfig();
+      setAdminChampionConfig(data);
+      setSelectedAdminChampionTeamId(data?.team_id ? String(data.team_id) : "");
+    } catch (err) {
+      setAdminChampionConfigError(err.message || "Erro ao carregar campeão oficial.");
+    } finally {
+      setAdminChampionConfigLoading(false);
+    }
+  }
+
+  async function handleSaveAdminChampionConfig() {
+    try {
+      setSavingAdminChampion(true);
+      setAdminChampionConfigError("");
+      const teamId = selectedAdminChampionTeamId ? Number(selectedAdminChampionTeamId) : null;
+      const data = await saveAdminChampionConfig(teamId);
+      setAdminChampionConfig(data);
+      setSelectedAdminChampionTeamId(data?.team_id ? String(data.team_id) : "");
+      showToast("success", "Campeão oficial definido com sucesso!");
+    } catch (err) {
+      const msg = err.message || "Erro ao salvar campeão oficial.";
+      setAdminChampionConfigError(msg);
+      showToast("error", msg);
+    } finally {
+      setSavingAdminChampion(false);
+    }
+  }
+
   function showToast(type, message) {
-    setToast({ type, message });
-    setTimeout(() => setToast(null), 3000);
+    setToast({ type, message, id: Date.now() });
+    setTimeout(() => setToast(null), 3500);
   }
 
   async function loadMatches() {
@@ -253,16 +261,24 @@ function App() {
   }
 
   async function loadRanking() {
+    const now = Date.now();
+    if (rankingFetchedAt.current && now - rankingFetchedAt.current < 60_000) return;
     setRankingLoading(true);
     setRankingError("");
     try {
       const data = await fetchRanking();
       setRanking(data);
+      rankingFetchedAt.current = Date.now();
     } catch (err) {
       setRankingError(err.message || "Erro ao carregar ranking");
     } finally {
       setRankingLoading(false);
     }
+  }
+
+  async function loadRankingForced() {
+    rankingFetchedAt.current = null;
+    await loadRanking();
   }
 
   async function loadPublicBets() {
@@ -278,30 +294,15 @@ function App() {
     }
   }
 
-  async function loadBetHistory({ userId, matchId } = {}) {
-    setBetHistoryLoading(true);
-    setBetHistoryError("");
-
-    try {
-      const data = await fetchBetHistory({ userId, matchId });
-      setBetHistory(data);
-    } catch (err) {
-      setBetHistoryError(
-        err.message || "Erro ao carregar histórico de apostas"
-      );
-    } finally {
-      setBetHistoryLoading(false);
-    }
-  }
-
   function handleLogout() {
     localStorage.removeItem("bolao_user");
     setSession(null);
     setMatches([]);
     setRanking([]);
+    rankingFetchedAt.current = null;
     setPredictions({});
+    setDirtyIds(new Set());
     setPublicBets([]);
-    setBetHistory([]);
     setOfficialResults({});
     setPage("main");
     setMenuOpen(false);
@@ -324,15 +325,13 @@ function App() {
     setView("main");
   }
 
-  function updatePrediction(matchId, field, value) {
+  const updatePrediction = useCallback((matchId, field, value) => {
     let cleaned = value.replace(/\D/g, "").slice(0, 2);
-
     if (cleaned !== "") {
       let num = Number(cleaned);
       if (num > 10) num = 10;
       cleaned = String(num);
     }
-
     setPredictions((prev) => ({
       ...prev,
       [matchId]: {
@@ -340,7 +339,12 @@ function App() {
         [field]: cleaned,
       },
     }));
-  }
+    setDirtyIds((prev) => {
+      const next = new Set(prev);
+      next.add(matchId);
+      return next;
+    });
+  }, []);
 
   function updateOfficialResult(matchId, field, value) {
     let cleaned = value.replace(/\D/g, "").slice(0, 2);
@@ -375,23 +379,32 @@ function App() {
       return;
     }
 
+    const incompleteMatches = matches.filter((m) => {
+      if (m.is_locked) return false;
+      const p = predictions[m.id];
+      if (!p) return false;
+      const homeOk = p.home !== "";
+      const awayOk = p.away !== "";
+      return homeOk !== awayOk;
+    });
+
     try {
       setSavingAll(true);
+      setSaveBetsResult(null);
 
-      // 1) Salva os palpites
       const result = await saveBetsBulk(matches, predictions);
 
-      // 2) Recarrega as partidas (pode demorar por causa do Supabase)
+      setSaveBetsResult({ saved: result.saved, errors: result.errors || [], incomplete: incompleteMatches });
+      setDirtyIds(new Set());
+
       await loadMatches();
 
-      // 3) Só agora mostra o toast
-      if (result.saved > 0) {
-        showToast("success", "Seus palpites foram salvos com sucesso!");
+      if (incompleteMatches.length > 0) {
+        showToast("warning", "Alguns palpites não foram salvos. Verifique acima.");
+      } else if (result.saved > 0) {
+        showToast("success", "Palpites salvos com sucesso!");
       } else {
-        showToast(
-          "info",
-          "Nenhum palpite foi salvo (todos os jogos já estavam bloqueados ou sem palpite)."
-        );
+        showToast("info", "Nenhum palpite foi salvo (jogos bloqueados ou sem palpite).");
       }
     } catch (err) {
       showToast("error", err.message || "Erro ao salvar palpites.");
@@ -436,52 +449,12 @@ function App() {
   }
 
   // --------- MAPA DE RODADA POR PARTIDA ---------
+  // Backend já calcula o campo `round` em cada partida — apenas indexamos por id.
   const roundByMatchId = useMemo(() => {
     const map = {};
-
-    const groups = matches.reduce((acc, m) => {
-      const key = m.stage || "";
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(m);
-      return acc;
-    }, {});
-
-    Object.entries(groups).forEach(([stage, groupMatches]) => {
-      const lowerStage = (stage || "").toLowerCase();
-
-      if (lowerStage.startsWith("grupo")) {
-        const sorted = groupMatches
-          .slice()
-          .sort(
-            (a, b) =>
-              new Date(a.kickoff_at_utc).getTime() -
-              new Date(b.kickoff_at_utc).getTime()
-          );
-
-        sorted.forEach((m, idx) => {
-          const roundIndex = Math.floor(idx / 2); // 2 jogos por rodada
-          const roundLabel =
-            roundIndex === 0
-              ? "1a rodada"
-              : roundIndex === 1
-              ? "2a rodada"
-              : roundIndex === 2
-              ? "3a rodada"
-              : null;
-          if (roundLabel) {
-            map[m.id] = roundLabel;
-          }
-        });
-      } else {
-        groupMatches.forEach((m) => {
-          const round = getRoundFromStage(m.stage);
-          if (round) {
-            map[m.id] = round;
-          }
-        });
-      }
+    matches.forEach((m) => {
+      if (m.round) map[m.id] = m.round;
     });
-
     return map;
   }, [matches]);
 
@@ -536,7 +509,23 @@ function App() {
           onBackToAuth={() => setView("auth")}
         />
         {toast && (
-          <div className={`toast toast-${toast.type}`}>{toast.message}</div>
+          <div className={`toast toast-${toast.type}`} key={toast.id}>
+            <span className="toast-icon">
+              {toast.type === "success" && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+              )}
+              {toast.type === "warning" && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              )}
+              {toast.type === "error" && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              )}
+              {toast.type === "info" && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              )}
+            </span>
+            <span className="toast-msg">{toast.message}</span>
+          </div>
         )}
       </div>
     );
@@ -559,7 +548,23 @@ function App() {
           />
         </main>
         {toast && (
-          <div className={`toast toast-${toast.type}`}>{toast.message}</div>
+          <div className={`toast toast-${toast.type}`} key={toast.id}>
+            <span className="toast-icon">
+              {toast.type === "success" && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+              )}
+              {toast.type === "warning" && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              )}
+              {toast.type === "error" && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              )}
+              {toast.type === "info" && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              )}
+            </span>
+            <span className="toast-msg">{toast.message}</span>
+          </div>
         )}
       </div>
     );
@@ -574,6 +579,8 @@ function App() {
             className={`menu-btn ${menuOpen ? "open" : ""}`}
             onClick={() => setMenuOpen((open) => !open)}
             aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
+            aria-expanded={menuOpen}
+            aria-controls="main-sidebar"
           >
             <span className="menu-icon" />
           </button>
@@ -606,7 +613,7 @@ function App() {
       )}
 
       {/* Sidebar lateral */}
-      <aside className={`menu-sidebar ${menuOpen ? "open" : ""}`}>
+      <aside id="main-sidebar" className={`menu-sidebar ${menuOpen ? "open" : ""}`}>
         <div className="menu-sidebar-header">
           <span className="menu-sidebar-title">COPA DO MUNDO 2026</span>
           <button
@@ -655,7 +662,6 @@ function App() {
               onClick={() => {
                 setPage("history");
                 setMenuOpen(false);
-                loadBetHistory({ userId: session?.id });
               }}
             >
               Histórico de apostas
@@ -666,7 +672,8 @@ function App() {
               onClick={() => {
                 setPage("results");
                 setMenuOpen(false);
-                loadMatches(); // garante lista atualizada
+                loadMatches();
+                loadAdminChampionConfig();
               }}
             >
               Postar resultado
@@ -720,10 +727,13 @@ function App() {
                 visibleMatches={visibleMatches}
                 matchesLoading={matchesLoading}
                 matchesError={matchesError}
+                onRetry={loadMatches}
                 predictions={predictions}
                 onUpdatePrediction={updatePrediction}
+                dirtyIds={dirtyIds}
                 onSaveAllBets={handleSaveAllBets}
                 savingAll={savingAll}
+                saveBetsResult={saveBetsResult}
                 formatDateTime={formatDateTime}
                 ROUND_OPTIONS={ROUND_OPTIONS}
                 selectedRound={selectedRound}
@@ -747,6 +757,7 @@ function App() {
                 ranking={ranking}
                 rankingLoading={rankingLoading}
                 rankingError={rankingError}
+                onRetry={loadRankingForced}
                 session={session}
               />
             )}
@@ -818,12 +829,7 @@ function App() {
         {page === "history" && (
           <>
             {isAdmin ? (
-              <BetHistoryTab
-                history={betHistory}
-                loading={betHistoryLoading}
-                error={betHistoryError}
-                formatDateTime={formatDateTime}
-              />
+              <BetHistoryTab />
             ) : (
               <section className="section">
                 <div className="info-card">
@@ -847,6 +853,14 @@ function App() {
                 onSaveAllResults={handleSaveAllResults}
                 savingResults={savingResults}
                 formatDateTime={formatDateTime}
+                teams={teams}
+                adminChampionConfig={adminChampionConfig}
+                adminChampionConfigLoading={adminChampionConfigLoading}
+                adminChampionConfigError={adminChampionConfigError}
+                selectedAdminChampionTeamId={selectedAdminChampionTeamId}
+                onSelectedAdminChampionTeamIdChange={setSelectedAdminChampionTeamId}
+                onSaveAdminChampionConfig={handleSaveAdminChampionConfig}
+                savingAdminChampion={savingAdminChampion}
               />
             ) : (
               <section className="section">

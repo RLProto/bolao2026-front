@@ -1,0 +1,5 @@
+{
+  "buildCommand": "npm --prefix bolao-frontend run build",
+  "outputDirectory": "bolao-frontend/dist",
+  "installCommand": "npm --prefix bolao-frontend install"
+}

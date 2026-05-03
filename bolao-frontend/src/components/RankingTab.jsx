@@ -1,13 +1,31 @@
 // src/components/RankingTab.jsx
 import React from "react";
 
-export default function RankingTab({ ranking, rankingLoading, rankingError, session }) {
+export default function RankingTab({ ranking, rankingLoading, rankingError, onRetry, session }) {
   return (
     <section className="section">
-      {rankingLoading && <p>Carregando ranking...</p>}
-      {rankingError && <div className="alert alert-error">{rankingError}</div>}
+      {rankingLoading && (
+        <div className="loading-state">
+          <span className="spinner" aria-hidden="true" />
+          Carregando ranking...
+        </div>
+      )}
+
+      {rankingError && (
+        <div className="alert alert-error error-with-retry">
+          {rankingError}
+          {onRetry && (
+            <button className="btn ghost small retry-btn" onClick={onRetry}>
+              Tentar novamente
+            </button>
+          )}
+        </div>
+      )}
+
       {!rankingLoading && !rankingError && ranking.length === 0 && (
-        <p>Ainda não há usuários no ranking.</p>
+        <p className="empty-state">
+          O ranking será exibido após o primeiro jogo com resultado oficial.
+        </p>
       )}
 
       {ranking.length > 0 && (
@@ -22,18 +40,23 @@ export default function RankingTab({ ranking, rankingLoading, rankingError, sess
               </tr>
             </thead>
             <tbody>
-              {ranking.map((r, index) => (
-                <tr
-                  key={r.user_id}
-                  className={
-                    r.user_id === session.id ? "me-row" : index < 3 ? "top-row" : ""
-                  }
-                >
-                  <td>{index + 1}</td>
-                  <td>{r.user_name}</td>
-                  <td>{r.total_points}</td>
-                </tr>
-              ))}
+              {ranking.map((r, index) => {
+                const medals = ["🥇", "🥈", "🥉"];
+                const isMe = r.user_id === session.id;
+                const rowClass = isMe
+                  ? "me-row"
+                  : index === 0 ? "rank-1"
+                  : index === 1 ? "rank-2"
+                  : index === 2 ? "rank-3"
+                  : "";
+                return (
+                  <tr key={r.user_id} className={rowClass}>
+                    <td>{medals[index] ?? index + 1}</td>
+                    <td>{r.user_name}{isMe && <span style={{ marginLeft: "0.4rem", fontSize: "0.7rem", color: "var(--accent)", fontWeight: 600 }}>você</span>}</td>
+                    <td className="points-cell">{r.total_points}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

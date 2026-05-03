@@ -11,6 +11,14 @@ export default function ResultsTab({
   onSaveAllResults,
   savingResults,
   formatDateTime,
+  teams,
+  adminChampionConfig,
+  adminChampionConfigLoading,
+  adminChampionConfigError,
+  selectedAdminChampionTeamId,
+  onSelectedAdminChampionTeamIdChange,
+  onSaveAdminChampionConfig,
+  savingAdminChampion,
 }) {
   // true = bloqueado. Default: bloqueado (se não existir ainda).
   const [lockedByMatchId, setLockedByMatchId] = useState({});
@@ -227,6 +235,61 @@ export default function ResultsTab({
             </div>
           );
         })}
+      </div>
+
+      <div className="champion-pick-box">
+        <div className="champion-pick-header">
+          <h3 className="champion-pick-title">Definir campeão oficial</h3>
+          <p className="champion-pick-subtitle">
+            Selecione o time que venceu a Copa do Mundo para calcular os 40 pontos bônus.
+          </p>
+        </div>
+
+        {adminChampionConfigLoading ? (
+          <div className="champion-pick-loading">Carregando...</div>
+        ) : (
+          <>
+            <div className="champion-pick-controls">
+              <div className="champion-pick-field">
+                <label className="filter-label" htmlFor="admin-champion-select">
+                  Campeão oficial
+                </label>
+                <select
+                  id="admin-champion-select"
+                  className="filter-select champion-pick-select"
+                  value={selectedAdminChampionTeamId}
+                  onChange={(e) => onSelectedAdminChampionTeamIdChange(e.target.value)}
+                  disabled={savingAdminChampion}
+                >
+                  <option value="">Nenhum definido</option>
+                  {(teams || []).map((team) => (
+                    <option key={team.id} value={team.id}>
+                      {team.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                className="btn primary small champion-pick-save-btn"
+                onClick={onSaveAdminChampionConfig}
+                disabled={savingAdminChampion}
+              >
+                {savingAdminChampion ? "Salvando..." : "Salvar campeão oficial"}
+              </button>
+            </div>
+
+            {adminChampionConfig?.team_name && (
+              <div className="champion-pick-current">
+                Campeão definido: <strong>{adminChampionConfig.team_name}</strong>
+              </div>
+            )}
+
+            {adminChampionConfigError && (
+              <div className="alert alert-error mt-8">{adminChampionConfigError}</div>
+            )}
+          </>
+        )}
       </div>
     </section>
   );
