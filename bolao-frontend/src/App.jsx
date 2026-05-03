@@ -135,6 +135,29 @@ function App() {
     }
   }, [session]);
 
+  // Detecta sessão expirada/inválida em qualquer chamada autenticada
+  useEffect(() => {
+    function onUnauthorized() {
+      localStorage.removeItem("bolao_user");
+      setSession(null);
+      setMatches([]);
+      setRanking([]);
+      setPredictions({});
+      setDirtyIds(new Set());
+      setChampionPick(null);
+      setTeams([]);
+      setPublicBets([]);
+      setOfficialResults({});
+      rankingFetchedAt.current = null;
+      setView("auth");
+      setPage("main");
+      setMenuOpen(false);
+      showToast("info", "Sua sessão expirou. Faça login novamente.");
+    }
+    window.addEventListener("bolao:unauthorized", onUnauthorized);
+    return () => window.removeEventListener("bolao:unauthorized", onUnauthorized);
+  }, []);
+
   // Carrega dados ao logar
   useEffect(() => {
     if (!session) return;

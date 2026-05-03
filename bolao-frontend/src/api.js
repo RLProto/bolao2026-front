@@ -1,6 +1,10 @@
 // src/api.js
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
+function fireUnauthorized() {
+  window.dispatchEvent(new CustomEvent("bolao:unauthorized"));
+}
+
 export async function registerUser(name, email, password, accessCode) {
   const res = await fetch(`${API_URL}/auth/register`, {
     method: "POST",
@@ -84,6 +88,7 @@ export async function fetchMatches() {
   });
   const data = await res.json();
   if (!res.ok) {
+    if (res.status === 401) fireUnauthorized();
     throw new Error(data.detail || "Erro ao carregar partidas");
   }
   return data;
@@ -137,6 +142,7 @@ export async function saveBetsBulk(matches, predictions) {
 
   const data = await res.json();
   if (!res.ok) {
+    if (res.status === 401) fireUnauthorized();
     throw new Error(data.detail || "Erro ao salvar palpites.");
   }
   return data; // { status, saved, errors }
@@ -152,6 +158,7 @@ export async function fetchPublicBets() {
 
   const data = await res.json();
   if (!res.ok) {
+    if (res.status === 401) fireUnauthorized();
     throw new Error(data.detail || "Erro ao carregar palpites públicos");
   }
   return data;
@@ -162,7 +169,7 @@ export async function fetchAdminUsers() {
     headers: { "Content-Type": "application/json", ...getHeadersWithAuth() },
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.detail || "Erro ao carregar usuários");
+  if (!res.ok) { if (res.status === 401) fireUnauthorized(); throw new Error(data.detail || "Erro ao carregar usuários"); }
   return data; // [{id, name}]
 }
 
@@ -171,7 +178,7 @@ export async function fetchAdminMatches() {
     headers: { "Content-Type": "application/json", ...getHeadersWithAuth() },
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.detail || "Erro ao carregar jogos");
+  if (!res.ok) { if (res.status === 401) fireUnauthorized(); throw new Error(data.detail || "Erro ao carregar jogos"); }
   return data; // [{id, label, stage, kickoff_at_utc}]
 }
 
@@ -188,7 +195,7 @@ export async function fetchBetHistory({ userId, matchId } = {}) {
   });
 
   const data = await res.json();
-  if (!res.ok) throw new Error(data.detail || "Erro ao carregar histórico de apostas");
+  if (!res.ok) { if (res.status === 401) fireUnauthorized(); throw new Error(data.detail || "Erro ao carregar histórico de apostas"); }
   return data;
 }
 
@@ -227,6 +234,7 @@ export async function saveMatchResultsBulk(matches, officialResults) {
 
   const data = await res.json();
   if (!res.ok) {
+    if (res.status === 401) fireUnauthorized();
     throw new Error(data.detail || "Erro ao salvar resultados.");
   }
   return data; // { status, updated, errors }
@@ -258,6 +266,7 @@ export async function fetchChampionPick() {
   const data = await res.json();
 
   if (!res.ok) {
+    if (res.status === 401) fireUnauthorized();
     throw new Error(data?.detail || "Erro ao carregar palpite do campeão.");
   }
 
@@ -277,6 +286,7 @@ export async function saveChampionPick(teamId) {
   const data = await res.json();
 
   if (!res.ok) {
+    if (res.status === 401) fireUnauthorized();
     throw new Error(data?.detail || "Erro ao salvar palpite do campeão.");
   }
 
@@ -288,7 +298,7 @@ export async function fetchAdminChampionConfig() {
     headers: { "Content-Type": "application/json", ...getHeadersWithAuth() },
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.detail || "Erro ao carregar campeão oficial");
+  if (!res.ok) { if (res.status === 401) fireUnauthorized(); throw new Error(data.detail || "Erro ao carregar campeão oficial"); }
   return data;
 }
 
@@ -299,6 +309,6 @@ export async function saveAdminChampionConfig(teamId) {
     body: JSON.stringify({ team_id: teamId ?? null }),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.detail || "Erro ao salvar campeão oficial");
+  if (!res.ok) { if (res.status === 401) fireUnauthorized(); throw new Error(data.detail || "Erro ao salvar campeão oficial"); }
   return data;
 }
