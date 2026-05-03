@@ -872,6 +872,20 @@ select:focus {
   font-size: 0.85rem;
 }
 
+.match-card.unsaved {
+  border-left: 3px solid #f59e0b;
+}
+
+.badge.unsaved-badge {
+  color: #f59e0b;
+  border: 1px solid #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 4px 10px;
+  font-weight: 600;
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+
 /* ================== RANKING ================== */
 
 .ranking-card {

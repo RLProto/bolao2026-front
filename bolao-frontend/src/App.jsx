@@ -95,6 +95,7 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const [predictions, setPredictions] = useState({});
+  const [dirtyIds, setDirtyIds] = useState(new Set());
   const [savingAll, setSavingAll] = useState(false);
   const [saveBetsResult, setSaveBetsResult] = useState(null); // { saved, errors }
 
@@ -300,6 +301,7 @@ function App() {
     setRanking([]);
     rankingFetchedAt.current = null;
     setPredictions({});
+    setDirtyIds(new Set());
     setPublicBets([]);
     setOfficialResults({});
     setPage("main");
@@ -337,6 +339,11 @@ function App() {
         [field]: cleaned,
       },
     }));
+    setDirtyIds((prev) => {
+      const next = new Set(prev);
+      next.add(matchId);
+      return next;
+    });
   }, []);
 
   function updateOfficialResult(matchId, field, value) {
@@ -379,6 +386,7 @@ function App() {
       const result = await saveBetsBulk(matches, predictions);
 
       setSaveBetsResult({ saved: result.saved, errors: result.errors || [] });
+      setDirtyIds(new Set());
 
       await loadMatches();
 
@@ -682,6 +690,7 @@ function App() {
                 onRetry={loadMatches}
                 predictions={predictions}
                 onUpdatePrediction={updatePrediction}
+                dirtyIds={dirtyIds}
                 onSaveAllBets={handleSaveAllBets}
                 savingAll={savingAll}
                 saveBetsResult={saveBetsResult}

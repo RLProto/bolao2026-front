@@ -6,6 +6,7 @@ const MatchCard = React.memo(function MatchCard({
   m,
   predHome,
   predAway,
+  isDirty,
   onUpdatePrediction,
   formatDateTime,
 }) {
@@ -15,7 +16,7 @@ const MatchCard = React.memo(function MatchCard({
   const awayCode = m.away_team_name ? m.away_team_code : null;
 
   return (
-    <div className={`match-card ${m.is_locked ? "locked" : ""}`}>
+    <div className={`match-card ${m.is_locked ? "locked" : ""} ${isDirty && !m.is_locked ? "unsaved" : ""}`}>
       <div className="match-header">
         <span className="match-stage">{m.stage}</span>
         <span className="match-datetime">{formatDateTime(m.kickoff_at_utc)}</span>
@@ -65,6 +66,9 @@ const MatchCard = React.memo(function MatchCard({
             <span className="badge locked">Palpites bloqueados</span>
           </div>
         )}
+        {isDirty && !m.is_locked && (
+          <span className="badge unsaved-badge">Não salvo</span>
+        )}
       </div>
     </div>
   );
@@ -76,6 +80,7 @@ export default function MatchesTab({
   matchesError,
   onRetry,
   predictions,
+  dirtyIds,
   onUpdatePrediction,
   onSaveAllBets,
   savingAll,
@@ -263,6 +268,7 @@ export default function MatchesTab({
             m={m}
             predHome={predictions[m.id]?.home ?? ""}
             predAway={predictions[m.id]?.away ?? ""}
+            isDirty={dirtyIds?.has(m.id) ?? false}
             onUpdatePrediction={onUpdatePrediction}
             formatDateTime={formatDateTime}
           />
