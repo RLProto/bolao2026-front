@@ -391,7 +391,7 @@ function App() {
       await loadMatches();
 
       if (result.saved > 0) {
-        showToast("success", `${result.saved} palpite(s) salvo(s) com sucesso!`);
+        showToast("success", "Palpites salvos com sucesso!");
       } else {
         showToast(
           "info",
