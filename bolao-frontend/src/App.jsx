@@ -228,8 +228,8 @@ function App() {
   }
 
   function showToast(type, message) {
-    setToast({ type, message });
-    setTimeout(() => setToast(null), 3000);
+    setToast({ type, message, id: Date.now() });
+    setTimeout(() => setToast(null), 3500);
   }
 
   async function loadMatches() {
@@ -501,7 +501,15 @@ function App() {
           onBackToAuth={() => setView("auth")}
         />
         {toast && (
-          <div className={`toast toast-${toast.type}`}>{toast.message}</div>
+          <div className={`toast toast-${toast.type}`} key={toast.id}>
+            <div className="toast-inner">
+              <span className="toast-icon">
+                {toast.type === "success" ? "✓" : toast.type === "error" ? "✕" : "ℹ"}
+              </span>
+              <span className="toast-msg">{toast.message}</span>
+            </div>
+            <div className="toast-bar" />
+          </div>
         )}
       </div>
     );
@@ -524,7 +532,15 @@ function App() {
           />
         </main>
         {toast && (
-          <div className={`toast toast-${toast.type}`}>{toast.message}</div>
+          <div className={`toast toast-${toast.type}`} key={toast.id}>
+            <div className="toast-inner">
+              <span className="toast-icon">
+                {toast.type === "success" ? "✓" : toast.type === "error" ? "✕" : "ℹ"}
+              </span>
+              <span className="toast-msg">{toast.message}</span>
+            </div>
+            <div className="toast-bar" />
+          </div>
         )}
       </div>
     );

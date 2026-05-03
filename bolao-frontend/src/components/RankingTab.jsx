@@ -40,18 +40,23 @@ export default function RankingTab({ ranking, rankingLoading, rankingError, onRe
               </tr>
             </thead>
             <tbody>
-              {ranking.map((r, index) => (
-                <tr
-                  key={r.user_id}
-                  className={
-                    r.user_id === session.id ? "me-row" : index < 3 ? "top-row" : ""
-                  }
-                >
-                  <td>{index + 1}</td>
-                  <td>{r.user_name}</td>
-                  <td>{r.total_points}</td>
-                </tr>
-              ))}
+              {ranking.map((r, index) => {
+                const medals = ["🥇", "🥈", "🥉"];
+                const isMe = r.user_id === session.id;
+                const rowClass = isMe
+                  ? "me-row"
+                  : index === 0 ? "rank-1"
+                  : index === 1 ? "rank-2"
+                  : index === 2 ? "rank-3"
+                  : "";
+                return (
+                  <tr key={r.user_id} className={rowClass}>
+                    <td>{medals[index] ?? index + 1}</td>
+                    <td>{r.user_name}{isMe && <span style={{ marginLeft: "0.4rem", fontSize: "0.7rem", color: "var(--accent)", fontWeight: 600 }}>você</span>}</td>
+                    <td className="points-cell">{r.total_points}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
