@@ -659,7 +659,7 @@ def request_password_reset(request: Request, payload: ResetPasswordRequest, db: 
         user.reset_token_expires_at = expires_at
         db.commit()
 
-        reset_link = f"{FRONTEND_BASE_URL}/reset-password?token={raw_token}"
+        reset_link = f"{FRONTEND_BASE_URL}?token={raw_token}"
         send_reset_email(user.email, reset_link)
 
     return {"message": "Se este email estiver cadastrado, voce recebera um link para redefinir a senha."}
