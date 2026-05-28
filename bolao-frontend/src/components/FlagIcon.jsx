@@ -25,7 +25,7 @@ const FIFA_TO_ISO2 = {
   BRA: "br",
   MAR: "ma",
   HAI: "ht",
-  SCO: "gb",
+  SCO: "gb-sct",
 
   // GRUPO D
   USA: "us",
@@ -86,7 +86,7 @@ const FIFA_TO_ISO2 = {
   COL: "co",
 
   // GRUPO L
-  ENG: "gb",
+  ENG: "gb-eng",
   CRO: "hr",
   GHA: "gh",
   PAN: "pa",
@@ -96,13 +96,11 @@ function getFlagCode(code) {
   if (!code) return null;
   const upper = String(code).trim().toUpperCase();
 
+  // Se vier código FIFA (3 letras)
+  if (FIFA_TO_ISO2[upper]) return FIFA_TO_ISO2[upper];
+
   // Se já vier ISO2 tipo "BR", "US"
   if (upper.length === 2) return upper.toLowerCase();
-
-  // Se vier FIFA (3 letras)
-  if (upper.length === 3 && FIFA_TO_ISO2[upper]) {
-    return FIFA_TO_ISO2[upper];
-  }
 
   return null;
 }
