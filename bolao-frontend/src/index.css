@@ -1754,6 +1754,35 @@ select:focus {
   color: var(--text-soft);
 }
 
+.tier-cases {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.tier-cases li {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--text-soft);
+}
+
+.tier-cases li::before {
+  content: "";
+  flex-shrink: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #fb923c;
+  margin-top: 0.45em;
+  opacity: 0.7;
+}
+
 .rules-divider {
   display: flex;
   align-items: center;

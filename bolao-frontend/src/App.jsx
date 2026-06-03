@@ -836,10 +836,10 @@ function App() {
                   <div className="tier-pts">3</div>
                   <div className="tier-body">
                     <div className="tier-name">Acerto parcial</div>
-                    <div className="tier-desc">
-                      Acertou os gols de apenas um dos times mesmo errando o resultado,
-                      ou apostou em empate mas o jogo terminou com vencedor.
-                    </div>
+                    <ul className="tier-cases">
+                      <li>Acertou os gols de um time, mas errou o resultado</li>
+                      <li>Apostou em empate — garante 3 pts mesmo errando os gols dos dois times</li>
+                    </ul>
                   </div>
                 </div>
               </div>
