@@ -799,40 +799,65 @@ function App() {
 
         {page === "rules" && (
           <section className="section">
-            <div className="info-card">
-              <h2>Regras de pontuação</h2>
-              <p>
-                A pontuação de cada palpite depende do quão perto ele fica do placar
-                final da partida.
-              </p>
+            <div className="rules-page">
+              <div className="rules-hero">
+                <h2 className="rules-title">Pontuação</h2>
+                <p className="rules-subtitle">
+                  Quanto mais próximo do placar real, mais pontos você ganha.
+                </p>
+              </div>
 
-              <ul className="rules-list">
-                <li>
-                  <strong>18 pontos — Placar exato</strong>
-                  <span>Acertou exatamente o placar final.</span>
-                </li>
+              <div className="score-tiers">
+                <div className="score-tier tier-gold">
+                  <div className="tier-pts">18</div>
+                  <div className="tier-body">
+                    <div className="tier-name">Placar exato</div>
+                    <div className="tier-desc">Acertou exatamente o placar final da partida.</div>
+                  </div>
+                </div>
 
-                <li>
-                  <strong>12 pontos — Resultado correto + gols de um time</strong>
-                  <span>
-                    Acertou o vencedor (ou empate) e também os gols de um dos times.
-                  </span>
-                </li>
+                <div className="score-tier tier-green">
+                  <div className="tier-pts">12</div>
+                  <div className="tier-body">
+                    <div className="tier-name">Resultado + gols de um time</div>
+                    <div className="tier-desc">Acertou o vencedor e também os gols de um dos times.</div>
+                  </div>
+                </div>
 
-                <li>
-                  <strong>9 pontos — Resultado correto</strong>
-                  <span>Acertou apenas o vencedor da partida ou o empate.</span>
-                </li>
+                <div className="score-tier tier-blue">
+                  <div className="tier-pts">9</div>
+                  <div className="tier-body">
+                    <div className="tier-name">Resultado correto</div>
+                    <div className="tier-desc">Acertou apenas o vencedor da partida ou o empate.</div>
+                  </div>
+                </div>
 
-                <li>
-                  <strong>3 pontos — Acerto parcial</strong>
-                  <span>
-                    Vale 3 pontos quando você acerta os gols de apenas um dos times,
-                    mesmo errando o resultado, ou quando aposta em empate mas o jogo
-                    termina com vencedor.
-                  </span>
-                </li>
-              </ul>
+                <div className="score-tier tier-orange">
+                  <div className="tier-pts">3</div>
+                  <div className="tier-body">
+                    <div className="tier-name">Acerto parcial</div>
+                    <div className="tier-desc">
+                      Acertou os gols de apenas um dos times mesmo errando o resultado,
+                      ou apostou em empate mas o jogo terminou com vencedor.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rules-divider">
+                <span>bônus</span>
+              </div>
+
+              <div className="champion-bonus-card">
+                <div className="champion-bonus-icon">🏆</div>
+                <div className="champion-bonus-body">
+                  <div className="champion-bonus-pts">+40 pontos</div>
+                  <div className="champion-bonus-name">Campeão da Copa</div>
+                  <div className="champion-bonus-desc">
+                    Quem acertar o campeão da Copa ganha 40 pontos bônus no ranking final.
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
         )}
