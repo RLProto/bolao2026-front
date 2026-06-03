@@ -801,6 +801,7 @@ function App() {
           <section className="section">
             <div className="rules-page">
               <div className="rules-hero">
+                <p className="rules-eyebrow">Como funciona</p>
                 <h2 className="rules-title">Pontuação</h2>
                 <p className="rules-subtitle">
                   Quanto mais próximo do placar real, mais pontos você ganha.
@@ -808,53 +809,49 @@ function App() {
               </div>
 
               <div className="score-tiers">
-                <div className="score-tier tier-gold">
-                  <div className="tier-pts">18</div>
-                  <div className="tier-body">
-                    <div className="tier-name">Placar exato</div>
-                    <div className="tier-desc">Acertou exatamente o placar final da partida.</div>
+                {[
+                  { pts: 18, color: "gold",   name: "Placar exato",                desc: "Acertou exatamente o placar final da partida." },
+                  { pts: 12, color: "green",  name: "Resultado + gols de um time", desc: "Acertou o vencedor e também os gols de um dos times." },
+                  { pts: 9,  color: "blue",   name: "Resultado correto",           desc: "Acertou apenas o vencedor da partida ou o empate." },
+                ].map(({ pts, color, name, desc }) => (
+                  <div key={pts} className={`score-tier tier-${color}`}>
+                    <div className="tier-badge">
+                      <span className="tier-pts">{pts}</span>
+                      <span className="tier-pts-label">pts</span>
+                    </div>
+                    <div className="tier-body">
+                      <div className="tier-name">{name}</div>
+                      <div className="tier-desc">{desc}</div>
+                    </div>
                   </div>
-                </div>
-
-                <div className="score-tier tier-green">
-                  <div className="tier-pts">12</div>
-                  <div className="tier-body">
-                    <div className="tier-name">Resultado + gols de um time</div>
-                    <div className="tier-desc">Acertou o vencedor e também os gols de um dos times.</div>
-                  </div>
-                </div>
-
-                <div className="score-tier tier-blue">
-                  <div className="tier-pts">9</div>
-                  <div className="tier-body">
-                    <div className="tier-name">Resultado correto</div>
-                    <div className="tier-desc">Acertou apenas o vencedor da partida ou o empate.</div>
-                  </div>
-                </div>
+                ))}
 
                 <div className="score-tier tier-orange">
-                  <div className="tier-pts">3</div>
+                  <div className="tier-badge">
+                    <span className="tier-pts">3</span>
+                    <span className="tier-pts-label">pts</span>
+                  </div>
                   <div className="tier-body">
                     <div className="tier-name">Acerto parcial</div>
                     <ul className="tier-cases">
                       <li>Acertou os gols de um time, mas errou o resultado</li>
-                      <li>Apostou em empate — garante 3 pts mesmo errando os gols dos dois times</li>
+                      <li>Apostou em empate — garante 3 pts mesmo errando placar e gols</li>
                     </ul>
                   </div>
                 </div>
               </div>
 
-              <div className="rules-divider">
-                <span>bônus</span>
-              </div>
+              <div className="rules-divider"><span>bônus</span></div>
 
               <div className="champion-bonus-card">
-                <div className="champion-bonus-icon">🏆</div>
+                <div className="champion-bonus-badge">
+                  <span className="champion-bonus-pts">+40</span>
+                  <span className="champion-bonus-pts-label">pts</span>
+                </div>
                 <div className="champion-bonus-body">
-                  <div className="champion-bonus-pts">+40 pontos</div>
                   <div className="champion-bonus-name">Campeão da Copa</div>
                   <div className="champion-bonus-desc">
-                    Quem acertar o campeão da Copa ganha 40 pontos bônus no ranking final.
+                    Acerte o campeão e ganhe 40 pontos bônus no ranking final.
                   </div>
                 </div>
               </div>
