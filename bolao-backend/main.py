@@ -524,8 +524,10 @@ def calculate_points_for_bet(match: Match, bet: Bet) -> int:
     return 0
 
 
+MATCH_LOCK_MINUTES = 30
+
 def is_match_locked(match: Match) -> bool:
-    lock_time = match.kickoff_at_utc - timedelta(minutes=5)
+    lock_time = match.kickoff_at_utc - timedelta(minutes=MATCH_LOCK_MINUTES)
     return datetime.now(timezone.utc) >= lock_time
 
 
@@ -813,7 +815,7 @@ def upsert_bet(bet_in: BetCreate, db: Session = Depends(get_db), current_user: U
     if not match:
         raise HTTPException(status_code=404, detail="Partida nao encontrada")
     if is_match_locked(match):
-        raise HTTPException(status_code=400, detail="Palpites so podem ser alterados ate 5 minutos antes do inicio da partida.")
+        raise HTTPException(status_code=400, detail="Palpites so podem ser alterados ate 30 minutos antes do inicio da partida.")
     bet = db.query(Bet).filter(Bet.user_id == current_user.id, Bet.match_id == bet_in.match_id).first()
     now = datetime.now(timezone.utc)
     if bet is None:
@@ -953,7 +955,7 @@ def list_public_bets(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    lock_cutoff = datetime.now(timezone.utc) + timedelta(minutes=5)
+    lock_cutoff = datetime.now(timezone.utc) + timedelta(minutes=MATCH_LOCK_MINUTES)
     bets = (
         db.query(Bet)
         .join(Match, Match.id == Bet.match_id)
