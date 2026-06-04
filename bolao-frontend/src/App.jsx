@@ -812,7 +812,7 @@ function App() {
                 {[
                   { pts: 18, color: "gold",   name: "Placar exato",                desc: "Acertou exatamente o placar final da partida." },
                   { pts: 12, color: "green",  name: "Resultado + gols de um time", desc: "Acertou o vencedor e também os gols de um dos times." },
-                  { pts: 9,  color: "blue",   name: "Resultado correto",           desc: "Acertou apenas o vencedor da partida ou o empate." },
+                  { pts: 9,  color: "blue",   name: "Resultado correto",           desc: "Acertou apenas o vencedor da partida ou o empate, mas não acertou o placar." },
                 ].map(({ pts, color, name, desc }) => (
                   <div key={pts} className={`score-tier tier-${color}`}>
                     <div className="tier-badge">
