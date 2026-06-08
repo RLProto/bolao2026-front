@@ -203,7 +203,7 @@ export default function AuthView({
             <form onSubmit={handleAuthSubmit} className="form">
               {authMode === "register" && (
                 <div className="form-group">
-                  <label>Nome</label>
+                  <label>Nome completo</label>
                   <input
                     type="text"
                     value={authName}
@@ -219,7 +219,7 @@ export default function AuthView({
                     <p className="field-error">{nameError}</p>
                   ) : (
                     <p className="field-hint">
-                      Use nome + sobrenome — apelidos são bem-vindos desde que acompanhados do sobrenome.
+                      Use de preferência nome + sobrenome. Apelidos são bem-vindos, desde que acompanhados de um complemento.
                     </p>
                   )}
                 </div>
