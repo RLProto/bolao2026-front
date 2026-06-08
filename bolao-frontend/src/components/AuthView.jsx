@@ -212,7 +212,7 @@ export default function AuthView({
                       if (nameError) setNameError(validateName(e.target.value) || "");
                     }}
                     onBlur={(e) => setNameError(validateName(e.target.value) || "")}
-                    placeholder="Ex: João Silva ou João e Maria"
+                    placeholder="Ex: João Silva"
                     required
                   />
                   {nameError ? (
