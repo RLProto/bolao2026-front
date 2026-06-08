@@ -1,6 +1,36 @@
 // src/components/AuthView.jsx
 import React, { useState } from "react";
 
+const NAME_CONNECTORS = new Set(["e", "de", "da", "do", "dos", "das", "di", "du"]);
+
+function validateName(name) {
+  const trimmed = name.trim();
+  if (!trimmed) return null;
+
+  const words = trimmed.split(/\s+/).filter(Boolean);
+
+  if (words.length < 2) {
+    return "Digite nome e sobrenome, ou dois nomes para duplas (ex: João e Maria).";
+  }
+
+  const realWords = words.filter(w => !NAME_CONNECTORS.has(w.toLowerCase()));
+
+  if (realWords.length < 2) {
+    return "Digite pelo menos dois nomes distintos.";
+  }
+
+  for (const word of realWords) {
+    if (/^[A-Z]{2,3}$/.test(word)) {
+      return "Evite siglas — use apelido + sobrenome (ex: Guga Proto).";
+    }
+    if (word.length < 2) {
+      return "Cada parte do nome deve ter pelo menos 2 letras.";
+    }
+  }
+
+  return null;
+}
+
 function getPasswordStrength(pw) {
   if (!pw) return { level: 0, label: "", color: "" };
   if (pw.length < 8) return { level: 1, label: "Muito fraca", color: "#ef4444" };
@@ -32,6 +62,8 @@ export default function AuthView({
   const [showAuthPassword, setShowAuthPassword] = useState(false);
   const [authCode, setAuthCode] = useState("");
 
+  const [nameError, setNameError] = useState("");
+
   // Mensagens
   const [authError, setAuthError] = useState("");
   const [authMessage, setAuthMessage] = useState("");
@@ -58,6 +90,14 @@ export default function AuthView({
     ) {
       setAuthError("Preencha todos os campos.");
       return;
+    }
+
+    if (authMode === "register") {
+      const nameErr = validateName(authName);
+      if (nameErr) {
+        setNameError(nameErr);
+        return;
+      }
     }
 
     if (authPassword.length < 8) {
@@ -167,10 +207,21 @@ export default function AuthView({
                   <input
                     type="text"
                     value={authName}
-                    onChange={(e) => setAuthName(e.target.value)}
-                    placeholder="Como quer aparecer no ranking"
+                    onChange={(e) => {
+                      setAuthName(e.target.value);
+                      if (nameError) setNameError(validateName(e.target.value) || "");
+                    }}
+                    onBlur={(e) => setNameError(validateName(e.target.value) || "")}
+                    placeholder="Ex: João Silva ou João e Maria"
                     required
                   />
+                  {nameError ? (
+                    <p className="field-error">{nameError}</p>
+                  ) : (
+                    <p className="field-hint">
+                      Use nome + sobrenome — apelidos são bem-vindos desde que acompanhados do sobrenome.
+                    </p>
+                  )}
                 </div>
               )}
 

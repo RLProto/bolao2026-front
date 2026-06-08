@@ -327,6 +327,21 @@ body {
   color: var(--text-soft);
 }
 
+.field-hint {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  opacity: 0.7;
+  margin: 2px 4px 0;
+  line-height: 1.4;
+}
+
+.field-error {
+  font-size: 0.78rem;
+  color: #f87171;
+  margin: 2px 4px 0;
+  line-height: 1.4;
+}
+
 input,
 select {
   border-radius: 999px;

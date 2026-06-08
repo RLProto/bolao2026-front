@@ -557,6 +557,21 @@ def register_user(payload: UserRegister, db: Session = Depends(get_db)):
 
     if not name:
         raise HTTPException(status_code=400, detail="Nome e obrigatorio.")
+
+    _connectors = {"e", "de", "da", "do", "dos", "das", "di", "du"}
+    _words = name.split()
+    if len(_words) < 2:
+        raise HTTPException(status_code=400, detail="Digite nome e sobrenome, ou dois nomes para duplas (ex: Joao e Maria).")
+    _real = [w for w in _words if w.lower() not in _connectors]
+    if len(_real) < 2:
+        raise HTTPException(status_code=400, detail="Digite pelo menos dois nomes distintos.")
+    import re as _re
+    for _w in _real:
+        if _re.match(r'^[A-Z]{2,3}$', _w):
+            raise HTTPException(status_code=400, detail="Evite siglas — use apelido + sobrenome (ex: Guga Proto).")
+        if len(_w) < 2:
+            raise HTTPException(status_code=400, detail="Cada parte do nome deve ter pelo menos 2 letras.")
+
     if not access_code_value:
         raise HTTPException(status_code=400, detail="Codigo de acesso e obrigatorio.")
     if len(password) < 8:
