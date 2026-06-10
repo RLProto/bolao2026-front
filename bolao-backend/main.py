@@ -525,6 +525,7 @@ def calculate_points_for_bet(match: Match, bet: Bet) -> int:
 
 
 MATCH_LOCK_MINUTES = 30
+HIDDEN_FROM_RANKING_USER_ID = 1  # Rafael Proto — admin/host, não participa do bolão
 
 def is_match_locked(match: Match) -> bool:
     lock_time = match.kickoff_at_utc - timedelta(minutes=MATCH_LOCK_MINUTES)
@@ -952,12 +953,12 @@ def get_ranking(
         FROM users u
         LEFT JOIN match_pts mp ON mp.user_id = u.id
         LEFT JOIN champion_picks cp ON cp.user_id = u.id
-        WHERE u.profile != 'admin'
+        WHERE u.id != :hidden_user_id
         ORDER BY total_points DESC, lower(u.name) ASC
         LIMIT :lim OFFSET :off
     """)
 
-    rows = db.execute(sql, {"official_team_id": official_team_id, "lim": limit, "off": offset}).fetchall()
+    rows = db.execute(sql, {"official_team_id": official_team_id, "lim": limit, "off": offset, "hidden_user_id": HIDDEN_FROM_RANKING_USER_ID}).fetchall()
     return [
         RankingItem(user_id=row.user_id, user_name=row.user_name, total_points=row.total_points)
         for row in rows
@@ -975,9 +976,8 @@ def list_public_bets(
     bets = (
         db.query(Bet)
         .join(Match, Match.id == Bet.match_id)
-        .join(User, User.id == Bet.user_id)
         .filter(Match.kickoff_at_utc <= lock_cutoff)
-        .filter(User.profile != "admin")
+        .filter(Bet.user_id != HIDDEN_FROM_RANKING_USER_ID)
         .options(joinedload(Bet.user))
         .offset(offset)
         .limit(limit)
