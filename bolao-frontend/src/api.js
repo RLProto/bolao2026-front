@@ -273,6 +273,24 @@ export async function fetchChampionPick() {
   return data;
 }
 
+export async function fetchPublicChampionPicks() {
+  const res = await fetch(`${API_URL}/champion-picks/public`, {
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeadersWithAuth(),
+    },
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    if (res.status === 401) fireUnauthorized();
+    throw new Error(data?.detail || "Erro ao carregar palpites de campeão.");
+  }
+
+  return data;
+}
+
 export async function saveChampionPick(teamId) {
   const res = await fetch(`${API_URL}/champion-pick`, {
     method: "POST",

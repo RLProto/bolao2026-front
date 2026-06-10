@@ -13,6 +13,7 @@ import {
   fetchTeams,
   fetchChampionPick,
   saveChampionPick,
+  fetchPublicChampionPicks,
   fetchAdminChampionConfig,
   saveAdminChampionConfig,
 } from "./api";
@@ -77,6 +78,10 @@ function App() {
   const [publicBets, setPublicBets] = useState([]);
   const [publicBetsLoading, setPublicBetsLoading] = useState(false);
   const [publicBetsError, setPublicBetsError] = useState("");
+
+  const [publicChampionPicks, setPublicChampionPicks] = useState([]);
+  const [publicChampionPicksLoading, setPublicChampionPicksLoading] = useState(false);
+  const [publicChampionPicksError, setPublicChampionPicksError] = useState("");
 
   const rankingFetchedAt = useRef(null);
 
@@ -147,6 +152,7 @@ function App() {
       setChampionPick(null);
       setTeams([]);
       setPublicBets([]);
+      setPublicChampionPicks([]);
       setOfficialResults({});
       rankingFetchedAt.current = null;
       setView("auth");
@@ -317,6 +323,19 @@ function App() {
     }
   }
 
+  async function loadPublicChampionPicks() {
+    setPublicChampionPicksLoading(true);
+    setPublicChampionPicksError("");
+    try {
+      const data = await fetchPublicChampionPicks();
+      setPublicChampionPicks(data);
+    } catch (err) {
+      setPublicChampionPicksError(err.message || "Erro ao carregar palpites de campeão");
+    } finally {
+      setPublicChampionPicksLoading(false);
+    }
+  }
+
   function handleLogout() {
     localStorage.removeItem("bolao_user");
     setSession(null);
@@ -326,6 +345,7 @@ function App() {
     setPredictions({});
     setDirtyIds(new Set());
     setPublicBets([]);
+    setPublicChampionPicks([]);
     setOfficialResults({});
     setPage("main");
     setMenuOpen(false);
@@ -739,6 +759,7 @@ function App() {
                 onClick={() => {
                   setTab("view-bets");
                   loadPublicBets();
+                  loadPublicChampionPicks();
                 }}
               >
                 Ver palpites
@@ -792,6 +813,9 @@ function App() {
                 loading={publicBetsLoading}
                 error={publicBetsError}
                 formatDateTime={formatDateTime}
+                championPicks={publicChampionPicks}
+                championPicksLoading={publicChampionPicksLoading}
+                championPicksError={publicChampionPicksError}
               />
             )}
           </>

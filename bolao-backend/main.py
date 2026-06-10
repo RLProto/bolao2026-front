@@ -468,6 +468,17 @@ class ChampionPickOut(BaseModel):
         pass
 
 
+class PublicChampionPickOut(BaseModel):
+    user_id: int
+    user_name: str
+    team_id: int
+    team_name: str
+    team_code: Optional[str]
+
+    class Config(_OrmConfig):
+        pass
+
+
 class ChampionConfigSet(BaseModel):
     team_id: Optional[int] = None
 
@@ -823,6 +834,33 @@ def upsert_champion_pick(
     db.commit()
     db.refresh(pick)
     return ChampionPickOut(user_id=current_user.id, team_id=pick.team_id, team_name=team.name, locked=False, lock_at_utc=get_champion_pick_lock_at(db))
+
+
+@app.get("/champion-picks/public", response_model=List[PublicChampionPickOut])
+def get_public_champion_picks(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if not is_champion_pick_locked(db):
+        return []
+    picks = (
+        db.query(ChampionPick)
+        .join(User, User.id == ChampionPick.user_id)
+        .join(Team, Team.id == ChampionPick.team_id)
+        .filter(ChampionPick.user_id != HIDDEN_FROM_RANKING_USER_ID)
+        .order_by(User.name.asc())
+        .all()
+    )
+    return [
+        PublicChampionPickOut(
+            user_id=p.user_id,
+            user_name=p.user.name,
+            team_id=p.team_id,
+            team_name=p.team.name,
+            team_code=p.team.fifa_code,
+        )
+        for p in picks
+    ]
 
 
 @app.post("/bets", response_model=BetOut)

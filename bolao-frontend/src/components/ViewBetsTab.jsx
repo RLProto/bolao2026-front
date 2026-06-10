@@ -8,6 +8,9 @@ export default function ViewBetsTab({
   loading,
   error,
   formatDateTime,
+  championPicks = [],
+  championPicksLoading = false,
+  championPicksError = "",
 }) {
   const [selectedMatchId, setSelectedMatchId] = useState("all");
   const [selectedUserId, setSelectedUserId] = useState("all");
@@ -98,6 +101,51 @@ export default function ViewBetsTab({
 
   return (
     <section className="section">
+      {/* Palpites de campeão — visível só após o lock */}
+      {(championPicksLoading || championPicksError || championPicks.length > 0) && (
+        <div
+          style={{
+            marginTop: "1.25rem",
+            marginBottom: "1.5rem",
+            padding: "1rem 1.1rem",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            borderRadius: "16px",
+            background: "rgba(255, 255, 255, 0.03)",
+          }}
+        >
+          <h3 style={{ margin: "0 0 0.75rem 0", fontSize: "1rem", fontWeight: 700 }}>
+            🏆 Palpites — Campeão da Copa
+          </h3>
+
+          {championPicksLoading && <p style={{ margin: 0, opacity: 0.6 }}>Carregando...</p>}
+          {championPicksError && <div className="alert alert-error">{championPicksError}</div>}
+
+          {!championPicksLoading && !championPicksError && (
+            <table className="ranking-table">
+              <thead>
+                <tr>
+                  <th>Jogador</th>
+                  <th>Campeão escolhido</th>
+                </tr>
+              </thead>
+              <tbody>
+                {championPicks.map((p) => (
+                  <tr key={p.user_id}>
+                    <td>{p.user_name}</td>
+                    <td>
+                      <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <FlagIcon code={p.team_code} name={p.team_name} />
+                        {p.team_name}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
       <div
         className="view-bets-toolbar"
         style={{
