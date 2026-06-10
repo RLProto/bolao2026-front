@@ -638,7 +638,7 @@ function App() {
             </span>
             <div className="user-text">
               <span className="user-name">{session.name || session.email}</span>
-              <span className="user-sub">{isAdmin ? "admin" : "logado"}</span>
+              {isAdmin && <span className="user-sub">admin</span>}
             </div>
           </div>
           <button className="btn ghost small" onClick={handleLogout}>

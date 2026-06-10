@@ -112,6 +112,8 @@ body {
   background: rgba(15, 23, 42, 0.9);
   border-radius: 999px;
   border: 1px solid rgba(148, 163, 184, 0.3);
+  min-width: 0;
+  max-width: 200px;
 }
 
 .user-avatar {
@@ -134,6 +136,10 @@ body {
 
 .user-name {
   font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
 }
 
 .user-sub {
