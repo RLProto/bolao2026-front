@@ -15,6 +15,7 @@ export default function ViewBetsTab({
   const [selectedMatchId, setSelectedMatchId] = useState("all");
   const [selectedUserId, setSelectedUserId] = useState("all");
   const [hideCompleted, setHideCompleted] = useState(false);
+  const [championOpen, setChampionOpen] = useState(false);
 
   // Só partidas cujo prazo já encerrou (is_locked = true)
   const lockedMatches = useMemo(() => {
@@ -107,41 +108,65 @@ export default function ViewBetsTab({
           style={{
             marginTop: "1.25rem",
             marginBottom: "1.5rem",
-            padding: "1rem 1.1rem",
             border: "1px solid rgba(255, 255, 255, 0.08)",
             borderRadius: "16px",
             background: "rgba(255, 255, 255, 0.03)",
+            overflow: "hidden",
           }}
         >
-          <h3 style={{ margin: "0 0 0.75rem 0", fontSize: "1rem", fontWeight: 700 }}>
-            🏆 Palpites — Campeão da Copa
-          </h3>
+          <button
+            type="button"
+            onClick={() => setChampionOpen((v) => !v)}
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "1rem 1.1rem",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "inherit",
+              fontSize: "1rem",
+              fontWeight: 700,
+              textAlign: "left",
+            }}
+          >
+            <span>🏆 Palpites — Campeão da Copa</span>
+            <span style={{ fontSize: "0.8rem", opacity: 0.6 }}>
+              {championOpen ? "▲ recolher" : "▼ ver palpites"}
+            </span>
+          </button>
 
-          {championPicksLoading && <p style={{ margin: 0, opacity: 0.6 }}>Carregando...</p>}
-          {championPicksError && <div className="alert alert-error">{championPicksError}</div>}
+          {championOpen && (
+            <div style={{ padding: "0 1.1rem 1rem" }}>
+              {championPicksLoading && <p style={{ margin: 0, opacity: 0.6 }}>Carregando...</p>}
+              {championPicksError && <div className="alert alert-error">{championPicksError}</div>}
 
-          {!championPicksLoading && !championPicksError && (
-            <table className="ranking-table">
-              <thead>
-                <tr>
-                  <th>Jogador</th>
-                  <th>Campeão escolhido</th>
-                </tr>
-              </thead>
-              <tbody>
-                {championPicks.map((p) => (
-                  <tr key={p.user_id}>
-                    <td>{p.user_name}</td>
-                    <td>
-                      <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                        <FlagIcon code={p.team_code} name={p.team_name} />
-                        {p.team_name}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              {!championPicksLoading && !championPicksError && (
+                <table className="ranking-table">
+                  <thead>
+                    <tr>
+                      <th>Jogador</th>
+                      <th>Campeão escolhido</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {championPicks.map((p) => (
+                      <tr key={p.user_id}>
+                        <td>{p.user_name}</td>
+                        <td>
+                          <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                            <FlagIcon code={p.team_code} name={p.team_name} />
+                            {p.team_name}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
           )}
         </div>
       )}
