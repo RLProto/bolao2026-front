@@ -952,6 +952,7 @@ def get_ranking(
         FROM users u
         LEFT JOIN match_pts mp ON mp.user_id = u.id
         LEFT JOIN champion_picks cp ON cp.user_id = u.id
+        WHERE u.profile != 'admin'
         ORDER BY total_points DESC, lower(u.name) ASC
         LIMIT :lim OFFSET :off
     """)
@@ -974,7 +975,9 @@ def list_public_bets(
     bets = (
         db.query(Bet)
         .join(Match, Match.id == Bet.match_id)
+        .join(User, User.id == Bet.user_id)
         .filter(Match.kickoff_at_utc <= lock_cutoff)
+        .filter(User.profile != "admin")
         .options(joinedload(Bet.user))
         .offset(offset)
         .limit(limit)
