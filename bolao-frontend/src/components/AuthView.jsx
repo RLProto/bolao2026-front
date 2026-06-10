@@ -167,7 +167,7 @@ export default function AuthView({
       <section className="hero hero-worldcup">
         <div className="hero-text">
           <h1>Bolão da Copa 2026</h1>
-          <p>Faça seus palpites, boa sorte!</p>
+          <p>Faça seus palpites e boa sorte!</p>
         </div>
       </section>
 

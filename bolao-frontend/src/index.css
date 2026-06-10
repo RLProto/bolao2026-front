@@ -283,6 +283,10 @@ body {
   margin: 0 auto;
 }
 
+.auth-page .hero {
+  grid-template-columns: 1fr;
+}
+
 .auth-layout {
   display: block;
 }
