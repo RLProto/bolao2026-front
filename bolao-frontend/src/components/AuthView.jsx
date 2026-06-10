@@ -163,7 +163,7 @@ export default function AuthView({
   // JSX
   // -------------------------------
   return (
-    <>
+    <div className="auth-page">
       <section className="hero hero-worldcup">
         <div className="hero-text">
           <h1>Bolão da Copa 2026</h1>
@@ -398,6 +398,6 @@ export default function AuthView({
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
