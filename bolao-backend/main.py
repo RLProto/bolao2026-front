@@ -271,6 +271,14 @@ def send_reset_email(to_email: str, reset_link: str):
         server.send_message(msg)
 
 
+ADMIN_PROFILES = {"admin", "superuser"}
+
+def is_admin(user) -> bool:
+    return user.profile in ADMIN_PROFILES
+
+def is_superuser(user) -> bool:
+    return user.profile == "superuser"
+
 def get_current_user(
     db: Session = Depends(get_db),
     x_user_id: Optional[int] = Header(None, alias="X-User-Id"),
@@ -536,7 +544,7 @@ def calculate_points_for_bet(match: Match, bet: Bet) -> int:
 
 
 MATCH_LOCK_MINUTES = 30
-HIDDEN_FROM_RANKING_USER_ID = 1  # Rafael Proto — admin/host, não participa do bolão
+HIDDEN_FROM_RANKING_PROFILE = "superuser"  # superusers não aparecem no ranking nem nos palpites públicos
 
 def is_match_locked(match: Match) -> bool:
     lock_time = match.kickoff_at_utc - timedelta(minutes=MATCH_LOCK_MINUTES)
@@ -847,7 +855,7 @@ def get_public_champion_picks(
         db.query(ChampionPick)
         .join(User, User.id == ChampionPick.user_id)
         .join(Team, Team.id == ChampionPick.team_id)
-        .filter(ChampionPick.user_id != HIDDEN_FROM_RANKING_USER_ID)
+        .filter(User.profile != HIDDEN_FROM_RANKING_PROFILE)
         .order_by(User.name.asc())
         .all()
     )
@@ -991,12 +999,12 @@ def get_ranking(
         FROM users u
         LEFT JOIN match_pts mp ON mp.user_id = u.id
         LEFT JOIN champion_picks cp ON cp.user_id = u.id
-        WHERE u.id != :hidden_user_id
+        WHERE u.profile != :hidden_profile
         ORDER BY total_points DESC, lower(u.name) ASC
         LIMIT :lim OFFSET :off
     """)
 
-    rows = db.execute(sql, {"official_team_id": official_team_id, "lim": limit, "off": offset, "hidden_user_id": HIDDEN_FROM_RANKING_USER_ID}).fetchall()
+    rows = db.execute(sql, {"official_team_id": official_team_id, "lim": limit, "off": offset, "hidden_profile": HIDDEN_FROM_RANKING_PROFILE}).fetchall()
     return [
         RankingItem(user_id=row.user_id, user_name=row.user_name, total_points=row.total_points)
         for row in rows
@@ -1015,7 +1023,8 @@ def list_public_bets(
         db.query(Bet)
         .join(Match, Match.id == Bet.match_id)
         .filter(Match.kickoff_at_utc <= lock_cutoff)
-        .filter(Bet.user_id != HIDDEN_FROM_RANKING_USER_ID)
+        .join(User, User.id == Bet.user_id)
+        .filter(User.profile != HIDDEN_FROM_RANKING_PROFILE)
         .options(joinedload(Bet.user))
         .offset(offset)
         .limit(limit)
@@ -1030,7 +1039,7 @@ def list_public_bets(
 
 @app.post("/matches/results/bulk")
 def update_match_results_bulk(payload: MatchResultBulkUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    if current_user.profile != "admin":
+    if not is_admin(current_user):
         raise HTTPException(status_code=403, detail="Apenas administradores podem postar resultados oficiais.")
     updated = 0
     errors: List[str] = []
@@ -1062,8 +1071,8 @@ def list_bet_history(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if current_user.profile != "admin":
-        raise HTTPException(status_code=403, detail="Apenas admins podem ver o historico")
+    if not is_superuser(current_user):
+        raise HTTPException(status_code=403, detail="Apenas superusers podem ver o historico")
     q = (
         db.query(BetHistory)
         .options(joinedload(BetHistory.match).joinedload(Match.home_team), joinedload(BetHistory.match).joinedload(Match.away_team))
@@ -1091,7 +1100,7 @@ def list_bet_history(
 
 @app.get("/admin/users")
 def list_users(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    if current_user.profile != "admin":
+    if not is_admin(current_user):
         raise HTTPException(status_code=403, detail="Apenas admins")
     users = db.query(User.id, User.name).order_by(User.name.asc()).all()
     return [{"id": u.id, "name": u.name} for u in users]
@@ -1099,7 +1108,7 @@ def list_users(db: Session = Depends(get_db), current_user: User = Depends(get_c
 
 @app.get("/admin/matches")
 def list_matches_admin(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    if current_user.profile != "admin":
+    if not is_admin(current_user):
         raise HTTPException(status_code=403, detail="Apenas admins")
     matches = db.query(Match).options(joinedload(Match.home_team), joinedload(Match.away_team)).order_by(Match.kickoff_at_utc).all()
     return [{"id": m.id, "label": f"{m.home_team.name} x {m.away_team.name}", "stage": m.stage, "kickoff_at_utc": m.kickoff_at_utc} for m in matches]
@@ -1107,7 +1116,7 @@ def list_matches_admin(db: Session = Depends(get_db), current_user: User = Depen
 
 @app.get("/admin/champion-config", response_model=ChampionConfigOut)
 def get_champion_config(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    if current_user.profile != "admin":
+    if not is_admin(current_user):
         raise HTTPException(status_code=403, detail="Apenas admins")
     config = db.query(ChampionConfig).options(joinedload(ChampionConfig.champion_team)).filter(ChampionConfig.id == 1).first()
     if not config or not config.champion_team_id:
@@ -1117,7 +1126,7 @@ def get_champion_config(db: Session = Depends(get_db), current_user: User = Depe
 
 @app.post("/admin/champion-config", response_model=ChampionConfigOut)
 def set_champion_config(payload: ChampionConfigSet, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    if current_user.profile != "admin":
+    if not is_admin(current_user):
         raise HTTPException(status_code=403, detail="Apenas admins")
     team_name = None
     if payload.team_id is not None:

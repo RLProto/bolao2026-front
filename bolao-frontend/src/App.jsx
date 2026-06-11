@@ -124,8 +124,8 @@ function App() {
     selectedRound
   );
 
-  const isAdmin = session?.profile === "admin";
-  const isSuperAdmin = session?.id === 1;
+  const isAdmin = session?.profile === "admin" || session?.profile === "superuser";
+  const isSuperAdmin = session?.profile === "superuser";
 
   // Detecta token na URL -> tela de reset
   useEffect(() => {
