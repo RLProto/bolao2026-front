@@ -119,7 +119,20 @@ export default function MatchesTab({
             <span className="spinner" aria-hidden="true" />
             Carregando...
           </div>
+        ) : championPick?.locked ? (
+          /* ── Estado bloqueado ── */
+          <div className="champion-pick-locked-view">
+            <span className="champion-pick-locked-label">Seu palpite</span>
+            <span className="champion-pick-locked-team">
+              {championPick.team_name ?? "Não registrado"}
+            </span>
+            <span className="champion-pick-info champion-pick-info-locked">
+              Prazo encerrado em{" "}
+              <strong>{formatDateTime(championPick?.lock_at_utc)}</strong>.
+            </span>
+          </div>
         ) : (
+          /* ── Estado aberto ── */
           <>
             <div className="champion-pick-controls">
               <div className="champion-pick-field">
@@ -131,7 +144,7 @@ export default function MatchesTab({
                   className="filter-select champion-pick-select"
                   value={selectedChampionTeamId}
                   onChange={(e) => onSelectedChampionTeamIdChange(e.target.value)}
-                  disabled={championPick?.locked || savingChampionPick}
+                  disabled={savingChampionPick}
                 >
                   <option value="">Selecione uma seleção</option>
                   {teams.map((team) => (
@@ -145,7 +158,7 @@ export default function MatchesTab({
               <button
                 className="btn primary small champion-pick-save-btn"
                 onClick={onSaveChampionPick}
-                disabled={championPick?.locked || savingChampionPick || !selectedChampionTeamId}
+                disabled={savingChampionPick || !selectedChampionTeamId}
               >
                 {savingChampionPick
                   ? "Salvando..."
@@ -161,17 +174,10 @@ export default function MatchesTab({
               </div>
             )}
 
-            {!championPick?.locked ? (
-              <div className="champion-pick-info">
-                Você pode alterar seu palpite até{" "}
-                <strong>{formatDateTime(championPick?.lock_at_utc)}</strong>.
-              </div>
-            ) : (
-              <div className="champion-pick-info champion-pick-info-locked">
-                O prazo para palpitar o campeão foi encerrado em{" "}
-                <strong>{formatDateTime(championPick?.lock_at_utc)}</strong>.
-              </div>
-            )}
+            <div className="champion-pick-info">
+              Você pode alterar seu palpite até{" "}
+              <strong>{formatDateTime(championPick?.lock_at_utc)}</strong>.
+            </div>
 
             {championPickError && (
               <div className="alert alert-error mt-8">{championPickError}</div>
