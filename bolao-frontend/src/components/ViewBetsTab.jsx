@@ -105,12 +105,11 @@ export default function ViewBetsTab({
       {/* Palpites de campeão — visível só após o lock */}
       {(championPicksLoading || championPicksError || championPicks.length > 0) && (
         <div
+          className="ranking-card"
           style={{
             marginTop: "1.25rem",
             marginBottom: "1.5rem",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
-            borderRadius: "16px",
-            background: "rgba(255, 255, 255, 0.03)",
+            padding: 0,
             overflow: "hidden",
           }}
         >
