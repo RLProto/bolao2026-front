@@ -131,7 +131,7 @@ export default function ViewBetsTab({
               textAlign: "left",
             }}
           >
-            <span>🏆 Palpites — Campeão da Copa</span>
+            <span>Campeão da Copa</span>
             <span style={{ fontSize: "0.8rem", opacity: 0.6 }}>
               {championOpen ? "▲ recolher" : "▼ ver palpites"}
             </span>
