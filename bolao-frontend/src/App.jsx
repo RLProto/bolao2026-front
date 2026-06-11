@@ -125,6 +125,7 @@ function App() {
   );
 
   const isAdmin = session?.profile === "admin";
+  const isSuperAdmin = session?.id === 1;
 
   // Detecta token na URL -> tela de reset
   useEffect(() => {
@@ -698,30 +699,30 @@ function App() {
           Premiação
         </button>
 
-        {isAdmin && (
-          <>
-            <button
-              className={`menu-item ${page === "history" ? "active" : ""}`}
-              onClick={() => {
-                setPage("history");
-                setMenuOpen(false);
-              }}
-            >
-              Histórico de apostas
-            </button>
+        {isSuperAdmin && (
+          <button
+            className={`menu-item ${page === "history" ? "active" : ""}`}
+            onClick={() => {
+              setPage("history");
+              setMenuOpen(false);
+            }}
+          >
+            Histórico de apostas
+          </button>
+        )}
 
-            <button
-              className={`menu-item ${page === "results" ? "active" : ""}`}
-              onClick={() => {
-                setPage("results");
-                setMenuOpen(false);
-                loadMatches();
-                loadAdminChampionConfig();
-              }}
-            >
-              Postar resultado
-            </button>
-          </>
+        {isAdmin && (
+          <button
+            className={`menu-item ${page === "results" ? "active" : ""}`}
+            onClick={() => {
+              setPage("results");
+              setMenuOpen(false);
+              loadMatches();
+              loadAdminChampionConfig();
+            }}
+          >
+            Postar resultado
+          </button>
         )}
       </aside>
 
@@ -897,7 +898,7 @@ function App() {
 
         {page === "history" && (
           <>
-            {isAdmin ? (
+            {isSuperAdmin ? (
               <BetHistoryTab />
             ) : (
               <section className="section">
