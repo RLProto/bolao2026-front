@@ -940,7 +940,7 @@ def upsert_bets_bulk(payload: BetBulkCreate, db: Session = Depends(get_db), curr
 
 @app.get("/ranking", response_model=List[RankingItem])
 def get_ranking(
-    limit: int = Query(200, ge=1, le=500),
+    limit: int = Query(250, ge=1, le=500),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
