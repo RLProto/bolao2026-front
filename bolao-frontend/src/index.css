@@ -1124,7 +1124,7 @@ select:focus {
 .stats-section-title {
   font-size: 0.7rem;
   font-weight: 700;
-  color: rgba(148, 163, 184, 0.75);
+  color: #cbd5e1;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin: 0 0 1rem;
@@ -1147,7 +1147,7 @@ select:focus {
 .stats-outcome-label {
   display: block;
   font-size: 0.75rem;
-  color: rgba(148, 163, 184, 0.85);
+  color: #e2e8f0;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   margin-bottom: 0.3rem;
@@ -1180,7 +1180,7 @@ select:focus {
 
 .stats-outcome-count {
   font-size: 0.76rem;
-  color: rgba(148, 163, 184, 0.75);
+  color: #94a3b8;
 }
 
 /* Score bars */
@@ -1247,7 +1247,7 @@ select:focus {
 
 .stats-score-meta {
   font-size: 0.8rem;
-  color: rgba(148, 163, 184, 0.8);
+  color: #94a3b8;
   white-space: nowrap;
 }
 
@@ -1258,7 +1258,7 @@ select:focus {
 }
 
 .stats-score-pct {
-  opacity: 0.85;
+  opacity: 1;
 }
 
 /* Averages */
