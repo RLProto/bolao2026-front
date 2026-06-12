@@ -82,21 +82,22 @@ async function drawStatsCanvas(stats) {
   ctx.fillText("BOLÃO DA RAFA  ·  ESTATÍSTICAS", W / 2, 44);
 
   // ── Teams + flags (centered) ─────────────────────────────────────
+  ctx.textAlign = "left";
   const teamsStr = `${stats.home_team_name.toUpperCase()}  ×  ${stats.away_team_name.toUpperCase()}`;
   const fs = teamsStr.length > 30 ? 36 : teamsStr.length > 22 ? 42 : 48;
   ctx.font = `800 ${fs}px -apple-system, system-ui, sans-serif`;
   const tw = ctx.measureText(teamsStr).width;
-  const FLAG_W = 52, FLAG_H = 35, FLAG_GAP = 16;
-  const blockW = (homeFlag ? FLAG_W + FLAG_GAP : 0) + tw + (awayFlag ? FLAG_GAP + FLAG_W : 0);
-  const blockX = (W - blockW) / 2;
+  const FLAG_W = 48, FLAG_H = 32, FLAG_GAP = 14;
   const titleY = 116;
   const flagTop = titleY - Math.round(fs * 0.78);
 
-  let textX = blockX;
-  if (homeFlag) { ctx.drawImage(homeFlag, blockX, flagTop, FLAG_W, FLAG_H); textX = blockX + FLAG_W + FLAG_GAP; }
+  // Text always centered at W/2; flags flanking based on measured width
   ctx.fillStyle = "#F0F4F8";
-  ctx.fillText(teamsStr, textX, titleY);
-  if (awayFlag) ctx.drawImage(awayFlag, textX + tw + FLAG_GAP, flagTop, FLAG_W, FLAG_H);
+  ctx.textAlign = "center";
+  ctx.fillText(teamsStr, W / 2, titleY);
+  if (homeFlag) ctx.drawImage(homeFlag, W / 2 - tw / 2 - FLAG_GAP - FLAG_W, flagTop, FLAG_W, FLAG_H);
+  if (awayFlag) ctx.drawImage(awayFlag, W / 2 + tw / 2 + FLAG_GAP, flagTop, FLAG_W, FLAG_H);
+  ctx.textAlign = "left";
 
   // ── Meta pill (centered) ─────────────────────────────────────────
   ctx.fillStyle = "#8899AA";
