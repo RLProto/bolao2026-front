@@ -970,10 +970,27 @@ select:focus {
   color: var(--text-soft);
 }
 
+.match-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .badge.locked {
   color: #ff5a5a;
   border: 1px solid #ff5a5a;
   background: rgba(255, 90, 90, 0.1);
+  padding: 4px 10px;
+  font-weight: 700;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.badge.points-badge {
+  background: transparent;
+  border: 1px solid;
   padding: 4px 10px;
   font-weight: 700;
   border-radius: 8px;

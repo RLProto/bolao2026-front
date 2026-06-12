@@ -2,6 +2,38 @@
 import React from "react";
 import FlagIcon from "./FlagIcon";
 
+function calculatePoints(realH, realA, predH, predA) {
+  if (realH == null || realA == null) return null;
+  const pH = Number(predH);
+  const pA = Number(predA);
+  if (predH === "" || predA === "" || isNaN(pH) || isNaN(pA)) return null;
+
+  if (realH === pH && realA === pA) return 18;
+
+  const realResult = Math.sign(realH - realA);
+  const predResult = Math.sign(pH - pA);
+
+  if (predResult === 0 && realResult !== 0) return 3;
+
+  const correctScores = (realH === pH ? 1 : 0) + (realA === pA ? 1 : 0);
+
+  if (realResult === predResult) {
+    if (correctScores === 1) return 12;
+    if (correctScores === 0) return 9;
+  }
+
+  if (correctScores >= 1) return 3;
+  return 0;
+}
+
+const POINTS_STYLE = {
+  18: { border: "#22c55e", bg: "rgba(34,197,94,0.08)",  label: "#22c55e" },
+  12: { border: "#86efac", bg: "rgba(134,239,172,0.08)", label: "#86efac" },
+   9: { border: "#eab308", bg: "rgba(234,179,8,0.08)",  label: "#eab308" },
+   3: { border: "#f97316", bg: "rgba(249,115,22,0.08)", label: "#f97316" },
+   0: { border: "#ef4444", bg: "rgba(239,68,68,0.08)",  label: "#ef4444" },
+};
+
 const MatchCard = React.memo(function MatchCard({
   m,
   predHome,
@@ -16,10 +48,20 @@ const MatchCard = React.memo(function MatchCard({
   const homeCode = m.home_team_name ? m.home_team_code : null;
   const awayCode = m.away_team_name ? m.away_team_code : null;
 
+  const hasResult = m.home_score != null && m.away_score != null;
+  const pts = hasResult ? calculatePoints(m.home_score, m.away_score, predHome, predAway) : null;
+  const ptStyle = pts != null ? POINTS_STYLE[pts] : null;
+
   return (
     <div
       className={`match-card ${m.is_locked ? "locked" : ""} ${isDirty && !m.is_locked ? "unsaved" : ""}`}
-      style={{ "--card-i": cardIndex }}
+      style={{
+        "--card-i": cardIndex,
+        ...(ptStyle && {
+          borderColor: ptStyle.border,
+          background: ptStyle.bg,
+        }),
+      }}
     >
       <div className="match-header">
         <span className="match-stage">{m.stage}</span>
@@ -59,17 +101,25 @@ const MatchCard = React.memo(function MatchCard({
       </div>
 
       <div className="match-footer">
-        {m.home_score != null && m.away_score != null && (
+        {hasResult && (
           <div className="final-score">
             Resultado oficial:{" "}
             <strong>{m.home_score} x {m.away_score}</strong>
           </div>
         )}
-        {m.is_locked && (
-          <div className="match-actions">
+        <div className="match-actions">
+          {pts != null && (
+            <span
+              className="badge points-badge"
+              style={{ color: ptStyle.label, borderColor: ptStyle.border }}
+            >
+              {pts} pts
+            </span>
+          )}
+          {m.is_locked && (
             <span className="badge locked">Palpites bloqueados</span>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
