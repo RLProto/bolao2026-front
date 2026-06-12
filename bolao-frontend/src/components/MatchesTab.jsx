@@ -59,6 +59,8 @@ const MatchCard = React.memo(function MatchCard({
         "--card-i": cardIndex,
         ...(ptStyle && {
           borderColor: ptStyle.border,
+          borderWidth: "2px",
+          boxShadow: `0 0 0 1px ${ptStyle.border}55, 0 8px 32px rgba(0,0,0,0.5)`,
           background: ptStyle.bg,
         }),
       }}
