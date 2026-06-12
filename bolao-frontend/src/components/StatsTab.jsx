@@ -58,180 +58,207 @@ async function drawStatsCanvas(stats) {
   const W = 1080;
   const P = 60;
   const maxToShow = Math.min(stats.scores.length, 10);
-  const BAR_H = 33;
-  const BAR_GAP = 9;
+  const ROW_H = 46;
 
-  const HEADER_H  = 168;
-  const OUTCOME_H = 118;
-  const SCORES_H  = 30 + maxToShow * (BAR_H + BAR_GAP);
-  const FOOTER_H  = 48;
-  const H = HEADER_H + OUTCOME_H + SCORES_H + FOOTER_H;
+  const HEADER_H  = 174;
+  const OUTCOME_H = 28 + 96 + 14; // label + boxes + gap
+  const DIST_H    = 1 + 14 + 28 + maxToShow * ROW_H; // divider + gap + label + rows
+  const FOOTER_H  = 50;
+  const H = HEADER_H + OUTCOME_H + DIST_H + FOOTER_H;
 
   const canvas = document.createElement("canvas");
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext("2d");
 
-  // Background
-  const bg = ctx.createLinearGradient(0, 0, W, H);
-  bg.addColorStop(0, "#020617");
-  bg.addColorStop(1, "#0b1120");
-  ctx.fillStyle = bg;
+  // ── Background ──────────────────────────────────────────────────
+  ctx.fillStyle = "#050B17";
   ctx.fillRect(0, 0, W, H);
 
-  // Subtle grid
-  ctx.strokeStyle = "rgba(148,163,184,0.04)";
-  ctx.lineWidth = 1;
-  for (let x = 0; x <= W; x += 60) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
-  for (let y = 0; y <= H; y += 60) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
-
-  // Top accent
-  ctx.fillStyle = "#22c55e";
-  ctx.fillRect(0, 0, W, 4);
-
-  // Eyebrow — centered
-  ctx.fillStyle = "#22c55e";
-  ctx.font = "600 13px 'Courier New', monospace";
+  // ── Brand eyebrow (centered) ─────────────────────────────────────
+  ctx.fillStyle = "#2ECC71";
+  ctx.font = "700 12px 'Courier New', monospace";
   ctx.textAlign = "center";
   ctx.fillText("BOLÃO DA RAFA  ·  ESTATÍSTICAS", W / 2, 44);
-  ctx.textAlign = "left";
 
-  // Teams — centered with flanking flags
+  // ── Teams + flags (centered) ─────────────────────────────────────
   const teamsStr = `${stats.home_team_name.toUpperCase()}  ×  ${stats.away_team_name.toUpperCase()}`;
-  const fs = teamsStr.length > 30 ? 34 : teamsStr.length > 22 ? 40 : 46;
-  ctx.font = `700 ${fs}px -apple-system, system-ui, sans-serif`;
+  const fs = teamsStr.length > 30 ? 36 : teamsStr.length > 22 ? 42 : 48;
+  ctx.font = `800 ${fs}px -apple-system, system-ui, sans-serif`;
   const tw = ctx.measureText(teamsStr).width;
-  const FLAG_W = 50, FLAG_H = 33, FLAG_GAP = 16;
+  const FLAG_W = 52, FLAG_H = 35, FLAG_GAP = 16;
   const blockW = (homeFlag ? FLAG_W + FLAG_GAP : 0) + tw + (awayFlag ? FLAG_GAP + FLAG_W : 0);
   const blockX = (W - blockW) / 2;
-  const titleY = 108;
-  const flagTop = titleY - Math.round(fs * 0.76);
+  const titleY = 116;
+  const flagTop = titleY - Math.round(fs * 0.78);
 
   let textX = blockX;
-  if (homeFlag) {
-    ctx.drawImage(homeFlag, blockX, flagTop, FLAG_W, FLAG_H);
-    textX = blockX + FLAG_W + FLAG_GAP;
-  }
-  ctx.fillStyle = "#f1f5f9";
+  if (homeFlag) { ctx.drawImage(homeFlag, blockX, flagTop, FLAG_W, FLAG_H); textX = blockX + FLAG_W + FLAG_GAP; }
+  ctx.fillStyle = "#F0F4F8";
   ctx.fillText(teamsStr, textX, titleY);
-  if (awayFlag) {
-    ctx.drawImage(awayFlag, textX + tw + FLAG_GAP, flagTop, FLAG_W, FLAG_H);
-  }
+  if (awayFlag) ctx.drawImage(awayFlag, textX + tw + FLAG_GAP, flagTop, FLAG_W, FLAG_H);
 
-  // Subtitle — centered
-  ctx.fillStyle = "rgba(148,163,184,0.72)";
-  ctx.font = "400 15px -apple-system, system-ui, sans-serif";
-  let sub = `${stats.total_bets} palpites registrados`;
-  if (stats.official_home_score != null) {
-    sub = `Resultado oficial: ${stats.official_home_score} × ${stats.official_away_score}   ·   ${stats.total_bets} palpites`;
-  }
-  ctx.textAlign = "center";
-  ctx.fillText(sub, W / 2, 136);
+  // ── Meta pill (centered) ─────────────────────────────────────────
+  ctx.fillStyle = "#8899AA";
+  ctx.font = "500 14px -apple-system, system-ui, sans-serif";
+  let sub = `${stats.total_bets} palpites`;
+  if (stats.official_home_score != null)
+    sub = `Resultado: ${stats.official_home_score} × ${stats.official_away_score}  ·  ${stats.total_bets} palpites`;
+  ctx.fillText(sub, W / 2, 146);
   ctx.textAlign = "left";
 
-  // Divider
-  ctx.strokeStyle = "rgba(148,163,184,0.12)";
+  // ── Divider ──────────────────────────────────────────────────────
+  ctx.strokeStyle = "rgba(255,255,255,0.06)";
   ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(P, 154); ctx.lineTo(W - P, 154); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(P, 162); ctx.lineTo(W - P, 162); ctx.stroke();
 
-  // ── OUTCOME BOXES ──
+  // ── OUTCOME SECTION ──────────────────────────────────────────────
   let curY = HEADER_H;
-  ctx.fillStyle = "#cbd5e1";
-  ctx.font = "700 11px 'Courier New', monospace";
-  ctx.fillText("COMO O BOLÃO APOSTOU", P, curY);
-  curY += 16;
+
+  ctx.fillStyle = "#4A5B6E";
+  ctx.font = "700 10px 'Courier New', monospace";
+  ctx.fillText("COMO O BOLÃO APOSTOU", P, curY + 14);
+  curY += 28;
 
   const outcomes = [
-    { label: stats.home_team_name, pct: stats.home_win_pct, count: stats.home_win_count, color: "#22c55e" },
-    { label: "Empate", pct: stats.draw_pct, count: stats.draw_count, color: "#eab308" },
-    { label: stats.away_team_name, pct: stats.away_win_pct, count: stats.away_win_count, color: "#60a5fa" },
+    { label: stats.home_team_name, pct: stats.home_win_pct, count: stats.home_win_count, color: "#2ECC71" },
+    { label: "Empate",             pct: stats.draw_pct,     count: stats.draw_count,      color: "#F5C542" },
+    { label: stats.away_team_name, pct: stats.away_win_pct, count: stats.away_win_count,  color: "#5DADE2" },
   ];
   const boxW = (W - P * 2 - 24) / 3;
-  const boxH = 86;
+  const boxH = 96;
 
   outcomes.forEach((o, i) => {
     const bx = P + i * (boxW + 12);
     const by = curY;
 
+    // Card bg + border
     ctx.fillStyle = "rgba(255,255,255,0.04)";
-    roundRect(ctx, bx, by, boxW, boxH, 10);
+    roundRect(ctx, bx, by, boxW, boxH, 14);
     ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.08)";
+    ctx.lineWidth = 1;
+    roundRect(ctx, bx, by, boxW, boxH, 14);
+    ctx.stroke();
 
+    // Icon circle
+    const icX = bx + 20, icY = by + 22;
+    ctx.fillStyle = `${o.color}28`;
+    ctx.beginPath(); ctx.arc(icX, icY, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = o.color;
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    if (i === 1) {
+      ctx.beginPath(); ctx.moveTo(icX - 5, icY - 2); ctx.lineTo(icX + 5, icY - 2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(icX - 5, icY + 2); ctx.lineTo(icX + 5, icY + 2); ctx.stroke();
+    } else {
+      ctx.beginPath(); ctx.moveTo(icX - 5, icY + 1); ctx.lineTo(icX - 1, icY + 5); ctx.lineTo(icX + 5, icY - 4); ctx.stroke();
+    }
+
+    // Label
+    ctx.fillStyle = "#8899AA";
+    ctx.font = "600 11px -apple-system, system-ui, sans-serif";
+    const labelText = o.label.toUpperCase();
+    ctx.fillText(labelText.length > 14 ? labelText.slice(0, 13) + "…" : labelText, bx + 16, by + 50);
+
+    // Percentage (big)
     ctx.fillStyle = o.color;
-    ctx.fillRect(bx, by, 3, boxH);
+    ctx.font = "800 34px -apple-system, system-ui, sans-serif";
+    ctx.fillText(`${o.pct}%`, bx + 16, by + 83);
 
-    ctx.fillStyle = "#e2e8f0";
-    ctx.font = "600 12px -apple-system, system-ui, sans-serif";
-    ctx.fillText(o.label.toUpperCase(), bx + 18, by + 22);
-
-    ctx.fillStyle = o.color;
-    ctx.font = "800 30px -apple-system, system-ui, sans-serif";
-    ctx.fillText(`${o.pct}%`, bx + 18, by + 56);
-
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "400 12px -apple-system, system-ui, sans-serif";
-    ctx.fillText(`${o.count} palpites`, bx + 18, by + 76);
+    // Count
+    ctx.fillStyle = "#4A5B6E";
+    ctx.font = "400 11px -apple-system, system-ui, sans-serif";
+    ctx.fillText(`${o.count} palpites`, bx + 16, by + 93);
   });
 
-  curY += boxH + 16;
+  curY += boxH + 14;
 
-  // Divider
-  ctx.strokeStyle = "rgba(148,163,184,0.1)";
+  // ── SCORE DISTRIBUTION ───────────────────────────────────────────
+  ctx.strokeStyle = "rgba(255,255,255,0.06)";
   ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(P, curY); ctx.lineTo(W - P, curY); ctx.stroke();
   curY += 14;
 
-  // ── SCORES ──
-  ctx.fillStyle = "#cbd5e1";
-  ctx.font = "700 11px 'Courier New', monospace";
-  ctx.fillText("DISTRIBUIÇÃO DE PLACARES", P, curY);
-  curY += 18;
+  ctx.fillStyle = "#4A5B6E";
+  ctx.font = "700 10px 'Courier New', monospace";
+  ctx.fillText("DISTRIBUIÇÃO DE PLACARES", P, curY + 14);
+  curY += 28;
 
   const maxCount = stats.scores[0]?.count || 1;
-  const SCORE_COL = 80;
-  const META_W = 130;
-  const BAR_AREA = W - P * 2 - SCORE_COL - META_W;
+  const SCORE_COL = 78;
+  const META_W    = 132;
+  const BAR_AREA  = W - P * 2 - SCORE_COL - META_W;
 
   for (let i = 0; i < maxToShow; i++) {
     const s = stats.scores[i];
-    const sy = curY + i * (BAR_H + BAR_GAP);
+    const sy = curY + i * ROW_H;
+    const isTop = i === 0;
+    const isOfficial = stats.official_home_score != null &&
+      s.home === stats.official_home_score && s.away === stats.official_away_score;
     const ratio = s.count / maxCount;
+    const barH = 26;
+    const barY = sy + (ROW_H - barH) / 2;
     const barW = Math.max(BAR_AREA * ratio, 6);
 
-    // Score label — mesma fonte e cor para todos
-    ctx.fillStyle = "#cbd5e1";
-    ctx.font = "600 15px 'Courier New', monospace";
+    // Top row pill background
+    if (isTop) {
+      ctx.fillStyle = "rgba(46,204,113,0.08)";
+      roundRect(ctx, P - 10, sy - 2, W - P * 2 + 20, ROW_H, 10);
+      ctx.fill();
+    } else {
+      // Thin row separator
+      ctx.strokeStyle = "rgba(255,255,255,0.04)";
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(P, sy); ctx.lineTo(W - P, sy); ctx.stroke();
+    }
+
+    // Score label
+    ctx.fillStyle = isTop ? "#2ECC71" : "#8899AA";
+    ctx.font = `${isTop ? 700 : 600} 15px 'Courier New', monospace`;
     ctx.textAlign = "left";
-    ctx.fillText(`${s.home} × ${s.away}`, P, sy + BAR_H / 2 + 6);
+    ctx.fillText(`${s.home} × ${s.away}`, P, sy + ROW_H / 2 + 6);
 
-    // Track
+    // Bar track
     ctx.fillStyle = "rgba(255,255,255,0.05)";
-    roundRect(ctx, P + SCORE_COL, sy, BAR_AREA, BAR_H, 6);
+    roundRect(ctx, P + SCORE_COL, barY, BAR_AREA, barH, 999);
     ctx.fill();
 
-    // Bar fill — mesma cor para todos, comprimento varia pelo ratio
-    ctx.fillStyle = "#22c55e";
-    roundRect(ctx, P + SCORE_COL, sy, barW, BAR_H, 6);
+    // Bar fill
+    if (isTop) { ctx.shadowColor = "rgba(46,204,113,0.35)"; ctx.shadowBlur = 8; }
+    ctx.fillStyle = isTop ? "#2ECC71" : "rgba(46,204,113,0.55)";
+    roundRect(ctx, P + SCORE_COL, barY, barW, barH, 999);
     ctx.fill();
+    ctx.shadowBlur = 0;
 
-    // Meta — mesma fonte e cor para todos, alinhado à direita
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "500 13px -apple-system, system-ui, sans-serif";
+    // Official result badge
+    if (isOfficial) {
+      ctx.fillStyle = "#F5C542";
+      ctx.font = "700 12px -apple-system, system-ui, sans-serif";
+      ctx.fillText("✓", P + SCORE_COL + barW + 8, sy + ROW_H / 2 + 5);
+    }
+
+    // Meta (right-aligned)
+    ctx.fillStyle = isTop ? "#CBD5E1" : "#8899AA";
+    ctx.font = `${isTop ? 600 : 500} 13px -apple-system, system-ui, sans-serif`;
     ctx.textAlign = "right";
-    ctx.fillText(`${s.count}  (${s.pct}%)`, W - P, sy + BAR_H / 2 + 5);
+    ctx.fillText(`${s.count}  (${s.pct}%)`, W - P, sy + ROW_H / 2 + 5);
     ctx.textAlign = "left";
   }
 
-  curY += maxToShow * (BAR_H + BAR_GAP) + 20;
+  // ── Footer ───────────────────────────────────────────────────────
+  const footerY = H - FOOTER_H;
+  ctx.strokeStyle = "rgba(255,255,255,0.06)";
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(P, footerY + 10); ctx.lineTo(W - P, footerY + 10); ctx.stroke();
 
-  // Footer
-  ctx.fillStyle = "rgba(148,163,184,0.22)";
-  ctx.font = "400 12px -apple-system, system-ui, sans-serif";
+  ctx.fillStyle = "#4A5B6E";
+  ctx.font = "500 12px -apple-system, system-ui, sans-serif";
   ctx.textAlign = "left";
-  ctx.fillText("bolão da rafa", P, H - 18);
+  ctx.fillText("bolão da rafa", P, footerY + 30);
   ctx.textAlign = "right";
   const dateStr = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
-  ctx.fillText(dateStr, W - P, H - 18);
+  ctx.fillText(dateStr, W - P, footerY + 30);
   ctx.textAlign = "left";
 
   return canvas;
@@ -239,28 +266,40 @@ async function drawStatsCanvas(stats) {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function OutcomeCard({ label, pct, count, color }) {
+const WinIcon = ({ color }) => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <polyline points="2,7 5.5,11 12,3" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+const DrawIcon = ({ color }) => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill={color}>
+    <rect x="1.5" y="4" width="11" height="2" rx="1"/>
+    <rect x="1.5" y="8" width="11" height="2" rx="1"/>
+  </svg>
+);
+
+function OutcomeCard({ label, pct, count, color, isDraw }) {
   return (
-    <div className="stats-outcome-card" style={{ borderLeftColor: color }}>
+    <div className="stats-outcome-card">
+      <div className="stats-outcome-icon" style={{ background: `${color}22`, color }}>
+        {isDraw ? <DrawIcon color={color} /> : <WinIcon color={color} />}
+      </div>
       <span className="stats-outcome-label">{label}</span>
       <span className="stats-outcome-pct" style={{ color }}>{pct}%</span>
       <div className="stats-outcome-bar-track">
-        <div
-          className="stats-outcome-bar-fill"
-          style={{ width: `${pct}%`, background: color }}
-        />
+        <div className="stats-outcome-bar-fill" style={{ width: `${pct}%`, background: color }} />
       </div>
       <span className="stats-outcome-count">{count} palpites</span>
     </div>
   );
 }
 
-function ScoreRow({ home, away, count, pct, maxCount, rank }) {
+function ScoreRow({ home, away, count, pct, maxCount, rank, isOfficial }) {
   const isTop = rank === 0;
   const ratio = count / maxCount;
 
   return (
-    <div className="stats-score-row" style={{ "--delay": `${rank * 0.04}s` }}>
+    <div className={`stats-score-row${isTop ? " top-row" : ""}`} style={{ "--delay": `${rank * 0.04}s` }}>
       <span className="stats-score-label">
         {home} × {away}
       </span>
@@ -271,6 +310,7 @@ function ScoreRow({ home, away, count, pct, maxCount, rank }) {
         />
       </div>
       <span className="stats-score-meta">
+        {isOfficial && <span className="stats-official-check">✓</span>}
         {count} <span className="stats-score-pct">({pct}%)</span>
       </span>
     </div>
@@ -382,9 +422,9 @@ export default function StatsTab({ matches, formatDateTime }) {
           <div className="stats-section">
             <h4 className="stats-section-title">Como o bolão apostou</h4>
             <div className="stats-outcome-row">
-              <OutcomeCard label={stats.home_team_name} pct={stats.home_win_pct} count={stats.home_win_count} color="#22c55e" />
-              <OutcomeCard label="Empate" pct={stats.draw_pct} count={stats.draw_count} color="#eab308" />
-              <OutcomeCard label={stats.away_team_name} pct={stats.away_win_pct} count={stats.away_win_count} color="#60a5fa" />
+              <OutcomeCard label={stats.home_team_name} pct={stats.home_win_pct} count={stats.home_win_count} color="#2ECC71" />
+              <OutcomeCard label="Empate" pct={stats.draw_pct} count={stats.draw_count} color="#F5C542" isDraw />
+              <OutcomeCard label={stats.away_team_name} pct={stats.away_win_pct} count={stats.away_win_count} color="#5DADE2" />
             </div>
           </div>
 
@@ -401,6 +441,11 @@ export default function StatsTab({ matches, formatDateTime }) {
                   pct={s.pct}
                   maxCount={maxCount}
                   rank={i}
+                  isOfficial={
+                    stats.official_home_score != null &&
+                    s.home === stats.official_home_score &&
+                    s.away === stats.official_away_score
+                  }
                 />
               ))}
             </div>
