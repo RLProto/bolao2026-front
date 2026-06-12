@@ -239,49 +239,49 @@ export default function MatchesTab({
       </div>
 
       <div className="matches-toolbar">
-        <div className="matches-toolbar-actions">
-          <div className="toolbar-control">
-            <label className="filter-label">Etapa</label>
-            <select
-              value={selectedRound}
-              onChange={(e) => onSelectedRoundChange(e.target.value)}
-              className="filter-select"
-            >
-              {ROUND_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
+        <button
+          className="btn primary small btn-save-all"
+          onClick={onSaveAllBets}
+          disabled={savingAll || matchesLoading}
+        >
+          {savingAll && <span className="btn-spinner" aria-hidden="true" />}
+          <span>{savingAll ? "Salvando..." : "Salvar todos os palpites"}</span>
+        </button>
+      </div>
 
-          <div
-            className="toolbar-control"
-            style={{
-              opacity: isGroupRound ? 1 : 0,
-              pointerEvents: isGroupRound ? "auto" : "none",
-            }}
+      <div className="matches-filters">
+        <div className="toolbar-control">
+          <label className="filter-label">Etapa</label>
+          <select
+            value={selectedRound}
+            onChange={(e) => onSelectedRoundChange(e.target.value)}
+            className="filter-select"
           >
-            <label className="filter-label">Ordenar por</label>
-            <select
-              value={orderMode}
-              onChange={(e) => onOrderModeChange(e.target.value)}
-              className="filter-select"
-              disabled={!isGroupRound}
-            >
-              <option value="date">Data</option>
-              <option value="group">Grupo</option>
-            </select>
-          </div>
+            {ROUND_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
 
-          <button
-            className="btn primary small btn-save-all"
-            onClick={onSaveAllBets}
-            disabled={savingAll || matchesLoading}
+        <div
+          className="toolbar-control"
+          style={{
+            opacity: isGroupRound ? 1 : 0,
+            pointerEvents: isGroupRound ? "auto" : "none",
+          }}
+        >
+          <label className="filter-label">Ordenar por</label>
+          <select
+            value={orderMode}
+            onChange={(e) => onOrderModeChange(e.target.value)}
+            className="filter-select"
+            disabled={!isGroupRound}
           >
-            {savingAll && <span className="btn-spinner" aria-hidden="true" />}
-            <span>{savingAll ? "Salvando..." : "Salvar todos os palpites"}</span>
-          </button>
+            <option value="date">Data</option>
+            <option value="group">Grupo</option>
+          </select>
         </div>
       </div>
 

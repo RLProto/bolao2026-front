@@ -675,16 +675,9 @@ select:focus {
   padding-left: 1.1rem;
 }
 
-/* ====== TOOLBAR SUPERIOR (filtros + botão salvar) ====== */
+/* ====== TOOLBAR SUPERIOR (só botão salvar — sticky) ====== */
 
 .matches-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-top: 0.75rem;
-  margin-bottom: 0.75rem;
   position: sticky;
   top: var(--topbar-h);
   z-index: 10;
@@ -694,24 +687,16 @@ select:focus {
   margin-right: -0.5rem;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
-.matches-toolbar-text {
-  flex: 0 0 auto;
-  max-width: 320px;
-}
-
-.matches-toolbar-text p {
-  margin: 0;
-}
-
-/* grupo dos filtros (Etapa / Ordenar por) fica à esquerda */
-.matches-toolbar-actions {
+/* filtros de etapa/ordenação — estáticos, abaixo do toolbar */
+.matches-filters {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
   gap: 0.75rem;
-  flex: 1 1 auto;
+  align-items: flex-end;
+  margin-bottom: 1rem;
 }
 
 /* cada controle de filtro em coluna */
@@ -1638,17 +1623,9 @@ select:focus {
 @media (max-width: 768px) {
   .tabs { margin-bottom: 0.5rem; }
 
-  .matches-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.5rem;
-    margin-top: 0.4rem;
-    margin-bottom: 0.6rem;
-  }
-
-  .matches-toolbar-actions { justify-content: flex-start; }
+  .btn-save-all { width: 100%; justify-content: center; }
+  .matches-filters { flex-direction: column; }
   .toolbar-control { width: 100%; }
-  .btn-save-all { width: 100%; margin-left: 0; justify-content: center; }
 }
 
 /* =========================
