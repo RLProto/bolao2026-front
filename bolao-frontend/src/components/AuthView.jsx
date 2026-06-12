@@ -187,17 +187,6 @@ export default function AuthView({
                 Entrar
               </button>
 
-              <button
-                className={`pill ${authMode === "register" ? "active" : ""}`}
-                type="button"
-                onClick={() => {
-                  setAuthMode("register");
-                  setAuthError("");
-                  setAuthMessage("");
-                }}
-              >
-                Criar conta
-              </button>
             </div>
 
             <form onSubmit={handleAuthSubmit} className="form">
