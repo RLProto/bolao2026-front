@@ -136,8 +136,8 @@ async function drawStatsCanvas(stats) {
 
   // ── OUTCOME BOXES ──
   let curY = HEADER_H;
-  ctx.fillStyle = "rgba(148,163,184,0.55)";
-  ctx.font = "600 11px 'Courier New', monospace";
+  ctx.fillStyle = "#cbd5e1";
+  ctx.font = "700 11px 'Courier New', monospace";
   ctx.fillText("COMO O BOLÃO APOSTOU", P, curY);
   curY += 16;
 
@@ -160,15 +160,15 @@ async function drawStatsCanvas(stats) {
     ctx.fillStyle = o.color;
     ctx.fillRect(bx, by, 3, boxH);
 
-    ctx.fillStyle = "rgba(148,163,184,0.85)";
-    ctx.font = "500 12px -apple-system, system-ui, sans-serif";
+    ctx.fillStyle = "#e2e8f0";
+    ctx.font = "600 12px -apple-system, system-ui, sans-serif";
     ctx.fillText(o.label.toUpperCase(), bx + 18, by + 22);
 
     ctx.fillStyle = o.color;
     ctx.font = "800 30px -apple-system, system-ui, sans-serif";
     ctx.fillText(`${o.pct}%`, bx + 18, by + 56);
 
-    ctx.fillStyle = "rgba(148,163,184,0.55)";
+    ctx.fillStyle = "#94a3b8";
     ctx.font = "400 12px -apple-system, system-ui, sans-serif";
     ctx.fillText(`${o.count} palpites`, bx + 18, by + 76);
   });
@@ -182,8 +182,8 @@ async function drawStatsCanvas(stats) {
   curY += 14;
 
   // ── SCORES ──
-  ctx.fillStyle = "rgba(148,163,184,0.55)";
-  ctx.font = "600 11px 'Courier New', monospace";
+  ctx.fillStyle = "#cbd5e1";
+  ctx.font = "700 11px 'Courier New', monospace";
   ctx.fillText("DISTRIBUIÇÃO DE PLACARES", P, curY);
   curY += 18;
 
@@ -195,13 +195,12 @@ async function drawStatsCanvas(stats) {
   for (let i = 0; i < maxToShow; i++) {
     const s = stats.scores[i];
     const sy = curY + i * (BAR_H + BAR_GAP);
-    const isTop = i === 0;
     const ratio = s.count / maxCount;
     const barW = Math.max(BAR_AREA * ratio, 6);
 
-    // Score label — uniform font, color only differs for top
-    ctx.fillStyle = isTop ? "#f1f5f9" : "rgba(148,163,184,0.82)";
-    ctx.font = `${isTop ? 700 : 600} 15px 'Courier New', monospace`;
+    // Score label — mesma fonte e cor para todos
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "600 15px 'Courier New', monospace";
     ctx.textAlign = "left";
     ctx.fillText(`${s.home} × ${s.away}`, P, sy + BAR_H / 2 + 6);
 
@@ -210,15 +209,14 @@ async function drawStatsCanvas(stats) {
     roundRect(ctx, P + SCORE_COL, sy, BAR_AREA, BAR_H, 6);
     ctx.fill();
 
-    // Bar fill — alpha scales with ratio for visual hierarchy
-    const alpha = isTop ? 1 : 0.28 + 0.72 * ratio;
-    ctx.fillStyle = `rgba(34,197,94,${alpha})`;
+    // Bar fill — mesma cor para todos, comprimento varia pelo ratio
+    ctx.fillStyle = "#22c55e";
     roundRect(ctx, P + SCORE_COL, sy, barW, BAR_H, 6);
     ctx.fill();
 
-    // Meta — uniform font, right-aligned at fixed column
-    ctx.fillStyle = isTop ? "rgba(203,213,225,0.95)" : "rgba(148,163,184,0.82)";
-    ctx.font = `${isTop ? 600 : 500} 13px -apple-system, system-ui, sans-serif`;
+    // Meta — mesma fonte e cor para todos, alinhado à direita
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "500 13px -apple-system, system-ui, sans-serif";
     ctx.textAlign = "right";
     ctx.fillText(`${s.count}  (${s.pct}%)`, W - P, sy + BAR_H / 2 + 5);
     ctx.textAlign = "left";
