@@ -436,7 +436,8 @@ function App() {
       setSavingAll(true);
       setSaveBetsResult(null);
 
-      const result = await saveBetsBulk(matches, predictions);
+      const matchesToSave = matches.filter((m) => !m.is_locked || dirtyIds.has(m.id));
+      const result = await saveBetsBulk(matchesToSave, predictions);
 
       setSaveBetsResult({ saved: result.saved, errors: result.errors || [], incomplete: incompleteMatches });
       setDirtyIds(new Set());
