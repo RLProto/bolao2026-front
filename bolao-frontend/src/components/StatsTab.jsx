@@ -109,7 +109,7 @@ async function drawStatsCanvas(stats) {
   // ── OUTCOME SECTION ──────────────────────────────────────────────
   let curY = HEADER_H;
 
-  ctx.fillStyle = "#4A5B6E";
+  ctx.fillStyle = "#94A3B8";
   ctx.font = "700 10px 'Courier New', monospace";
   ctx.fillText("COMO O BOLÃO APOSTOU", P, curY + 14);
   curY += 28;
@@ -150,7 +150,7 @@ async function drawStatsCanvas(stats) {
     }
 
     // Label
-    ctx.fillStyle = "#8899AA";
+    ctx.fillStyle = "#CBD5E1";
     ctx.font = "600 11px -apple-system, system-ui, sans-serif";
     const labelText = o.label.toUpperCase();
     ctx.fillText(labelText.length > 14 ? labelText.slice(0, 13) + "…" : labelText, bx + 16, by + 50);
@@ -161,7 +161,7 @@ async function drawStatsCanvas(stats) {
     ctx.fillText(`${o.pct}%`, bx + 16, by + 83);
 
     // Count
-    ctx.fillStyle = "#4A5B6E";
+    ctx.fillStyle = "#94A3B8";
     ctx.font = "400 11px -apple-system, system-ui, sans-serif";
     ctx.fillText(`${o.count} palpites`, bx + 16, by + 93);
   });
@@ -174,7 +174,7 @@ async function drawStatsCanvas(stats) {
   ctx.beginPath(); ctx.moveTo(P, curY); ctx.lineTo(W - P, curY); ctx.stroke();
   curY += 14;
 
-  ctx.fillStyle = "#4A5B6E";
+  ctx.fillStyle = "#94A3B8";
   ctx.font = "700 10px 'Courier New', monospace";
   ctx.fillText("DISTRIBUIÇÃO DE PLACARES", P, curY + 14);
   curY += 28;
@@ -208,7 +208,7 @@ async function drawStatsCanvas(stats) {
     }
 
     // Score label
-    ctx.fillStyle = isTop ? "#2ECC71" : "#8899AA";
+    ctx.fillStyle = isTop ? "#2ECC71" : "#E2E8F0";
     ctx.font = `${isTop ? 700 : 600} 15px 'Courier New', monospace`;
     ctx.textAlign = "left";
     ctx.fillText(`${s.home} × ${s.away}`, P, sy + ROW_H / 2 + 6);
