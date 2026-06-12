@@ -60,10 +60,10 @@ async function drawStatsCanvas(stats) {
   const maxToShow = Math.min(stats.scores.length, 10);
   const ROW_H = 46;
 
-  const HEADER_H  = 174;
+  const HEADER_H  = 148;
   const OUTCOME_H = 28 + 96 + 14; // label + boxes + gap
   const DIST_H    = 1 + 14 + 28 + maxToShow * ROW_H; // divider + gap + label + rows
-  const FOOTER_H  = 50;
+  const FOOTER_H  = 24;
   const H = HEADER_H + OUTCOME_H + DIST_H + FOOTER_H;
 
   const canvas = document.createElement("canvas");
@@ -75,20 +75,13 @@ async function drawStatsCanvas(stats) {
   ctx.fillStyle = "#050B17";
   ctx.fillRect(0, 0, W, H);
 
-  // ── Brand eyebrow (centered) ─────────────────────────────────────
-  ctx.fillStyle = "#2ECC71";
-  ctx.font = "700 12px 'Courier New', monospace";
-  ctx.textAlign = "center";
-  ctx.fillText("BOLÃO DA RAFA  ·  ESTATÍSTICAS", W / 2, 44);
-
   // ── Teams + flags (centered) ─────────────────────────────────────
-  ctx.textAlign = "left";
   const teamsStr = `${stats.home_team_name.toUpperCase()}  ×  ${stats.away_team_name.toUpperCase()}`;
   const fs = teamsStr.length > 30 ? 36 : teamsStr.length > 22 ? 42 : 48;
   ctx.font = `800 ${fs}px -apple-system, system-ui, sans-serif`;
   const tw = ctx.measureText(teamsStr).width;
   const FLAG_W = 48, FLAG_H = 32, FLAG_GAP = 14;
-  const titleY = 116;
+  const titleY = 90;
   const flagTop = titleY - Math.round(fs * 0.78);
 
   // Text always centered at W/2; flags flanking based on measured width
@@ -105,13 +98,13 @@ async function drawStatsCanvas(stats) {
   let sub = `${stats.total_bets} palpites`;
   if (stats.official_home_score != null)
     sub = `Resultado: ${stats.official_home_score} × ${stats.official_away_score}  ·  ${stats.total_bets} palpites`;
-  ctx.fillText(sub, W / 2, 146);
+  ctx.fillText(sub, W / 2, 118);
   ctx.textAlign = "left";
 
   // ── Divider ──────────────────────────────────────────────────────
   ctx.strokeStyle = "rgba(255,255,255,0.06)";
   ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(P, 162); ctx.lineTo(W - P, 162); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(P, 134); ctx.lineTo(W - P, 134); ctx.stroke();
 
   // ── OUTCOME SECTION ──────────────────────────────────────────────
   let curY = HEADER_H;
@@ -246,21 +239,6 @@ async function drawStatsCanvas(stats) {
     ctx.fillText(`${s.count}  (${s.pct}%)`, W - P, sy + ROW_H / 2 + 5);
     ctx.textAlign = "left";
   }
-
-  // ── Footer ───────────────────────────────────────────────────────
-  const footerY = H - FOOTER_H;
-  ctx.strokeStyle = "rgba(255,255,255,0.06)";
-  ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(P, footerY + 10); ctx.lineTo(W - P, footerY + 10); ctx.stroke();
-
-  ctx.fillStyle = "#4A5B6E";
-  ctx.font = "500 12px -apple-system, system-ui, sans-serif";
-  ctx.textAlign = "left";
-  ctx.fillText("bolão da rafa", P, footerY + 30);
-  ctx.textAlign = "right";
-  const dateStr = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
-  ctx.fillText(dateStr, W - P, footerY + 30);
-  ctx.textAlign = "left";
 
   return canvas;
 }
