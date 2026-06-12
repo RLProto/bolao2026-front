@@ -30,9 +30,8 @@ function drawStatsCanvas(stats) {
   const HEADER_H    = 168;
   const OUTCOME_H   = 118;
   const SCORES_H    = 30 + maxToShow * (BAR_H + BAR_GAP);
-  const AVG_H       = 60;
   const FOOTER_H    = 48;
-  const H = HEADER_H + OUTCOME_H + SCORES_H + AVG_H + FOOTER_H;
+  const H = HEADER_H + OUTCOME_H + SCORES_H + FOOTER_H;
 
   const canvas = document.createElement("canvas");
   canvas.width = W;
@@ -175,30 +174,7 @@ function drawStatsCanvas(stats) {
     ctx.fillText(`${s.count}  (${s.pct}%)`, P + SCORE_COL + barW + 10, sy + BAR_H / 2 + 5);
   }
 
-  curY += maxToShow * (BAR_H + BAR_GAP) + 12;
-
-  // Divider
-  ctx.strokeStyle = "rgba(148,163,184,0.1)";
-  ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(P, curY); ctx.lineTo(W - P, curY); ctx.stroke();
-  curY += 16;
-
-  // ── AVERAGES ──
-  const avgs = [
-    { label: `Média gols ${stats.home_team_name}`, value: stats.avg_home_goals },
-    { label: `Média gols ${stats.away_team_name}`, value: stats.avg_away_goals },
-    { label: "Placares únicos", value: stats.scores.length },
-  ];
-  const avgW = (W - P * 2 - 32) / 3;
-  avgs.forEach((a, i) => {
-    const ax = P + i * (avgW + 16);
-    ctx.fillStyle = "rgba(148,163,184,0.45)";
-    ctx.font = "400 12px -apple-system, system-ui, sans-serif";
-    ctx.fillText(a.label.toUpperCase(), ax, curY);
-    ctx.fillStyle = "#22c55e";
-    ctx.font = "800 26px -apple-system, system-ui, sans-serif";
-    ctx.fillText(String(a.value), ax, curY + 26);
-  });
+  curY += maxToShow * (BAR_H + BAR_GAP) + 20;
 
   // Footer
   ctx.fillStyle = "rgba(148,163,184,0.22)";
@@ -349,6 +325,7 @@ export default function StatsTab({ matches, formatDateTime }) {
                 </span>
               )}
               <span className="stats-total-badge">{stats.total_bets} palpites</span>
+              <span className="stats-total-badge">{stats.scores.length} placares únicos</span>
             </div>
           </div>
 
@@ -379,31 +356,6 @@ export default function StatsTab({ matches, formatDateTime }) {
                   officialAway={stats.official_away_score}
                 />
               ))}
-            </div>
-          </div>
-
-          {/* Averages */}
-          <div className="stats-section stats-averages-section">
-            <h4 className="stats-section-title">Resumo</h4>
-            <div className="stats-averages">
-              <div className="stats-avg-item">
-                <span className="stats-avg-label">Média de gols — {stats.home_team_name}</span>
-                <span className="stats-avg-value">{stats.avg_home_goals}</span>
-              </div>
-              <div className="stats-avg-item">
-                <span className="stats-avg-label">Média de gols — {stats.away_team_name}</span>
-                <span className="stats-avg-value">{stats.avg_away_goals}</span>
-              </div>
-              <div className="stats-avg-item">
-                <span className="stats-avg-label">Placares únicos</span>
-                <span className="stats-avg-value">{stats.scores.length}</span>
-              </div>
-              <div className="stats-avg-item">
-                <span className="stats-avg-label">Placar mais votado</span>
-                <span className="stats-avg-value stats-avg-score">
-                  {stats.scores[0]?.home} × {stats.scores[0]?.away}
-                </span>
-              </div>
             </div>
           </div>
 
