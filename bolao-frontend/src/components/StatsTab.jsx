@@ -239,7 +239,7 @@ async function drawStatsCanvas(stats) {
     }
 
     // Meta (right-aligned)
-    ctx.fillStyle = isTop ? "#CBD5E1" : "#8899AA";
+    ctx.fillStyle = isTop ? "#F0F4F8" : "#CBD5E1";
     ctx.font = `${isTop ? 600 : 500} 13px -apple-system, system-ui, sans-serif`;
     ctx.textAlign = "right";
     ctx.fillText(`${s.count}  (${s.pct}%)`, W - P, sy + ROW_H / 2 + 5);

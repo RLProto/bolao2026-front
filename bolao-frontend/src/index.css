@@ -1261,7 +1261,7 @@ select:focus {
 .stats-score-meta {
   font-size: 0.78rem;
   font-weight: 500;
-  color: #8899AA;
+  color: #CBD5E1;
   text-align: right;
   white-space: nowrap;
   display: flex;
@@ -1271,16 +1271,16 @@ select:focus {
 }
 
 .stats-score-row.top-row .stats-score-meta {
-  color: #CBD5E1;
+  color: #F0F4F8;
   font-weight: 600;
 }
 
 .stats-score-pct {
-  color: #4A5B6E;
+  color: #94A3B8;
 }
 
 .stats-score-row.top-row .stats-score-pct {
-  color: #8899AA;
+  color: #CBD5E1;
 }
 
 .stats-official-check {
