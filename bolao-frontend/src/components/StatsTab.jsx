@@ -1,6 +1,7 @@
 // src/components/StatsTab.jsx
 import React, { useState } from "react";
 import { fetchMatchStats } from "../api";
+import FlagIcon from "./FlagIcon";
 
 // ─── Canvas utilities ─────────────────────────────────────────────────────────
 
@@ -314,9 +315,11 @@ export default function StatsTab({ matches, formatDateTime }) {
           <div className="stats-header-card">
             <div className="stats-header-eyebrow">estatísticas do jogo</div>
             <div className="stats-teams">
+              <FlagIcon code={stats.home_team_code} name={stats.home_team_name} />
               <span className="stats-team">{stats.home_team_name}</span>
               <span className="stats-vs">×</span>
               <span className="stats-team">{stats.away_team_name}</span>
+              <FlagIcon code={stats.away_team_code} name={stats.away_team_name} />
             </div>
             <div className="stats-header-meta">
               {stats.official_home_score != null && (
@@ -325,7 +328,6 @@ export default function StatsTab({ matches, formatDateTime }) {
                 </span>
               )}
               <span className="stats-total-badge">{stats.total_bets} palpites</span>
-              <span className="stats-total-badge">{stats.scores.length} placares únicos</span>
             </div>
           </div>
 
