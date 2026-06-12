@@ -261,16 +261,16 @@ function ScoreRow({ home, away, count, pct, maxCount, rank }) {
 
   return (
     <div className="stats-score-row" style={{ "--delay": `${rank * 0.04}s` }}>
-      <span className={`stats-score-label${isTop ? " top-score" : ""}`}>
+      <span className="stats-score-label">
         {home} × {away}
       </span>
       <div className="stats-bar-track">
         <div
-          className={`stats-bar-fill${isTop ? " top-bar" : ""}`}
+          className="stats-bar-fill"
           style={{ width: `${Math.max(ratio * 100, 1)}%`, animationDelay: `var(--delay)` }}
         />
       </div>
-      <span className={`stats-score-meta${isTop ? " top-meta" : ""}`}>
+      <span className="stats-score-meta">
         {count} <span className="stats-score-pct">({pct}%)</span>
       </span>
     </div>
