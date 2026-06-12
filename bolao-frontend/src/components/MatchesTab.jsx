@@ -28,7 +28,7 @@ function calculatePoints(realH, realA, predH, predA) {
 
 const POINTS_STYLE = {
   18: { border: "#22c55e", bg: "rgba(34,197,94,0.08)",  label: "#22c55e" },
-  12: { border: "#86efac", bg: "rgba(134,239,172,0.08)", label: "#86efac" },
+  12: { border: "#06b6d4", bg: "rgba(6,182,212,0.08)",   label: "#06b6d4" },
    9: { border: "#eab308", bg: "rgba(234,179,8,0.08)",  label: "#eab308" },
    3: { border: "#f97316", bg: "rgba(249,115,22,0.08)", label: "#f97316" },
    0: { border: "#ef4444", bg: "rgba(239,68,68,0.08)",  label: "#ef4444" },
