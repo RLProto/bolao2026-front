@@ -346,16 +346,6 @@ export default function MatchesTab({
         ))}
       </div>
 
-      <div className="matches-toolbar bottom-toolbar">
-        <button
-          className="btn primary small btn-save-all"
-          onClick={onSaveAllBets}
-          disabled={savingAll || matchesLoading}
-        >
-          {savingAll && <span className="btn-spinner" aria-hidden="true" />}
-          <span>{savingAll ? "Salvando..." : "Salvar todos os palpites"}</span>
-        </button>
-      </div>
     </section>
   );
 }
