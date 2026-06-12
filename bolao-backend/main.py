@@ -1013,7 +1013,7 @@ def get_ranking(
 
 @app.get("/bets/public", response_model=List[PublicBetOut])
 def list_public_bets(
-    limit: int = Query(500, ge=1, le=2000),
+    limit: int = Query(2000, ge=1, le=2000),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
