@@ -1037,6 +1037,68 @@ def list_public_bets(
     ]
 
 
+@app.get("/stats/match/{match_id}")
+def get_match_stats(
+    match_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    match = (
+        db.query(Match)
+        .options(joinedload(Match.home_team), joinedload(Match.away_team))
+        .filter(Match.id == match_id)
+        .first()
+    )
+    if not match:
+        raise HTTPException(status_code=404, detail="Partida não encontrada")
+    if not is_match_locked(match):
+        raise HTTPException(status_code=403, detail="Prazo desta partida ainda não encerrou")
+
+    bets = (
+        db.query(Bet)
+        .join(User, User.id == Bet.user_id)
+        .filter(Bet.match_id == match_id, User.profile != HIDDEN_FROM_RANKING_PROFILE)
+        .all()
+    )
+
+    total = len(bets)
+    score_counts: dict = {}
+    for bet in bets:
+        key = (bet.home_score_prediction, bet.away_score_prediction)
+        score_counts[key] = score_counts.get(key, 0) + 1
+
+    scores_sorted = sorted(score_counts.items(), key=lambda x: -x[1])
+    home_win = sum(v for (h, a), v in score_counts.items() if h > a)
+    draw     = sum(v for (h, a), v in score_counts.items() if h == a)
+    away_win = sum(v for (h, a), v in score_counts.items() if h < a)
+    avg_home = sum(h * v for (h, a), v in score_counts.items()) / total if total else 0
+    avg_away = sum(a * v for (h, a), v in score_counts.items()) / total if total else 0
+
+    return {
+        "match_id": match_id,
+        "home_team_name": match.home_team.name,
+        "away_team_name": match.away_team.name,
+        "home_team_code": match.home_team.code,
+        "away_team_code": match.away_team.code,
+        "official_home_score": match.home_score,
+        "official_away_score": match.away_score,
+        "kickoff_at_utc": match.kickoff_at_utc.isoformat(),
+        "total_bets": total,
+        "scores": [
+            {"home": h, "away": a, "count": c, "pct": round(c / total * 100, 1) if total else 0}
+            for (h, a), c in scores_sorted
+        ],
+        "home_win_count": home_win,
+        "draw_count": draw,
+        "away_win_count": away_win,
+        "home_win_pct": round(home_win / total * 100, 1) if total else 0,
+        "draw_pct": round(draw / total * 100, 1) if total else 0,
+        "away_win_pct": round(away_win / total * 100, 1) if total else 0,
+        "avg_home_goals": round(avg_home, 2),
+        "avg_away_goals": round(avg_away, 2),
+    }
+
+
 @app.post("/matches/results/bulk")
 def update_match_results_bulk(payload: MatchResultBulkUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     if not is_admin(current_user):
