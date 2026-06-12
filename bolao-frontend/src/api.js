@@ -200,6 +200,18 @@ export async function fetchBetHistory({ userId, matchId } = {}) {
 }
 
 
+export async function fetchMatchStats(matchId) {
+  const session = getSession();
+  if (!session) throw new Error("Sessão expirada. Faça login novamente.");
+  const res = await fetch(`${API_URL}/stats/match/${matchId}`, {
+    headers: { "Content-Type": "application/json", "X-User-Id": session.id, "X-Auth-Token": session.auth_token },
+  });
+  const data = await res.json();
+  if (!res.ok) { if (res.status === 401) fireUnauthorized(); throw new Error(data.detail || "Erro ao carregar estatísticas."); }
+  return data;
+}
+
+
 export async function saveMatchResultsBulk(matches, officialResults) {
   const session = getSession();
   if (!session) {

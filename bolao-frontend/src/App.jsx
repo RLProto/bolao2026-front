@@ -23,6 +23,7 @@ import ResetPasswordView from "./components/ResetPasswordView";
 import MatchesTab from "./components/MatchesTab";
 import RankingTab from "./components/RankingTab";
 import ViewBetsTab from "./components/ViewBetsTab";
+import StatsTab from "./components/StatsTab";
 import BetHistoryTab from "./components/BetHistoryTab";
 import ResultsTab from "./components/ResultsTab"; // 👈 NOVO
 
@@ -766,6 +767,12 @@ function App() {
               >
                 Ver palpites
               </button>
+              <button
+                className={`tab ${tab === "stats" ? "active" : ""}`}
+                onClick={() => setTab("stats")}
+              >
+                Estatísticas
+              </button>
             </div>
 
             {tab === "matches" && (
@@ -818,6 +825,13 @@ function App() {
                 championPicks={publicChampionPicks}
                 championPicksLoading={publicChampionPicksLoading}
                 championPicksError={publicChampionPicksError}
+              />
+            )}
+
+            {tab === "stats" && (
+              <StatsTab
+                matches={matches}
+                formatDateTime={formatDateTime}
               />
             )}
           </>
