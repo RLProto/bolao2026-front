@@ -701,6 +701,16 @@ function App() {
           Premiação
         </button>
 
+        <button
+          className={`menu-item ${page === "stats" ? "active" : ""}`}
+          onClick={() => {
+            setPage("stats");
+            setMenuOpen(false);
+          }}
+        >
+          Estatísticas
+        </button>
+
         {isSuperAdmin && (
           <button
             className={`menu-item ${page === "history" ? "active" : ""}`}
@@ -767,12 +777,6 @@ function App() {
               >
                 Ver palpites
               </button>
-              <button
-                className={`tab ${tab === "stats" ? "active" : ""}`}
-                onClick={() => setTab("stats")}
-              >
-                Estatísticas
-              </button>
             </div>
 
             {tab === "matches" && (
@@ -828,13 +832,14 @@ function App() {
               />
             )}
 
-            {tab === "stats" && (
-              <StatsTab
-                matches={matches}
-                formatDateTime={formatDateTime}
-              />
-            )}
           </>
+        )}
+
+        {page === "stats" && (
+          <StatsTab
+            matches={matches}
+            formatDateTime={formatDateTime}
+          />
         )}
 
         {page === "rules" && (
