@@ -59,7 +59,7 @@ function drawStatsCanvas(stats) {
   // Eyebrow
   ctx.fillStyle = "#22c55e";
   ctx.font = "600 13px 'Courier New', monospace";
-  ctx.fillText("BOLÃO DA COPA 2026  ·  ESTATÍSTICAS", P, 44);
+  ctx.fillText("BOLÃO DA RAFA  ·  ESTATÍSTICAS", P, 44);
 
   // Teams
   const teamsStr = `${stats.home_team_name.toUpperCase()}  ×  ${stats.away_team_name.toUpperCase()}`;
@@ -108,10 +108,9 @@ function drawStatsCanvas(stats) {
     ctx.fillStyle = o.color;
     ctx.fillRect(bx, by, 3, boxH);
 
-    const lbl = o.label.length > 15 ? o.label.slice(0, 14) + "…" : o.label;
-    ctx.fillStyle = "rgba(148,163,184,0.55)";
+    ctx.fillStyle = "rgba(148,163,184,0.85)";
     ctx.font = "500 12px -apple-system, system-ui, sans-serif";
-    ctx.fillText(lbl.toUpperCase(), bx + 18, by + 22);
+    ctx.fillText(o.label.toUpperCase(), bx + 18, by + 22);
 
     ctx.fillStyle = o.color;
     ctx.font = "800 30px -apple-system, system-ui, sans-serif";
@@ -144,8 +143,6 @@ function drawStatsCanvas(stats) {
     const s = stats.scores[i];
     const sy = curY + i * (BAR_H + BAR_GAP);
     const isTop = i === 0;
-    const isOfficial = stats.official_home_score != null &&
-      s.home === stats.official_home_score && s.away === stats.official_away_score;
     const ratio = s.count / maxCount;
     const barW = Math.max(BAR_AREA * ratio, 6);
 
@@ -157,18 +154,10 @@ function drawStatsCanvas(stats) {
     roundRect(ctx, P + SCORE_COL, sy, BAR_AREA, BAR_H, 6);
     ctx.fill();
 
-    const barColor = isOfficial ? "#eab308" : "#22c55e";
     const alpha = isTop ? 1 : 0.2 + 0.8 * ratio;
-    ctx.fillStyle = isOfficial ? `rgba(234,179,8,${alpha})` : `rgba(34,197,94,${alpha})`;
+    ctx.fillStyle = `rgba(34,197,94,${alpha})`;
     roundRect(ctx, P + SCORE_COL, sy, barW, BAR_H, 6);
     ctx.fill();
-
-    if (isOfficial) {
-      ctx.strokeStyle = "#eab308";
-      ctx.lineWidth = 1.5;
-      roundRect(ctx, P + SCORE_COL, sy, BAR_AREA, BAR_H, 6);
-      ctx.stroke();
-    }
 
     ctx.fillStyle = isTop ? "#f1f5f9" : `rgba(148,163,184,${0.35 + 0.65 * ratio})`;
     ctx.font = `${isTop ? 600 : 400} ${isTop ? 14 : 12}px -apple-system, system-ui, sans-serif`;
@@ -180,7 +169,7 @@ function drawStatsCanvas(stats) {
   // Footer
   ctx.fillStyle = "rgba(148,163,184,0.22)";
   ctx.font = "400 12px -apple-system, system-ui, sans-serif";
-  ctx.fillText("bolão da copa 2026", P, H - 18);
+  ctx.fillText("bolão da rafa", P, H - 18);
   const dateStr = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
   const dw = ctx.measureText(dateStr).width;
   ctx.fillText(dateStr, W - P - dw, H - 18);
@@ -206,20 +195,18 @@ function OutcomeCard({ label, pct, count, color }) {
   );
 }
 
-function ScoreRow({ home, away, count, pct, maxCount, rank, officialHome, officialAway }) {
+function ScoreRow({ home, away, count, pct, maxCount, rank }) {
   const isTop = rank === 0;
-  const isOfficial = officialHome != null && home === officialHome && away === officialAway;
   const ratio = count / maxCount;
 
   return (
     <div className="stats-score-row" style={{ "--delay": `${rank * 0.04}s` }}>
       <span className={`stats-score-label${isTop ? " top-score" : ""}`}>
         {home} × {away}
-        {isOfficial && <span className="stats-official-star" title="Resultado oficial"> ★</span>}
       </span>
       <div className="stats-bar-track">
         <div
-          className={`stats-bar-fill${isTop ? " top-bar" : ""}${isOfficial ? " official-bar" : ""}`}
+          className={`stats-bar-fill${isTop ? " top-bar" : ""}`}
           style={{ width: `${Math.max(ratio * 100, 1)}%`, animationDelay: `var(--delay)` }}
         />
       </div>
@@ -354,8 +341,6 @@ export default function StatsTab({ matches, formatDateTime }) {
                   pct={s.pct}
                   maxCount={maxCount}
                   rank={i}
-                  officialHome={stats.official_home_score}
-                  officialAway={stats.official_away_score}
                 />
               ))}
             </div>
