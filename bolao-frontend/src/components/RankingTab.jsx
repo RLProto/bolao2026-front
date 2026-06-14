@@ -1,6 +1,7 @@
 // src/components/RankingTab.jsx
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import FlagIcon from "./FlagIcon";
+import { fetchPublicBets } from "../api";
 
 export default function RankingTab({
   ranking,
@@ -9,10 +10,11 @@ export default function RankingTab({
   onRetry,
   session,
   leagues = [],
-  publicBets = [],
   matches = [],
 }) {
   const [selectedLeagueId, setSelectedLeagueId] = useState("geral");
+  const [leagueBets, setLeagueBets] = useState([]);
+  const [leagueBetsLoading, setLeagueBetsLoading] = useState(false);
 
   const selectedLeague = useMemo(
     () => (selectedLeagueId === "geral" ? null : leagues.find((l) => l.id === selectedLeagueId) ?? null),
@@ -34,13 +36,28 @@ export default function RankingTab({
     return locked[0] ?? null;
   }, [matches]);
 
+  // Busca palpites do último jogo apenas quando uma liga está selecionada
+  useEffect(() => {
+    if (selectedLeagueId === "geral" || !lastLockedMatch) {
+      setLeagueBets([]);
+      return;
+    }
+    let cancelled = false;
+    setLeagueBetsLoading(true);
+    fetchPublicBets({ matchId: lastLockedMatch.id })
+      .then((data) => { if (!cancelled) setLeagueBets(data || []); })
+      .catch(() => { if (!cancelled) setLeagueBets([]); })
+      .finally(() => { if (!cancelled) setLeagueBetsLoading(false); });
+    return () => { cancelled = true; };
+  }, [selectedLeagueId, lastLockedMatch?.id]);
+
   const leagueLastGameBets = useMemo(() => {
     if (!selectedLeague || !lastLockedMatch) return [];
     const memberIds = new Set(selectedLeague.members.map((m) => m.user_id));
-    return publicBets
-      .filter((b) => b.match_id === lastLockedMatch.id && memberIds.has(b.user_id))
+    return leagueBets
+      .filter((b) => memberIds.has(b.user_id))
       .sort((a, b) => a.user_name.localeCompare(b.user_name, "pt-BR"));
-  }, [selectedLeague, lastLockedMatch, publicBets]);
+  }, [selectedLeague, lastLockedMatch, leagueBets]);
 
   const medals = ["🥇", "🥈", "🥉"];
 
@@ -189,7 +206,9 @@ export default function RankingTab({
                   <FlagIcon code={lastLockedMatch.away_team_code} name={lastLockedMatch.away_team_name} />
                 </span>
               </h3>
-              {leagueLastGameBets.length === 0 ? (
+              {leagueBetsLoading ? (
+                <p style={{ margin: 0, fontSize: "0.85rem", opacity: 0.5 }}>Carregando...</p>
+              ) : leagueLastGameBets.length === 0 ? (
                 <p style={{ margin: 0, fontSize: "0.85rem", opacity: 0.5 }}>
                   Nenhum palpite disponível ainda.
                 </p>

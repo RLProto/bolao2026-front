@@ -8,7 +8,6 @@ import {
   fetchMatches,
   fetchRanking,
   saveBetsBulk,
-  fetchPublicBets,
   saveMatchResultsBulk,
   fetchTeams,
   fetchChampionPick,
@@ -78,10 +77,6 @@ function App() {
   const [ranking, setRanking] = useState([]);
   const [rankingLoading, setRankingLoading] = useState(false);
   const [rankingError, setRankingError] = useState("");
-
-  const [publicBets, setPublicBets] = useState([]);
-  const [publicBetsLoading, setPublicBetsLoading] = useState(false);
-  const [publicBetsError, setPublicBetsError] = useState("");
 
   const [publicChampionPicks, setPublicChampionPicks] = useState([]);
   const [publicChampionPicksLoading, setPublicChampionPicksLoading] = useState(false);
@@ -162,7 +157,6 @@ function App() {
       setDirtyIds(new Set());
       setChampionPick(null);
       setTeams([]);
-      setPublicBets([]);
       setPublicChampionPicks([]);
       setOfficialResults({});
       setLeagues([]);
@@ -349,19 +343,6 @@ function App() {
     await loadRanking();
   }
 
-  async function loadPublicBets() {
-    setPublicBetsLoading(true);
-    setPublicBetsError("");
-    try {
-      const data = await fetchPublicBets();
-      setPublicBets(data);
-    } catch (err) {
-      setPublicBetsError(err.message || "Erro ao carregar palpites públicos");
-    } finally {
-      setPublicBetsLoading(false);
-    }
-  }
-
   async function loadPublicChampionPicks() {
     setPublicChampionPicksLoading(true);
     setPublicChampionPicksError("");
@@ -383,7 +364,6 @@ function App() {
     rankingFetchedAt.current = null;
     setPredictions({});
     setDirtyIds(new Set());
-    setPublicBets([]);
     setPublicChampionPicks([]);
     setOfficialResults({});
     setLeagues([]);
@@ -813,7 +793,6 @@ function App() {
                 onClick={() => {
                   setTab("ranking");
                   loadRanking();
-                  loadPublicBets();
                 }}
               >
                 Ranking
@@ -822,7 +801,6 @@ function App() {
                 className={`tab ${tab === "view-bets" ? "active" : ""}`}
                 onClick={() => {
                   setTab("view-bets");
-                  loadPublicBets();
                   loadPublicChampionPicks();
                 }}
               >
@@ -868,7 +846,6 @@ function App() {
                 onRetry={loadRankingForced}
                 session={session}
                 leagues={leagues}
-                publicBets={publicBets}
                 matches={matches}
               />
             )}
