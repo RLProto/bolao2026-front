@@ -68,20 +68,17 @@ export default function ViewBetsTab({
     return map;
   }, [lockedMatches]);
 
-  // Aplica filtros
-  const filteredBets = useMemo(
-    () =>
-      lockedBets.filter((b) => {
-        if (selectedMatchId !== "all" && b.match_id !== selectedMatchId) {
-          return false;
-        }
-        if (selectedUserId !== "all" && b.user_id !== selectedUserId) {
-          return false;
-        }
-        return true;
-      }),
-    [lockedBets, selectedMatchId, selectedUserId]
-  );
+  const hasFilter = selectedMatchId !== "all" || selectedUserId !== "all";
+
+  // Aplica filtros — só processa se ao menos um filtro estiver ativo
+  const filteredBets = useMemo(() => {
+    if (!hasFilter) return [];
+    return lockedBets.filter((b) => {
+      if (selectedMatchId !== "all" && b.match_id !== selectedMatchId) return false;
+      if (selectedUserId !== "all" && b.user_id !== selectedUserId) return false;
+      return true;
+    });
+  }, [lockedBets, selectedMatchId, selectedUserId, hasFilter]);
 
   // Agrupa por partida
   const groupedByMatch = useMemo(() => {
@@ -272,7 +269,7 @@ export default function ViewBetsTab({
                 )
               }
             >
-              <option value="all">Todos os jogos</option>
+              <option value="all">Selecione um jogo</option>
               {lockedMatches.map((m) => (
                 <option key={m.id} value={m.id}>
                   {matchLabelById[m.id]}
@@ -305,7 +302,7 @@ export default function ViewBetsTab({
                 )
               }
             >
-              <option value="all">Todos os usuários</option>
+              <option value="all">Selecione um usuário</option>
               {users.map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.name}
@@ -319,8 +316,16 @@ export default function ViewBetsTab({
       {loading && <p>Carregando palpites...</p>}
       {error && <div className="alert alert-error">{error}</div>}
 
-      {!loading && !error && groupedByMatch.length === 0 && (
-        <p>Ainda não há palpites públicos para exibir com os filtros atuais.</p>
+      {!loading && !error && !hasFilter && (
+        <p style={{ textAlign: "center", color: "rgba(255,255,255,0.4)", marginTop: "2rem" }}>
+          Selecione um jogo ou usuário para ver os palpites.
+        </p>
+      )}
+
+      {!loading && !error && hasFilter && groupedByMatch.length === 0 && (
+        <p style={{ textAlign: "center", color: "rgba(255,255,255,0.4)", marginTop: "2rem" }}>
+          Nenhum palpite encontrado para os filtros selecionados.
+        </p>
       )}
 
       {!loading &&
