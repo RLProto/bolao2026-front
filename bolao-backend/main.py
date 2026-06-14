@@ -432,6 +432,11 @@ class RankingItem(BaseModel):
     user_id: int
     user_name: str
     total_points: int
+    champion_correct: int = 0
+    exact_scores: int = 0
+    correct_results: int = 0
+    winner_goals: int = 0
+    loser_goals: int = 0
 
 
 class ResetPasswordRequest(BaseModel):
@@ -1004,7 +1009,7 @@ def get_ranking(
     # Official champion (-1 never matches any real team id)
     official_team_id = get_official_champion_team_id(db) or -1
 
-    # Single SQL query: CTE aggregates match points per user, outer query adds champion bonus
+    # Single SQL query: CTE aggregates match points + tiebreakers per user
     sql = text("""
         WITH match_pts AS (
             SELECT b.user_id,
@@ -1032,7 +1037,32 @@ def get_ranking(
                          OR b.away_score_prediction = m.away_score
                         THEN 3
                        ELSE 0
-                   END) AS pts
+                   END) AS pts,
+                   -- Critério 2: placares exatos
+                   SUM(CASE
+                       WHEN b.home_score_prediction = m.home_score
+                        AND b.away_score_prediction = m.away_score
+                       THEN 1 ELSE 0
+                   END) AS exact_scores,
+                   -- Critério 3: acerto do resultado (vencedor ou empate)
+                   SUM(CASE
+                       WHEN (b.home_score_prediction > b.away_score_prediction AND m.home_score > m.away_score)
+                         OR (b.home_score_prediction < b.away_score_prediction AND m.home_score < m.away_score)
+                         OR (b.home_score_prediction = b.away_score_prediction AND m.home_score = m.away_score)
+                       THEN 1 ELSE 0
+                   END) AS correct_results,
+                   -- Critério 4: acerto de gols do vencedor (empates ignorados)
+                   SUM(CASE
+                       WHEN m.home_score > m.away_score AND b.home_score_prediction = m.home_score THEN 1
+                       WHEN m.away_score > m.home_score AND b.away_score_prediction = m.away_score THEN 1
+                       ELSE 0
+                   END) AS winner_goals,
+                   -- Critério 5: acerto de gols do perdedor (empates ignorados)
+                   SUM(CASE
+                       WHEN m.home_score > m.away_score AND b.away_score_prediction = m.away_score THEN 1
+                       WHEN m.away_score > m.home_score AND b.home_score_prediction = m.home_score THEN 1
+                       ELSE 0
+                   END) AS loser_goals
             FROM bets b
             JOIN matches m ON m.id = b.match_id
                 AND m.home_score IS NOT NULL
@@ -1044,18 +1074,39 @@ def get_ranking(
             u.name      AS user_name,
             COALESCE(mp.pts, 0)
             + CASE WHEN cp.team_id = :official_team_id THEN 40 ELSE 0 END
-            AS total_points
+            AS total_points,
+            CASE WHEN cp.team_id = :official_team_id THEN 1 ELSE 0 END AS champion_correct,
+            COALESCE(mp.exact_scores, 0)    AS exact_scores,
+            COALESCE(mp.correct_results, 0) AS correct_results,
+            COALESCE(mp.winner_goals, 0)    AS winner_goals,
+            COALESCE(mp.loser_goals, 0)     AS loser_goals
         FROM users u
         LEFT JOIN match_pts mp ON mp.user_id = u.id
         LEFT JOIN champion_picks cp ON cp.user_id = u.id
         WHERE u.profile != :hidden_profile
-        ORDER BY total_points DESC, lower(u.name) ASC
+        ORDER BY
+            total_points DESC,
+            champion_correct DESC,
+            COALESCE(mp.exact_scores, 0) DESC,
+            COALESCE(mp.correct_results, 0) DESC,
+            COALESCE(mp.winner_goals, 0) DESC,
+            COALESCE(mp.loser_goals, 0) DESC,
+            lower(u.name) ASC
         LIMIT :lim OFFSET :off
     """)
 
     rows = db.execute(sql, {"official_team_id": official_team_id, "lim": limit, "off": offset, "hidden_profile": HIDDEN_FROM_RANKING_PROFILE}).fetchall()
     return [
-        RankingItem(user_id=row.user_id, user_name=row.user_name, total_points=row.total_points)
+        RankingItem(
+            user_id=row.user_id,
+            user_name=row.user_name,
+            total_points=row.total_points,
+            champion_correct=row.champion_correct,
+            exact_scores=row.exact_scores,
+            correct_results=row.correct_results,
+            winner_goals=row.winner_goals,
+            loser_goals=row.loser_goals,
+        )
         for row in rows
     ]
 
