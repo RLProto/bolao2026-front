@@ -213,6 +213,29 @@ class AccessCode(Base):
     used_by_user = relationship("User")
 
 
+class League(Base):
+    __tablename__ = "leagues"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False)
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    creator = relationship("User", foreign_keys=[created_by])
+    members = relationship("LeagueMember", back_populates="league", cascade="all, delete-orphan")
+
+
+class LeagueMember(Base):
+    __tablename__ = "league_members"
+
+    league_id = Column(Integer, ForeignKey("leagues.id", ondelete="CASCADE"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    joined_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    league = relationship("League", back_populates="members")
+    user = relationship("User")
+
+
 # -----------------------------------
 # Utils / Auth helpers
 # -----------------------------------
@@ -494,6 +517,32 @@ class ChampionConfigSet(BaseModel):
 class ChampionConfigOut(BaseModel):
     team_id: Optional[int]
     team_name: Optional[str]
+
+    class Config(_OrmConfig):
+        pass
+
+
+class LeagueCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+
+
+class LeagueMemberAdd(BaseModel):
+    user_id: int
+
+
+class LeagueMemberOut(BaseModel):
+    user_id: int
+    user_name: str
+
+    class Config(_OrmConfig):
+        pass
+
+
+class LeagueOut(BaseModel):
+    id: int
+    name: str
+    created_by: int
+    members: List[LeagueMemberOut]
 
     class Config(_OrmConfig):
         pass
@@ -1118,6 +1167,172 @@ def update_match_results_bulk(payload: MatchResultBulkUpdate, db: Session = Depe
         updated += 1
     db.commit()
     return {"status": "ok" if not errors else "partial", "updated": updated, "errors": errors}
+
+
+# -----------------------------------
+# Leagues
+# -----------------------------------
+
+def send_league_invite_email(to_email: str, to_name: str, league_name: str, creator_name: str):
+    subject = f"Bolão Copa 2026 - Você entrou na liga {league_name}"
+    body = (
+        f"Olá {to_name},\n\n"
+        f"{creator_name} te adicionou à liga \"{league_name}\" no Bolão Copa 2026.\n\n"
+        f"Acesse o bolão e vá em Ranking para ver a classificação do seu grupo.\n\n"
+        f"Abraços,\nBolão Copa 2026\n"
+    )
+    if not (SMTP_HOST and SMTP_USER and SMTP_PASS and SMTP_FROM):
+        print(f"==== CONVITE LIGA (DEV) ==== Para: {to_email} | Liga: {league_name}")
+        return
+    msg = MIMEText(body, "plain", "utf-8")
+    msg["Subject"] = subject
+    msg["From"] = SMTP_FROM
+    msg["To"] = to_email
+    try:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.starttls()
+            server.login(SMTP_USER, SMTP_PASS)
+            server.send_message(msg)
+    except Exception as e:
+        print(f"Erro ao enviar email de liga: {e}")
+
+
+def _league_out(league: League) -> dict:
+    return {
+        "id": league.id,
+        "name": league.name,
+        "created_by": league.created_by,
+        "members": [{"user_id": m.user_id, "user_name": m.user.name} for m in league.members],
+    }
+
+
+@app.get("/users")
+def list_users_public(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    users = (
+        db.query(User.id, User.name)
+        .filter(User.profile != HIDDEN_FROM_RANKING_PROFILE)
+        .order_by(User.name.asc())
+        .all()
+    )
+    return [{"id": u.id, "name": u.name} for u in users]
+
+
+@app.post("/leagues")
+def create_league(
+    payload: LeagueCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    name = payload.name.strip()
+    league = League(name=name, created_by=current_user.id)
+    db.add(league)
+    db.flush()
+    db.add(LeagueMember(league_id=league.id, user_id=current_user.id))
+    db.commit()
+    db.refresh(league)
+    return _league_out(league)
+
+
+@app.get("/leagues/mine")
+def get_my_leagues(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    leagues = (
+        db.query(League)
+        .join(LeagueMember, (LeagueMember.league_id == League.id) & (LeagueMember.user_id == current_user.id))
+        .options(joinedload(League.members).joinedload(LeagueMember.user))
+        .order_by(League.created_at.asc())
+        .all()
+    )
+    return [_league_out(l) for l in leagues]
+
+
+@app.post("/leagues/{league_id}/members")
+def add_league_member(
+    league_id: int,
+    payload: LeagueMemberAdd,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    league = (
+        db.query(League)
+        .options(joinedload(League.members).joinedload(LeagueMember.user))
+        .filter(League.id == league_id)
+        .first()
+    )
+    if not league:
+        raise HTTPException(status_code=404, detail="Liga não encontrada.")
+    if league.created_by != current_user.id:
+        raise HTTPException(status_code=403, detail="Apenas o criador pode adicionar membros.")
+
+    user = db.query(User).filter(User.id == payload.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+
+    already = any(m.user_id == payload.user_id for m in league.members)
+    if already:
+        raise HTTPException(status_code=400, detail="Usuário já é membro desta liga.")
+
+    db.add(LeagueMember(league_id=league_id, user_id=payload.user_id))
+    db.commit()
+
+    send_league_invite_email(user.email, user.name, league.name, current_user.name)
+
+    db.refresh(league)
+    return _league_out(league)
+
+
+@app.delete("/leagues/{league_id}/members/me")
+def leave_league(
+    league_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    league = db.query(League).filter(League.id == league_id).first()
+    if not league:
+        raise HTTPException(status_code=404, detail="Liga não encontrada.")
+
+    member = db.query(LeagueMember).filter(
+        LeagueMember.league_id == league_id,
+        LeagueMember.user_id == current_user.id,
+    ).first()
+    if not member:
+        raise HTTPException(status_code=404, detail="Você não é membro desta liga.")
+
+    db.delete(member)
+
+    if league.created_by == current_user.id:
+        next_member = db.query(LeagueMember).filter(
+            LeagueMember.league_id == league_id,
+            LeagueMember.user_id != current_user.id,
+        ).first()
+        if next_member:
+            league.created_by = next_member.user_id
+        else:
+            db.delete(league)
+
+    db.commit()
+    return {"message": "Você saiu da liga."}
+
+
+@app.delete("/leagues/{league_id}")
+def delete_league(
+    league_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    league = db.query(League).filter(League.id == league_id).first()
+    if not league:
+        raise HTTPException(status_code=404, detail="Liga não encontrada.")
+    if league.created_by != current_user.id:
+        raise HTTPException(status_code=403, detail="Apenas o criador pode excluir a liga.")
+    db.delete(league)
+    db.commit()
+    return {"message": "Liga excluída."}
 
 
 # -----------------------------------
