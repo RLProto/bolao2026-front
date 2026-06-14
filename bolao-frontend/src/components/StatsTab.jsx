@@ -57,7 +57,7 @@ async function drawStatsCanvas(stats) {
 
   const W = 1080;
   const P = 60;
-  const maxToShow = Math.min(stats.scores.length, 10);
+  const maxToShow = stats.scores.length;
   const ROW_H = 46;
 
   const HEADER_H  = 148;
