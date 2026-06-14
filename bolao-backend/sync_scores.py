@@ -13,7 +13,7 @@ import time
 import urllib.request
 import json
 import psycopg2
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 try:
     from dotenv import load_dotenv
@@ -31,7 +31,7 @@ DB_CONN = dict(
     sslmode=os.environ.get('DB_SSLMODE', 'require'),
 )
 
-ESPN_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard'
+ESPN_BASE = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard'
 POLL_INTERVAL = 60  # segundos entre cada chamada no modo --loop
 
 # Status ESPN que indicam jogo ativo ou encerrado (score válido)
@@ -52,10 +52,26 @@ SCORE_STATUSES = {
 }
 
 # ── ESPN ────────────────────────────────────────────────────────────────────
-def fetch_espn():
-    req = urllib.request.Request(ESPN_URL, headers={'User-Agent': 'Mozilla/5.0'})
+def fetch_espn_date(date_str):
+    url = f"{ESPN_BASE}?dates={date_str}"
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
     with urllib.request.urlopen(req, timeout=10) as r:
         return json.loads(r.read())
+
+def fetch_espn():
+    """Busca hoje e amanhã (UTC) para cobrir jogos que cruzam a meia-noite americana."""
+    today = datetime.now(timezone.utc)
+    dates = [today.strftime('%Y%m%d'), (today + timedelta(days=1)).strftime('%Y%m%d')]
+    all_events = []
+    seen = set()
+    for d in dates:
+        data = fetch_espn_date(d)
+        for event in data.get('events', []):
+            eid = event.get('id')
+            if eid not in seen:
+                seen.add(eid)
+                all_events.append(event)
+    return {'events': all_events}
 
 def parse_events(data):
     """Retorna lista de dicts com home_abbr, away_abbr, home_score, away_score, status."""
