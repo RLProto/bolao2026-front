@@ -42,6 +42,14 @@ export default function ViewBetsTab({
     }
   }, [lockedMatches]);
 
+  // Se o usuário desmarcar o filtro de pessoa, volta pro último jogo (evita "todos os jogos" sem filtro)
+  function handleUserChange(val) {
+    setSelectedUserId(val);
+    if (val === "all" && selectedMatchId === "all") {
+      setSelectedMatchId(lockedMatches[lockedMatches.length - 1]?.id ?? "all");
+    }
+  }
+
   const lockedMatchIds = useMemo(
     () => new Set(lockedMatches.map((m) => m.id)),
     [lockedMatches]
@@ -275,7 +283,9 @@ export default function ViewBetsTab({
                 )
               }
             >
-              <option value="all">Todos os jogos</option>
+              {selectedUserId !== "all" && (
+                <option value="all">Todos os jogos</option>
+              )}
               {lockedMatches.map((m) => (
                 <option key={m.id} value={m.id}>
                   {matchLabelById[m.id]}
@@ -303,7 +313,7 @@ export default function ViewBetsTab({
               style={{ minHeight: "44px" }}
               value={selectedUserId}
               onChange={(e) =>
-                setSelectedUserId(
+                handleUserChange(
                   e.target.value === "all" ? "all" : Number(e.target.value)
                 )
               }
