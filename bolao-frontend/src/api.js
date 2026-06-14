@@ -342,3 +342,26 @@ export async function saveAdminChampionConfig(teamId) {
   if (!res.ok) { if (res.status === 401) fireUnauthorized(); throw new Error(data.detail || "Erro ao salvar campeão oficial"); }
   return data;
 }
+
+// ── Ligas ───────────────────────────────────────────────────────────────────
+
+async function leagueRequest(path, method = "GET", body = undefined) {
+  const res = await fetch(`${API_URL}${path}`, {
+    method,
+    headers: { "Content-Type": "application/json", ...getHeadersWithAuth() },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    if (res.status === 401) fireUnauthorized();
+    throw new Error(data.detail || "Erro na operação de liga");
+  }
+  return data;
+}
+
+export const fetchAllUsers    = ()               => leagueRequest("/users");
+export const fetchMyLeagues   = ()               => leagueRequest("/leagues/mine");
+export const createLeague     = (name)           => leagueRequest("/leagues", "POST", { name });
+export const addLeagueMember  = (id, userId)     => leagueRequest(`/leagues/${id}/members`, "POST", { user_id: userId });
+export const leaveLeague      = (id)             => leagueRequest(`/leagues/${id}/members/me`, "DELETE");
+export const deleteLeague     = (id)             => leagueRequest(`/leagues/${id}`, "DELETE");

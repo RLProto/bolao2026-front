@@ -16,6 +16,8 @@ import {
   fetchPublicChampionPicks,
   fetchAdminChampionConfig,
   saveAdminChampionConfig,
+  fetchMyLeagues,
+  fetchAllUsers,
 } from "./api";
 
 import AuthView from "./components/AuthView";
@@ -25,7 +27,8 @@ import RankingTab from "./components/RankingTab";
 import ViewBetsTab from "./components/ViewBetsTab";
 import StatsTab from "./components/StatsTab";
 import BetHistoryTab from "./components/BetHistoryTab";
-import ResultsTab from "./components/ResultsTab"; // 👈 NOVO
+import ResultsTab from "./components/ResultsTab";
+import LeaguesPage from "./components/LeaguesPage";
 
 function formatDateTime(isoString) {
   if (!isoString) return "";
@@ -116,6 +119,12 @@ function App() {
   const [selectedAdminChampionTeamId, setSelectedAdminChampionTeamId] = useState("");
   const [savingAdminChampion, setSavingAdminChampion] = useState(false);
 
+  // ligas
+  const [leagues, setLeagues] = useState([]);
+  const [leaguesLoading, setLeaguesLoading] = useState(false);
+  const [allUsers, setAllUsers] = useState([]);
+  const [allUsersLoading, setAllUsersLoading] = useState(false);
+
   const [toast, setToast] = useState(null); // { type, message }
 
   const [selectedRound, setSelectedRound] = useState("all");
@@ -156,6 +165,8 @@ function App() {
       setPublicBets([]);
       setPublicChampionPicks([]);
       setOfficialResults({});
+      setLeagues([]);
+      setAllUsers([]);
       rankingFetchedAt.current = null;
       setView("auth");
       setPage("main");
@@ -172,6 +183,7 @@ function App() {
     loadMatches();
     loadRanking();
     loadChampionFeatureData();
+    loadLeagues();
   }, [session]);
 
 
@@ -196,6 +208,31 @@ function App() {
       );
     } finally {
       setChampionPickLoading(false);
+    }
+  }
+
+  async function loadLeagues() {
+    setLeaguesLoading(true);
+    try {
+      const data = await fetchMyLeagues();
+      setLeagues(data || []);
+    } catch {
+      // silencioso — não crítico
+    } finally {
+      setLeaguesLoading(false);
+    }
+  }
+
+  async function loadAllUsers() {
+    if (allUsers.length > 0) return;
+    setAllUsersLoading(true);
+    try {
+      const data = await fetchAllUsers();
+      setAllUsers(data || []);
+    } catch {
+      // silencioso
+    } finally {
+      setAllUsersLoading(false);
     }
   }
 
@@ -349,6 +386,8 @@ function App() {
     setPublicBets([]);
     setPublicChampionPicks([]);
     setOfficialResults({});
+    setLeagues([]);
+    setAllUsers([]);
     setPage("main");
     setMenuOpen(false);
     setView("auth");
@@ -711,6 +750,17 @@ function App() {
           Estatísticas
         </button>
 
+        <button
+          className={`menu-item ${page === "leagues" ? "active" : ""}`}
+          onClick={() => {
+            setPage("leagues");
+            setMenuOpen(false);
+            loadAllUsers();
+          }}
+        >
+          Minhas Ligas
+        </button>
+
         {isSuperAdmin && (
           <button
             className={`menu-item ${page === "history" ? "active" : ""}`}
@@ -763,6 +813,7 @@ function App() {
                 onClick={() => {
                   setTab("ranking");
                   loadRanking();
+                  loadPublicBets();
                 }}
               >
                 Ranking
@@ -816,6 +867,9 @@ function App() {
                 rankingError={rankingError}
                 onRetry={loadRankingForced}
                 session={session}
+                leagues={leagues}
+                publicBets={publicBets}
+                matches={matches}
               />
             )}
 
@@ -833,6 +887,16 @@ function App() {
             )}
 
           </>
+        )}
+
+        {page === "leagues" && (
+          <LeaguesPage
+            leagues={leagues}
+            allUsers={allUsers}
+            allUsersLoading={allUsersLoading}
+            session={session}
+            onLeaguesChange={loadLeagues}
+          />
         )}
 
         {page === "stats" && (
