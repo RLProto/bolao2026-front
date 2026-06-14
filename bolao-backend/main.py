@@ -1062,23 +1062,28 @@ def get_ranking(
 
 @app.get("/bets/public", response_model=List[PublicBetOut])
 def list_public_bets(
+    match_id: Optional[int] = Query(None),
+    user_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     lock_cutoff = datetime.now(timezone.utc) + timedelta(minutes=MATCH_LOCK_MINUTES)
-    bets = (
+    q = (
         db.query(Bet)
         .join(Match, Match.id == Bet.match_id)
         .filter(Match.kickoff_at_utc <= lock_cutoff)
         .join(User, User.id == Bet.user_id)
         .filter(User.profile != HIDDEN_FROM_RANKING_PROFILE)
         .options(joinedload(Bet.user))
-        .all()
     )
+    if match_id is not None:
+        q = q.filter(Bet.match_id == match_id)
+    if user_id is not None:
+        q = q.filter(Bet.user_id == user_id)
     return [
         PublicBetOut(match_id=bet.match_id, user_id=bet.user_id, user_name=bet.user.name,
             home_score_prediction=bet.home_score_prediction, away_score_prediction=bet.away_score_prediction)
-        for bet in bets
+        for bet in q.all()
     ]
 
 

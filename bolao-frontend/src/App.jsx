@@ -876,9 +876,6 @@ function App() {
             {tab === "view-bets" && (
               <ViewBetsTab
                 matches={matches}
-                bets={publicBets}
-                loading={publicBetsLoading}
-                error={publicBetsError}
                 formatDateTime={formatDateTime}
                 championPicks={publicChampionPicks}
                 championPicksLoading={publicChampionPicksLoading}

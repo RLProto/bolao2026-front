@@ -148,14 +148,14 @@ export async function saveBetsBulk(matches, predictions) {
   return data; // { status, saved, errors }
 }
 
-export async function fetchPublicBets() {
-  const res = await fetch(`${API_URL}/bets/public`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...getHeadersWithAuth(),
-    },
+export async function fetchPublicBets({ matchId, userId } = {}) {
+  const qs = new URLSearchParams();
+  if (matchId != null) qs.set("match_id", String(matchId));
+  if (userId != null) qs.set("user_id", String(userId));
+  const url = `${API_URL}/bets/public${qs.toString() ? "?" + qs : ""}`;
+  const res = await fetch(url, {
+    headers: { "Content-Type": "application/json", ...getHeadersWithAuth() },
   });
-
   const data = await res.json();
   if (!res.ok) {
     if (res.status === 401) fireUnauthorized();
