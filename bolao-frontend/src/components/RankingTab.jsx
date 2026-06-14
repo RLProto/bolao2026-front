@@ -181,13 +181,12 @@ export default function RankingTab({
           {lastLockedMatch && (
             <div className="ranking-card" style={{ marginTop: "1rem" }}>
               <h3 className="section-title" style={{ fontSize: "0.9rem", marginBottom: "0.5rem" }}>
-                Último jogo —{" "}
                 <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", verticalAlign: "middle" }}>
                   <FlagIcon code={lastLockedMatch.home_team_code} name={lastLockedMatch.home_team_name} />
                   {lastLockedMatch.home_team_name ?? lastLockedMatch.home_team_code}
                   {" x "}
-                  <FlagIcon code={lastLockedMatch.away_team_code} name={lastLockedMatch.away_team_name} />
                   {lastLockedMatch.away_team_name ?? lastLockedMatch.away_team_code}
+                  <FlagIcon code={lastLockedMatch.away_team_code} name={lastLockedMatch.away_team_name} />
                 </span>
               </h3>
               {leagueLastGameBets.length === 0 ? (
