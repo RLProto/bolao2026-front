@@ -1,5 +1,5 @@
 // src/components/ViewBetsTab.jsx
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import FlagIcon from "./FlagIcon";
 
 export default function ViewBetsTab({
@@ -16,6 +16,7 @@ export default function ViewBetsTab({
   const [selectedUserId, setSelectedUserId] = useState("all");
   const [hideCompleted, setHideCompleted] = useState(false);
   const [championOpen, setChampionOpen] = useState(false);
+  const autoSelected = useRef(false);
 
   // Só partidas cujo prazo já encerrou (is_locked = true)
   const lockedMatches = useMemo(() => {
@@ -32,6 +33,14 @@ export default function ViewBetsTab({
     // esconder jogos que já têm resultado oficial
     return base.filter((m) => m.home_score == null && m.away_score == null);
   }, [matches, hideCompleted]);
+
+  // Auto-seleciona o último jogo bloqueado na primeira vez que os dados chegam
+  useEffect(() => {
+    if (!autoSelected.current && lockedMatches.length > 0) {
+      setSelectedMatchId(lockedMatches[lockedMatches.length - 1].id);
+      autoSelected.current = true;
+    }
+  }, [lockedMatches]);
 
   const lockedMatchIds = useMemo(
     () => new Set(lockedMatches.map((m) => m.id)),
@@ -68,17 +77,14 @@ export default function ViewBetsTab({
     return map;
   }, [lockedMatches]);
 
-  const hasFilter = selectedMatchId !== "all" || selectedUserId !== "all";
-
-  // Aplica filtros — só processa se ao menos um filtro estiver ativo
+  // Aplica filtros
   const filteredBets = useMemo(() => {
-    if (!hasFilter) return [];
     return lockedBets.filter((b) => {
       if (selectedMatchId !== "all" && b.match_id !== selectedMatchId) return false;
       if (selectedUserId !== "all" && b.user_id !== selectedUserId) return false;
       return true;
     });
-  }, [lockedBets, selectedMatchId, selectedUserId, hasFilter]);
+  }, [lockedBets, selectedMatchId, selectedUserId]);
 
   // Agrupa por partida
   const groupedByMatch = useMemo(() => {
@@ -269,7 +275,7 @@ export default function ViewBetsTab({
                 )
               }
             >
-              <option value="all">Selecione um jogo</option>
+              <option value="all">Todos os jogos</option>
               {lockedMatches.map((m) => (
                 <option key={m.id} value={m.id}>
                   {matchLabelById[m.id]}
@@ -302,7 +308,7 @@ export default function ViewBetsTab({
                 )
               }
             >
-              <option value="all">Selecione um usuário</option>
+              <option value="all">Todos os usuários</option>
               {users.map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.name}
@@ -316,15 +322,9 @@ export default function ViewBetsTab({
       {loading && <p>Carregando palpites...</p>}
       {error && <div className="alert alert-error">{error}</div>}
 
-      {!loading && !error && !hasFilter && (
+      {!loading && !error && groupedByMatch.length === 0 && (
         <p style={{ textAlign: "center", color: "rgba(255,255,255,0.4)", marginTop: "2rem" }}>
-          Selecione um jogo ou usuário para ver os palpites.
-        </p>
-      )}
-
-      {!loading && !error && hasFilter && groupedByMatch.length === 0 && (
-        <p style={{ textAlign: "center", color: "rgba(255,255,255,0.4)", marginTop: "2rem" }}>
-          Nenhum palpite encontrado para os filtros selecionados.
+          Nenhum palpite encontrado.
         </p>
       )}
 
