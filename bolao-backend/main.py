@@ -1062,8 +1062,6 @@ def get_ranking(
 
 @app.get("/bets/public", response_model=List[PublicBetOut])
 def list_public_bets(
-    limit: int = Query(2000, ge=1, le=2000),
-    offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -1075,8 +1073,6 @@ def list_public_bets(
         .join(User, User.id == Bet.user_id)
         .filter(User.profile != HIDDEN_FROM_RANKING_PROFILE)
         .options(joinedload(Bet.user))
-        .offset(offset)
-        .limit(limit)
         .all()
     )
     return [
