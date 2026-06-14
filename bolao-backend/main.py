@@ -1051,16 +1051,34 @@ def get_ranking(
                          OR (b.home_score_prediction = b.away_score_prediction AND m.home_score = m.away_score)
                        THEN 1 ELSE 0
                    END) AS correct_results,
-                   -- Critério 4: acerto de gols do vencedor (empates ignorados)
+                   -- Critério 4: gols do vencedor acertados em jogos de 12 pts
+                   -- (resultado certo + acertou gols do vencedor + NÃO foi placar exato)
                    SUM(CASE
-                       WHEN m.home_score > m.away_score AND b.home_score_prediction = m.home_score THEN 1
-                       WHEN m.away_score > m.home_score AND b.away_score_prediction = m.away_score THEN 1
+                       WHEN m.home_score > m.away_score
+                        AND b.home_score_prediction > b.away_score_prediction
+                        AND b.home_score_prediction = m.home_score
+                        AND b.away_score_prediction != m.away_score
+                       THEN 1
+                       WHEN m.away_score > m.home_score
+                        AND b.away_score_prediction > b.home_score_prediction
+                        AND b.away_score_prediction = m.away_score
+                        AND b.home_score_prediction != m.home_score
+                       THEN 1
                        ELSE 0
                    END) AS winner_goals,
-                   -- Critério 5: acerto de gols do perdedor (empates ignorados)
+                   -- Critério 5: gols do perdedor acertados em jogos de 12 pts
+                   -- (resultado certo + acertou gols do perdedor + NÃO foi placar exato)
                    SUM(CASE
-                       WHEN m.home_score > m.away_score AND b.away_score_prediction = m.away_score THEN 1
-                       WHEN m.away_score > m.home_score AND b.home_score_prediction = m.home_score THEN 1
+                       WHEN m.home_score > m.away_score
+                        AND b.home_score_prediction > b.away_score_prediction
+                        AND b.away_score_prediction = m.away_score
+                        AND b.home_score_prediction != m.home_score
+                       THEN 1
+                       WHEN m.away_score > m.home_score
+                        AND b.away_score_prediction > b.home_score_prediction
+                        AND b.home_score_prediction = m.home_score
+                        AND b.away_score_prediction != m.away_score
+                       THEN 1
                        ELSE 0
                    END) AS loser_goals
             FROM bets b
