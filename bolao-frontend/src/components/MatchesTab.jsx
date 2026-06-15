@@ -251,7 +251,7 @@ export default function MatchesTab({
 
       <div className="matches-filters">
         <div className="toolbar-control">
-          <label className="filter-label">Etapa</label>
+          <label className="filter-label">Fase</label>
           <select
             value={selectedRound}
             onChange={(e) => onSelectedRoundChange(e.target.value)}
