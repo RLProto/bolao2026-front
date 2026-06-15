@@ -656,7 +656,7 @@ function App() {
           <div className="user-chip">
             <span className="user-avatar">
               {session.name?.[0]?.toUpperCase() ||
-                session.email[0].toUpperCase()}
+                session.email?.[0]?.toUpperCase() || "?"}
             </span>
             <div className="user-text">
               <span className="user-name">{session.name || session.email}</span>

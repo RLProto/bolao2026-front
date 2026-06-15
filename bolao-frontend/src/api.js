@@ -67,7 +67,12 @@ export async function resetPassword(token, newPassword) {
 
 function getSession() {
   const stored = localStorage.getItem("bolao_user");
-  return stored ? JSON.parse(stored) : null;
+  if (!stored) return null;
+  try {
+    return JSON.parse(stored);
+  } catch {
+    return null;
+  }
 }
 
 function getHeadersWithAuth() {
