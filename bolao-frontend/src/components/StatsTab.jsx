@@ -195,8 +195,8 @@ async function drawStatsCanvas(stats) {
     }
 
     // Score label
-    ctx.fillStyle = isTop ? "#2ECC71" : "#E2E8F0";
-    ctx.font = `${isTop ? 700 : 600} 15px 'Courier New', monospace`;
+    ctx.fillStyle = isTop ? "#2ECC71" : "#FFFFFF";
+    ctx.font = `700 15px 'Courier New', monospace`;
     ctx.textAlign = "left";
     ctx.fillText(`${s.home} × ${s.away}`, P, sy + ROW_H / 2 + 6);
 
@@ -220,8 +220,8 @@ async function drawStatsCanvas(stats) {
     }
 
     // Meta (right-aligned)
-    ctx.fillStyle = isTop ? "#F0F4F8" : "#CBD5E1";
-    ctx.font = `${isTop ? 600 : 500} 13px -apple-system, system-ui, sans-serif`;
+    ctx.fillStyle = isTop ? "#2ECC71" : "#FFFFFF";
+    ctx.font = `600 13px -apple-system, system-ui, sans-serif`;
     ctx.textAlign = "right";
     ctx.fillText(`${s.count}  (${s.pct}%)`, W - P, sy + ROW_H / 2 + 5);
     ctx.textAlign = "left";
