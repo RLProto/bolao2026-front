@@ -237,10 +237,11 @@ export default function RankingTab({
                 </p>
               ) : (
                 <table className="ranking-table">
+                  <colgroup><col /><col style={{ width: "5rem" }} /></colgroup>
                   <thead>
                     <tr>
                       <th>Jogador</th>
-                      <th>Palpite</th>
+                      <th style={{ textAlign: "right" }}>Palpite</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -251,7 +252,7 @@ export default function RankingTab({
                             <span className="rank-name-text">{b.user_name}</span>
                           </div>
                         </td>
-                        <td style={{ fontVariantNumeric: "tabular-nums", fontWeight: 600 }}>
+                        <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums", fontWeight: 600 }}>
                           {b.home_score_prediction} x {b.away_score_prediction}
                         </td>
                       </tr>
