@@ -160,9 +160,14 @@ export default function RankingTab({
             <h2 className="section-title">Ranking geral</h2>
           </div>
           <table className="ranking-table">
+            <colgroup>
+              <col style={{ width: "2.5rem" }} />
+              <col />
+              <col style={{ width: "3rem" }} />
+            </colgroup>
             <thead>
               <tr>
-                <th style={{ width: "2rem" }}>#</th>
+                <th>#</th>
                 <th>Nome</th>
                 <th>Pts</th>
               </tr>
@@ -189,9 +194,15 @@ export default function RankingTab({
               </p>
             ) : (
               <table className="ranking-table">
+                <colgroup>
+                  <col style={{ width: "2.5rem" }} />
+                  <col />
+                  <col style={{ width: "3rem" }} />
+                  <col style={{ width: "3rem" }} />
+                </colgroup>
                 <thead>
                   <tr>
-                    <th style={{ width: "2rem" }}>#</th>
+                    <th>#</th>
                     <th>Nome</th>
                     <th>Pts</th>
                     <th>Geral</th>

@@ -1336,6 +1336,7 @@ select:focus {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.85rem;
+  table-layout: fixed;
 }
 
 .ranking-table th {
