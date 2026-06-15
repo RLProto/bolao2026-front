@@ -1466,7 +1466,7 @@ select:focus {
 .rank-pts-bronze { color: #cd7f32; }
 .rank-pts-sky    { color: #38bdf8; }
 .rank-pts-violet { color: #a78bfa; }
-.rank-pts-default { color: var(--text-soft); }
+.rank-pts-default { color: var(--text-main); }
 
 /* chip de posição para 4° e 5° */
 .rank-pos-chip {
