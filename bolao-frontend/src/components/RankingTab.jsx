@@ -67,13 +67,6 @@ export default function RankingTab({
     : index === 3 ? "rank-pts-sky"
     : index === 4 ? "rank-pts-violet"
     : "";
-  const avatarColorClass = (index) =>
-    index === 0 ? "rank-avatar-gold"
-    : index === 1 ? "rank-avatar-silver"
-    : index === 2 ? "rank-avatar-bronze"
-    : index === 3 ? "rank-avatar-sky"
-    : index === 4 ? "rank-avatar-violet"
-    : "";
   const posIcon = (index) => {
     if (index < 3) return medals[index];
     if (index === 3) return <span className="rank-pos-chip rank-pos-chip-sky">4</span>;
@@ -92,12 +85,6 @@ export default function RankingTab({
         : index === 3 ? "rank-4"
         : index === 4 ? "rank-5"
         : "";
-      const initials = r.user_name
-        .split(" ")
-        .slice(0, 2)
-        .map((w) => w[0])
-        .join("")
-        .toUpperCase();
       return (
         <tr key={r.user_id} className={rowClass}>
           <td className="rank-pos-cell">
@@ -105,7 +92,6 @@ export default function RankingTab({
           </td>
           <td>
             <div className="rank-name-cell">
-              <span className={`rank-avatar ${avatarColorClass(index)}`}>{initials}</span>
               <span className="rank-name-text">{r.user_name}</span>
               {isMe && <span className="rank-you-badge">você</span>}
             </div>
@@ -252,9 +238,6 @@ export default function RankingTab({
                       <tr key={b.user_id}>
                         <td>
                           <div className="rank-name-cell">
-                            <span className="rank-avatar">
-                              {b.user_name.split(" ").slice(0,2).map((w) => w[0]).join("").toUpperCase()}
-                            </span>
                             <span className="rank-name-text">{b.user_name}</span>
                           </div>
                         </td>
