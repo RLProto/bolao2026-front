@@ -109,9 +109,9 @@ async function drawStatsCanvas(stats) {
   // ── OUTCOME SECTION ──────────────────────────────────────────────
   let curY = HEADER_H;
 
-  ctx.fillStyle = "#94A3B8";
-  ctx.font = "700 10px 'Courier New', monospace";
-  ctx.fillText("COMO O BOLÃO APOSTOU", P, curY + 14);
+  ctx.fillStyle = "#FFFFFF";
+  ctx.font = "700 13px -apple-system, system-ui, sans-serif";
+  ctx.fillText("COMO O BOLÃO APOSTOU", P, curY + 16);
   curY += 28;
 
   const outcomes = [
@@ -127,10 +127,7 @@ async function drawStatsCanvas(stats) {
     const by  = curY;
     const bcx = bx + boxW / 2; // center x
 
-    // Card bg + colored border
-    ctx.fillStyle = "rgba(255,255,255,0.06)";
-    roundRect(ctx, bx, by, boxW, boxH, 14);
-    ctx.fill();
+    // Card border only (sem fundo)
     ctx.strokeStyle = `${o.color}66`;
     ctx.lineWidth = 1.5;
     roundRect(ctx, bx, by, boxW, boxH, 14);
@@ -151,7 +148,7 @@ async function drawStatsCanvas(stats) {
     // Count — centered
     ctx.fillStyle = "#CBD5E1";
     ctx.font = "400 13px -apple-system, system-ui, sans-serif";
-    ctx.fillText(`${o.count} palpites`, bcx, by + 100);
+    ctx.fillText(`${o.count} palpites`, bcx, by + 112);
 
     ctx.textAlign = "left";
   });
@@ -164,9 +161,9 @@ async function drawStatsCanvas(stats) {
   ctx.beginPath(); ctx.moveTo(P, curY); ctx.lineTo(W - P, curY); ctx.stroke();
   curY += 14;
 
-  ctx.fillStyle = "#94A3B8";
-  ctx.font = "700 10px 'Courier New', monospace";
-  ctx.fillText("DISTRIBUIÇÃO DE PLACARES", P, curY + 14);
+  ctx.fillStyle = "#FFFFFF";
+  ctx.font = "700 13px -apple-system, system-ui, sans-serif";
+  ctx.fillText("DISTRIBUIÇÃO DE PLACARES", P, curY + 16);
   curY += 28;
 
   const maxCount = stats.scores[0]?.count || 1;
