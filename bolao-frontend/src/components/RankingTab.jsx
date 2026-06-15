@@ -66,7 +66,7 @@ export default function RankingTab({
     : index === 2 ? "rank-pts-bronze"
     : index === 3 ? "rank-pts-sky"
     : index === 4 ? "rank-pts-violet"
-    : "";
+    : "rank-pts-default";
   const posIcon = (index) => {
     if (index < 3) return medals[index];
     if (index === 3) return <span className="rank-pos-chip rank-pos-chip-sky">4</span>;
@@ -97,7 +97,7 @@ export default function RankingTab({
             </div>
           </td>
           <td>
-            <span className={`rank-pts-badge ${ptsColorClass(index)}`}>{r.total_points}</span>
+            <span className={`rank-pts ${ptsColorClass(index)}`}>{r.total_points}</span>
           </td>
           {showOverall && (
             <td className="rank-overall-pos">{r.overallPos}°</td>
