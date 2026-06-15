@@ -2532,11 +2532,9 @@ select:focus {
   margin-bottom: 0.95rem;
   padding: 0.95rem 1rem;
   border-radius: 16px;
-  border: 1px solid var(--card-border);
-  background:
-    radial-gradient(circle at top left, rgba(234, 179, 8, 0.12), transparent 55%),
-    var(--card-bg);
-  box-shadow: var(--shadow-soft);
+  border: none;
+  background: transparent;
+  box-shadow: none;
 }
 
 .champion-pick-header {
