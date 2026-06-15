@@ -60,6 +60,65 @@ export default function RankingTab({
   }, [selectedLeague, lastLockedMatch, leagueBets]);
 
   const medals = ["🥇", "🥈", "🥉"];
+  const ptsColorClass = (index) =>
+    index === 0 ? "rank-pts-gold"
+    : index === 1 ? "rank-pts-silver"
+    : index === 2 ? "rank-pts-bronze"
+    : index === 3 ? "rank-pts-sky"
+    : index === 4 ? "rank-pts-violet"
+    : "";
+  const avatarColorClass = (index) =>
+    index === 0 ? "rank-avatar-gold"
+    : index === 1 ? "rank-avatar-silver"
+    : index === 2 ? "rank-avatar-bronze"
+    : index === 3 ? "rank-avatar-sky"
+    : index === 4 ? "rank-avatar-violet"
+    : "";
+  const posIcon = (index) => {
+    if (index < 3) return medals[index];
+    if (index === 3) return <span className="rank-pos-chip rank-pos-chip-sky">4</span>;
+    if (index === 4) return <span className="rank-pos-chip rank-pos-chip-violet">5</span>;
+    return <span style={{ paddingLeft: "0.15rem", color: "var(--text-muted)" }}>{index + 1}</span>;
+  };
+
+  const RankingRows = ({ rows, showOverall = false }) =>
+    rows.map((r, index) => {
+      const isMe = r.user_id === session.id;
+      const rowClass = isMe
+        ? "me-row"
+        : index === 0 ? "rank-1"
+        : index === 1 ? "rank-2"
+        : index === 2 ? "rank-3"
+        : index === 3 ? "rank-4"
+        : index === 4 ? "rank-5"
+        : "";
+      const initials = r.user_name
+        .split(" ")
+        .slice(0, 2)
+        .map((w) => w[0])
+        .join("")
+        .toUpperCase();
+      return (
+        <tr key={r.user_id} className={rowClass}>
+          <td className="rank-pos-cell">
+            {posIcon(index)}
+          </td>
+          <td>
+            <div className="rank-name-cell">
+              <span className={`rank-avatar ${avatarColorClass(index)}`}>{initials}</span>
+              <span className="rank-name-text">{r.user_name}</span>
+              {isMe && <span className="rank-you-badge">você</span>}
+            </div>
+          </td>
+          <td style={{ textAlign: "right" }}>
+            <span className={`rank-pts-badge ${ptsColorClass(index)}`}>{r.total_points}</span>
+          </td>
+          {showOverall && (
+            <td className="rank-overall-pos" style={{ textAlign: "right" }}>{r.overallPos}°</td>
+          )}
+        </tr>
+      );
+    });
 
   return (
     <section className="section">
@@ -110,37 +169,20 @@ export default function RankingTab({
       {/* ── Vista global ── */}
       {selectedLeagueId === "geral" && ranking.length > 0 && (
         <div className="ranking-card">
-          <h2 className="section-title">Ranking geral</h2>
+          <div className="ranking-card-header">
+            <span className="ranking-card-icon">🏆</span>
+            <h2 className="section-title">Ranking geral</h2>
+          </div>
           <table className="ranking-table">
             <thead>
               <tr>
-                <th>#</th>
+                <th style={{ width: "2rem" }}>#</th>
                 <th>Nome</th>
-                <th>Pontos</th>
+                <th style={{ textAlign: "right" }}>Pts</th>
               </tr>
             </thead>
             <tbody>
-              {ranking.map((r, index) => {
-                const isMe = r.user_id === session.id;
-                const rowClass = isMe
-                  ? "me-row"
-                  : index === 0 ? "rank-1"
-                  : index === 1 ? "rank-2"
-                  : index === 2 ? "rank-3"
-                  : "";
-                return (
-                  <tr key={r.user_id} className={rowClass}>
-                    <td>{medals[index] ?? index + 1}</td>
-                    <td>
-                      {r.user_name}
-                      {isMe && (
-                        <span style={{ marginLeft: "0.4rem", fontSize: "0.7rem", color: "var(--accent)", fontWeight: 600 }}>você</span>
-                      )}
-                    </td>
-                    <td className="points-cell">{r.total_points}</td>
-                  </tr>
-                );
-              })}
+              <RankingRows rows={ranking} />
             </tbody>
           </table>
         </div>
@@ -151,7 +193,10 @@ export default function RankingTab({
         <>
           {/* Ranking filtrado */}
           <div className="ranking-card">
-            <h2 className="section-title">{selectedLeague.name}</h2>
+            <div className="ranking-card-header">
+              <span className="ranking-card-icon">🏅</span>
+              <h2 className="section-title">{selectedLeague.name}</h2>
+            </div>
             {leagueRanking.length === 0 ? (
               <p className="empty-state" style={{ padding: "0.75rem 0" }}>
                 Nenhum membro com pontuação ainda.
@@ -160,35 +205,14 @@ export default function RankingTab({
               <table className="ranking-table">
                 <thead>
                   <tr>
-                    <th>#</th>
+                    <th style={{ width: "2rem" }}>#</th>
                     <th>Nome</th>
-                    <th>Pts</th>
-                    <th style={{ color: "rgba(255,255,255,0.4)", fontWeight: 500, fontSize: "0.8rem" }}>Geral</th>
+                    <th style={{ textAlign: "right" }}>Pts</th>
+                    <th style={{ textAlign: "right" }}>Geral</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {leagueRanking.map((r, idx) => {
-                    const isMe = r.user_id === session.id;
-                    const rowClass = isMe
-                      ? "me-row"
-                      : idx === 0 ? "rank-1"
-                      : idx === 1 ? "rank-2"
-                      : idx === 2 ? "rank-3"
-                      : "";
-                    return (
-                      <tr key={r.user_id} className={rowClass}>
-                        <td>{medals[idx] ?? idx + 1}</td>
-                        <td>
-                          {r.user_name}
-                          {isMe && (
-                            <span style={{ marginLeft: "0.4rem", fontSize: "0.7rem", color: "var(--accent)", fontWeight: 600 }}>você</span>
-                          )}
-                        </td>
-                        <td className="points-cell">{r.total_points}</td>
-                        <td style={{ color: "rgba(255,255,255,0.35)", fontSize: "0.8rem" }}>{r.overallPos}°</td>
-                      </tr>
-                    );
-                  })}
+                  <RankingRows rows={leagueRanking} showOverall />
                 </tbody>
               </table>
             )}
@@ -197,15 +221,18 @@ export default function RankingTab({
           {/* Palpites do último jogo */}
           {lastLockedMatch && (
             <div className="ranking-card" style={{ marginTop: "1rem" }}>
-              <h3 className="section-title" style={{ fontSize: "0.9rem", marginBottom: "0.5rem" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", verticalAlign: "middle" }}>
-                  <FlagIcon code={lastLockedMatch.home_team_code} name={lastLockedMatch.home_team_name} />
-                  {lastLockedMatch.home_team_name ?? lastLockedMatch.home_team_code}
-                  {" x "}
-                  {lastLockedMatch.away_team_name ?? lastLockedMatch.away_team_code}
-                  <FlagIcon code={lastLockedMatch.away_team_code} name={lastLockedMatch.away_team_name} />
-                </span>
-              </h3>
+              <div className="ranking-card-header">
+                <span className="ranking-card-icon">⚽</span>
+                <h3 className="section-title" style={{ fontSize: "0.9rem" }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", verticalAlign: "middle" }}>
+                    <FlagIcon code={lastLockedMatch.home_team_code} name={lastLockedMatch.home_team_name} />
+                    {lastLockedMatch.home_team_name ?? lastLockedMatch.home_team_code}
+                    {" x "}
+                    {lastLockedMatch.away_team_name ?? lastLockedMatch.away_team_code}
+                    <FlagIcon code={lastLockedMatch.away_team_code} name={lastLockedMatch.away_team_name} />
+                  </span>
+                </h3>
+              </div>
               {leagueBetsLoading ? (
                 <p style={{ margin: 0, fontSize: "0.85rem", opacity: 0.5 }}>Carregando...</p>
               ) : leagueLastGameBets.length === 0 ? (
@@ -223,8 +250,17 @@ export default function RankingTab({
                   <tbody>
                     {leagueLastGameBets.map((b) => (
                       <tr key={b.user_id}>
-                        <td>{b.user_name}</td>
-                        <td>{b.home_score_prediction} x {b.away_score_prediction}</td>
+                        <td>
+                          <div className="rank-name-cell">
+                            <span className="rank-avatar">
+                              {b.user_name.split(" ").slice(0,2).map((w) => w[0]).join("").toUpperCase()}
+                            </span>
+                            <span className="rank-name-text">{b.user_name}</span>
+                          </div>
+                        </td>
+                        <td style={{ fontVariantNumeric: "tabular-nums", fontWeight: 600 }}>
+                          {b.home_score_prediction} x {b.away_score_prediction}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

@@ -1313,8 +1313,22 @@ select:focus {
   box-shadow: var(--shadow-soft);
 }
 
+.ranking-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.55rem;
+  margin-bottom: 0.55rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.ranking-card-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
 .section-title {
-  margin: 0 0 0.6rem;
+  margin: 0;
   font-size: 1rem;
 }
 
@@ -1324,44 +1338,172 @@ select:focus {
   font-size: 0.85rem;
 }
 
-.ranking-table th,
-.ranking-table td {
-  padding: 0.4rem 0.35rem;
+.ranking-table th {
+  padding: 0 0.5rem 0.5rem;
   text-align: left;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.ranking-table td {
+  padding: 0.45rem 0.5rem;
+  text-align: left;
+  vertical-align: middle;
 }
 
 .ranking-table thead {
-  border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.ranking-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.ranking-table tbody tr:hover {
+  background: rgba(34, 197, 94, 0.07) !important;
 }
 
 .ranking-table tbody tr:nth-child(even) {
-  background: rgba(15, 23, 42, 0.75);
+  background: rgba(15, 23, 42, 0.5);
 }
 
 .ranking-table tbody tr.me-row {
-  background: rgba(34, 197, 94, 0.1);
+  background: rgba(34, 197, 94, 0.1) !important;
   outline: 1px solid rgba(34, 197, 94, 0.3);
   outline-offset: -1px;
 }
 
 .ranking-table tbody tr.rank-1 {
-  background: rgba(250, 204, 21, 0.07);
-  border-left: 3px solid #facc15;
+  background: rgba(250, 204, 21, 0.05);
+  border-left: 2px solid #facc15;
 }
 .ranking-table tbody tr.rank-1 td { font-weight: 700; }
-.ranking-table tbody tr.rank-1 .points-cell { color: #facc15; }
 
 .ranking-table tbody tr.rank-2 {
-  border-left: 3px solid #94a3b8;
+  border-left: 2px solid #94a3b8;
 }
 .ranking-table tbody tr.rank-2 td { font-weight: 600; }
-.ranking-table tbody tr.rank-2 .points-cell { color: #94a3b8; }
 
 .ranking-table tbody tr.rank-3 {
-  border-left: 3px solid #cd7f32;
+  border-left: 2px solid #cd7f32;
 }
 .ranking-table tbody tr.rank-3 td { font-weight: 600; }
-.ranking-table tbody tr.rank-3 .points-cell { color: #cd7f32; }
+
+.ranking-table tbody tr.rank-4 {
+  border-left: 2px solid #38bdf8;
+}
+.ranking-table tbody tr.rank-4 td { font-weight: 600; }
+
+.ranking-table tbody tr.rank-5 {
+  border-left: 2px solid #a78bfa;
+}
+.ranking-table tbody tr.rank-5 td { font-weight: 600; }
+
+/* ── ranking row elements ── */
+
+.rank-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.rank-avatar {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(34,197,94,0.2), rgba(234,179,8,0.2));
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #d1d5db;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.rank-avatar-gold   { background: linear-gradient(135deg, rgba(250,204,21,0.3), rgba(234,179,8,0.12)); border-color: rgba(250,204,21,0.35); color: #facc15; }
+.rank-avatar-silver { background: linear-gradient(135deg, rgba(148,163,184,0.25), rgba(148,163,184,0.08)); border-color: rgba(148,163,184,0.35); color: #94a3b8; }
+.rank-avatar-bronze { background: linear-gradient(135deg, rgba(205,127,50,0.25), rgba(205,127,50,0.08)); border-color: rgba(205,127,50,0.35); color: #cd7f32; }
+.rank-avatar-sky    { background: linear-gradient(135deg, rgba(56,189,248,0.25), rgba(56,189,248,0.08)); border-color: rgba(56,189,248,0.35); color: #38bdf8; }
+.rank-avatar-violet { background: linear-gradient(135deg, rgba(167,139,250,0.25), rgba(167,139,250,0.08)); border-color: rgba(167,139,250,0.35); color: #a78bfa; }
+
+.rank-name-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.rank-you-badge {
+  display: inline-flex;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  background: rgba(34,197,94,0.15);
+  border: 1px solid rgba(34,197,94,0.35);
+  color: var(--accent);
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rank-pts-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.22);
+  color: var(--accent);
+}
+
+.rank-pts-gold   { background: rgba(250,204,21,0.1); border-color: rgba(250,204,21,0.32); color: #facc15; }
+.rank-pts-silver { background: rgba(148,163,184,0.08); border-color: rgba(148,163,184,0.28); color: #94a3b8; }
+.rank-pts-bronze { background: rgba(205,127,50,0.08); border-color: rgba(205,127,50,0.28); color: #cd7f32; }
+.rank-pts-sky    { background: rgba(56,189,248,0.08); border-color: rgba(56,189,248,0.28); color: #38bdf8; }
+.rank-pts-violet { background: rgba(167,139,250,0.08); border-color: rgba(167,139,250,0.28); color: #a78bfa; }
+
+/* chip de posição para 4° e 5° */
+.rank-pos-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 1px solid;
+}
+.rank-pos-chip-sky    { border-color: rgba(56,189,248,0.5); color: #38bdf8; background: rgba(56,189,248,0.1); }
+.rank-pos-chip-violet { border-color: rgba(167,139,250,0.5); color: #a78bfa; background: rgba(167,139,250,0.1); }
+
+.rank-pos-cell {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.rank-overall-pos {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.3);
+}
 
 /* ================== ANIMAÇÕES ================== */
 
