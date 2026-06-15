@@ -53,7 +53,7 @@ function getInitialSession() {
 
 // Opções de etapa / rodada
 const ROUND_OPTIONS = [
-  { value: "all", label: "Todas as etapas" },
+  { value: "all", label: "Todas as fases" },
   { value: "1a rodada", label: "1ª rodada (grupos)" },
   { value: "2a rodada", label: "2ª rodada (grupos)" },
   { value: "3a rodada", label: "3ª rodada (grupos)" },
