@@ -208,7 +208,6 @@ export default function RankingTab({
           {lastLockedMatch && (
             <div className="ranking-card" style={{ marginTop: "1rem" }}>
               <div className="ranking-card-header">
-                <span className="ranking-card-icon">⚽</span>
                 <h3 className="section-title" style={{ fontSize: "0.9rem" }}>
                   <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", verticalAlign: "middle" }}>
                     <FlagIcon code={lastLockedMatch.home_team_code} name={lastLockedMatch.home_team_name} />
