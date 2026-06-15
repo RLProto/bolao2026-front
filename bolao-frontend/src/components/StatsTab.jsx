@@ -196,9 +196,9 @@ async function drawStatsCanvas(stats) {
 
     // Score label
     ctx.fillStyle = isTop ? "#2ECC71" : "#FFFFFF";
-    ctx.font = `700 15px 'Courier New', monospace`;
+    ctx.font = `700 18px 'Courier New', monospace`;
     ctx.textAlign = "left";
-    ctx.fillText(`${s.home} × ${s.away}`, P, sy + ROW_H / 2 + 6);
+    ctx.fillText(`${s.home} × ${s.away}`, P, sy + ROW_H / 2 + 7);
 
     // Bar track
     ctx.fillStyle = "rgba(255,255,255,0.05)";
@@ -221,9 +221,9 @@ async function drawStatsCanvas(stats) {
 
     // Meta (right-aligned)
     ctx.fillStyle = isTop ? "#2ECC71" : "#FFFFFF";
-    ctx.font = `600 13px -apple-system, system-ui, sans-serif`;
+    ctx.font = `700 18px -apple-system, system-ui, sans-serif`;
     ctx.textAlign = "right";
-    ctx.fillText(`${s.count}  (${s.pct}%)`, W - P, sy + ROW_H / 2 + 5);
+    ctx.fillText(String(s.count), W - P, sy + ROW_H / 2 + 7);
     ctx.textAlign = "left";
   }
 
