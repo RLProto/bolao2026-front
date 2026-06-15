@@ -136,36 +136,22 @@ async function drawStatsCanvas(stats) {
     roundRect(ctx, bx, by, boxW, boxH, 14);
     ctx.stroke();
 
-    // Icon circle — centered
-    const icX = bcx, icY = by + 28;
-    ctx.fillStyle = `${o.color}28`;
-    ctx.beginPath(); ctx.arc(icX, icY, 13, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = o.color;
-    ctx.lineWidth = 2;
-    ctx.lineCap = "round";
-    if (i === 1) {
-      ctx.beginPath(); ctx.moveTo(icX - 6, icY - 2.5); ctx.lineTo(icX + 6, icY - 2.5); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(icX - 6, icY + 2.5); ctx.lineTo(icX + 6, icY + 2.5); ctx.stroke();
-    } else {
-      ctx.beginPath(); ctx.moveTo(icX - 6, icY + 1); ctx.lineTo(icX - 1, icY + 6); ctx.lineTo(icX + 6, icY - 5); ctx.stroke();
-    }
-
-    // Label — centered, maior, mais contraste
+    // Label — centered
     ctx.textAlign = "center";
     ctx.fillStyle = "#FFFFFF";
     ctx.font = "600 14px -apple-system, system-ui, sans-serif";
     const labelText = o.label.toUpperCase();
-    ctx.fillText(labelText.length > 16 ? labelText.slice(0, 15) + "…" : labelText, bcx, by + 60);
+    ctx.fillText(labelText.length > 16 ? labelText.slice(0, 15) + "…" : labelText, bcx, by + 36);
 
     // Percentage (big) — centered
     ctx.fillStyle = o.color;
     ctx.font = "800 40px -apple-system, system-ui, sans-serif";
-    ctx.fillText(`${o.pct}%`, bcx, by + 101);
+    ctx.fillText(`${o.pct}%`, bcx, by + 82);
 
-    // Count — centered, mais contraste
+    // Count — centered
     ctx.fillStyle = "#CBD5E1";
     ctx.font = "400 13px -apple-system, system-ui, sans-serif";
-    ctx.fillText(`${o.count} palpites`, bcx, by + 117);
+    ctx.fillText(`${o.count} palpites`, bcx, by + 100);
 
     ctx.textAlign = "left";
   });
