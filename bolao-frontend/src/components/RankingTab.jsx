@@ -64,13 +64,9 @@ export default function RankingTab({
     index === 0 ? "rank-pts-gold"
     : index === 1 ? "rank-pts-silver"
     : index === 2 ? "rank-pts-bronze"
-    : index === 3 ? "rank-pts-sky"
-    : index === 4 ? "rank-pts-violet"
     : "rank-pts-default";
   const posIcon = (index) => {
     if (index < 3) return medals[index];
-    if (index === 3) return <span className="rank-pos-chip rank-pos-chip-sky">4</span>;
-    if (index === 4) return <span className="rank-pos-chip rank-pos-chip-violet">5</span>;
     return <span style={{ paddingLeft: "0.15rem", color: "var(--text-muted)" }}>{index + 1}</span>;
   };
 
@@ -82,8 +78,6 @@ export default function RankingTab({
         : index === 0 ? "rank-1"
         : index === 1 ? "rank-2"
         : index === 2 ? "rank-3"
-        : index === 3 ? "rank-4"
-        : index === 4 ? "rank-5"
         : "";
       return (
         <tr key={r.user_id} className={rowClass}>
