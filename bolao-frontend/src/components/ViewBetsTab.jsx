@@ -147,6 +147,7 @@ export default function ViewBetsTab({
               {championPicksError && <div className="alert alert-error">{championPicksError}</div>}
               {!championPicksLoading && !championPicksError && (
                 <table className="ranking-table">
+                  <colgroup><col /><col style={{ width: "55%" }} /></colgroup>
                   <thead>
                     <tr><th>Jogador</th><th>Campeão escolhido</th></tr>
                   </thead>
@@ -266,6 +267,7 @@ export default function ViewBetsTab({
               </div>
             </div>
             <table className="ranking-table">
+              <colgroup><col /><col style={{ width: "5rem" }} /></colgroup>
               <thead>
                 <tr><th>Jogador</th><th>Palpite</th></tr>
               </thead>
