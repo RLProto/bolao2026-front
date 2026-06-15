@@ -1459,8 +1459,7 @@ select:focus {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 48px;
-  padding: 0.2rem 0.6rem;
+  padding: 0.2rem 0.55rem;
   border-radius: 999px;
   font-size: 0.85rem;
   font-weight: 700;

@@ -96,11 +96,11 @@ export default function RankingTab({
               {isMe && <span className="rank-you-badge">você</span>}
             </div>
           </td>
-          <td style={{ textAlign: "right" }}>
+          <td>
             <span className={`rank-pts-badge ${ptsColorClass(index)}`}>{r.total_points}</span>
           </td>
           {showOverall && (
-            <td className="rank-overall-pos" style={{ textAlign: "right" }}>{r.overallPos}°</td>
+            <td className="rank-overall-pos">{r.overallPos}°</td>
           )}
         </tr>
       );
@@ -164,7 +164,7 @@ export default function RankingTab({
               <tr>
                 <th style={{ width: "2rem" }}>#</th>
                 <th>Nome</th>
-                <th style={{ textAlign: "right" }}>Pts</th>
+                <th>Pts</th>
               </tr>
             </thead>
             <tbody>
@@ -193,8 +193,8 @@ export default function RankingTab({
                   <tr>
                     <th style={{ width: "2rem" }}>#</th>
                     <th>Nome</th>
-                    <th style={{ textAlign: "right" }}>Pts</th>
-                    <th style={{ textAlign: "right" }}>Geral</th>
+                    <th>Pts</th>
+                    <th>Geral</th>
                   </tr>
                 </thead>
                 <tbody>
