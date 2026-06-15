@@ -61,7 +61,7 @@ async function drawStatsCanvas(stats) {
   const ROW_H = 46;
 
   const HEADER_H  = 148;
-  const OUTCOME_H = 28 + 96 + 14; // label + boxes + gap
+  const OUTCOME_H = 28 + 124 + 14; // label + boxes + gap
   const DIST_H    = 1 + 14 + 28 + maxToShow * ROW_H; // divider + gap + label + rows
   const FOOTER_H  = 24;
   const H = HEADER_H + OUTCOME_H + DIST_H + FOOTER_H;
@@ -120,50 +120,54 @@ async function drawStatsCanvas(stats) {
     { label: stats.away_team_name, pct: stats.away_win_pct, count: stats.away_win_count,  color: "#5DADE2" },
   ];
   const boxW = (W - P * 2 - 24) / 3;
-  const boxH = 96;
+  const boxH = 124;
 
   outcomes.forEach((o, i) => {
-    const bx = P + i * (boxW + 12);
-    const by = curY;
+    const bx  = P + i * (boxW + 12);
+    const by  = curY;
+    const bcx = bx + boxW / 2; // center x
 
-    // Card bg + border
-    ctx.fillStyle = "rgba(255,255,255,0.04)";
+    // Card bg + colored border
+    ctx.fillStyle = "rgba(255,255,255,0.06)";
     roundRect(ctx, bx, by, boxW, boxH, 14);
     ctx.fill();
-    ctx.strokeStyle = "rgba(255,255,255,0.08)";
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = `${o.color}66`;
+    ctx.lineWidth = 1.5;
     roundRect(ctx, bx, by, boxW, boxH, 14);
     ctx.stroke();
 
-    // Icon circle
-    const icX = bx + 20, icY = by + 22;
+    // Icon circle — centered
+    const icX = bcx, icY = by + 28;
     ctx.fillStyle = `${o.color}28`;
-    ctx.beginPath(); ctx.arc(icX, icY, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(icX, icY, 13, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = o.color;
     ctx.lineWidth = 2;
     ctx.lineCap = "round";
     if (i === 1) {
-      ctx.beginPath(); ctx.moveTo(icX - 5, icY - 2); ctx.lineTo(icX + 5, icY - 2); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(icX - 5, icY + 2); ctx.lineTo(icX + 5, icY + 2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(icX - 6, icY - 2.5); ctx.lineTo(icX + 6, icY - 2.5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(icX - 6, icY + 2.5); ctx.lineTo(icX + 6, icY + 2.5); ctx.stroke();
     } else {
-      ctx.beginPath(); ctx.moveTo(icX - 5, icY + 1); ctx.lineTo(icX - 1, icY + 5); ctx.lineTo(icX + 5, icY - 4); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(icX - 6, icY + 1); ctx.lineTo(icX - 1, icY + 6); ctx.lineTo(icX + 6, icY - 5); ctx.stroke();
     }
 
-    // Label
-    ctx.fillStyle = "#CBD5E1";
-    ctx.font = "600 11px -apple-system, system-ui, sans-serif";
+    // Label — centered, maior, mais contraste
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "600 14px -apple-system, system-ui, sans-serif";
     const labelText = o.label.toUpperCase();
-    ctx.fillText(labelText.length > 14 ? labelText.slice(0, 13) + "…" : labelText, bx + 16, by + 50);
+    ctx.fillText(labelText.length > 16 ? labelText.slice(0, 15) + "…" : labelText, bcx, by + 60);
 
-    // Percentage (big)
+    // Percentage (big) — centered
     ctx.fillStyle = o.color;
-    ctx.font = "800 34px -apple-system, system-ui, sans-serif";
-    ctx.fillText(`${o.pct}%`, bx + 16, by + 83);
+    ctx.font = "800 40px -apple-system, system-ui, sans-serif";
+    ctx.fillText(`${o.pct}%`, bcx, by + 101);
 
-    // Count
-    ctx.fillStyle = "#94A3B8";
-    ctx.font = "400 11px -apple-system, system-ui, sans-serif";
-    ctx.fillText(`${o.count} palpites`, bx + 16, by + 93);
+    // Count — centered, mais contraste
+    ctx.fillStyle = "#CBD5E1";
+    ctx.font = "400 13px -apple-system, system-ui, sans-serif";
+    ctx.fillText(`${o.count} palpites`, bcx, by + 117);
+
+    ctx.textAlign = "left";
   });
 
   curY += boxH + 14;
