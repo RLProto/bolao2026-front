@@ -677,17 +677,11 @@ select:focus {
 
 /* ====== TOOLBAR SUPERIOR (só botão salvar — sticky) ====== */
 
-.matches-toolbar {
+.btn-save-sticky {
   position: sticky;
-  top: var(--topbar-h);
+  top: calc(var(--topbar-h) + 0.4rem);
   z-index: 10;
-  background: #020617;
-  padding: 0.4rem 0;
-  margin-left: -0.5rem;
-  margin-right: -0.5rem;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
-  margin-bottom: 0.4rem;
+  align-self: flex-start;
 }
 
 /* filtros de etapa/ordenação — estáticos, abaixo do toolbar */
