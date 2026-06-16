@@ -2521,11 +2521,15 @@ select:focus {
 /* ================== TOP ROW (controles + campeão) ================== */
 
 .matches-top-row {
+  position: sticky;
+  top: var(--topbar-h);
+  z-index: 10;
+  background: #020617;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.9rem;
-  margin-top: 0.25rem;
-  margin-bottom: 0.9rem;
+  padding: 0.4rem 0 0.6rem;
+  margin-bottom: 0.6rem;
 }
 
 .matches-controls-col .btn-save-all {
