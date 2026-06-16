@@ -682,12 +682,12 @@ select:focus {
   top: var(--topbar-h);
   z-index: 10;
   background: #020617;
-  padding: 0.5rem 0;
+  padding: 0.4rem 0;
   margin-left: -0.5rem;
   margin-right: -0.5rem;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
 }
 
 /* filtros de etapa/ordenação — estáticos, abaixo do toolbar */
@@ -2531,7 +2531,7 @@ select:focus {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.9rem;
-  margin-bottom: 0.9rem;
+  margin-bottom: 0.6rem;
 }
 
 .matches-controls-col {
