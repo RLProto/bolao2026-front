@@ -156,18 +156,20 @@ export default function MatchesTab({
 }) {
   return (
     <section className="section">
-      <div className="matches-top-row">
-        {/* Coluna esquerda: botão salvar + filtros */}
-        <div className="matches-controls-col">
-          <button
-            className="btn primary small btn-save-all"
-            onClick={onSaveAllBets}
-            disabled={savingAll || matchesLoading}
-          >
-            {savingAll && <span className="btn-spinner" aria-hidden="true" />}
-            <span>{savingAll ? "Salvando..." : "Salvar todos os palpites"}</span>
-          </button>
+      <div className="matches-toolbar">
+        <button
+          className="btn primary small btn-save-all"
+          onClick={onSaveAllBets}
+          disabled={savingAll || matchesLoading}
+        >
+          {savingAll && <span className="btn-spinner" aria-hidden="true" />}
+          <span>{savingAll ? "Salvando..." : "Salvar todos os palpites"}</span>
+        </button>
+      </div>
 
+      <div className="matches-top-row">
+        {/* Coluna esquerda: filtros */}
+        <div className="matches-controls-col">
           <div className="matches-filters">
             <div className="toolbar-control">
               <label className="filter-label">Fase</label>

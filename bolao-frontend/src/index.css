@@ -675,8 +675,16 @@ select:focus {
   padding-left: 1.1rem;
 }
 
-/* ====== TOOLBAR SUPERIOR (só botão salvar — sticky) ====== */
+/* ====== TOOLBAR SUPERIOR (botão salvar — sticky) ====== */
 
+.matches-toolbar {
+  position: sticky;
+  top: var(--topbar-h);
+  z-index: 10;
+  background: #020617;
+  padding: 0.4rem 0;
+  margin-bottom: 0.5rem;
+}
 
 /* filtros de etapa/ordenação — estáticos, abaixo do toolbar */
 .matches-filters {
@@ -694,16 +702,13 @@ select:focus {
   gap: 0.25rem;
 }
 
-/* botão de cima (toolbar) – altura e alinhamento */
+/* botão de cima (toolbar) */
 .btn-save-all {
   min-width: 200px;
   height: 34px;
   padding: 0 1.35rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   white-space: nowrap;
-  margin-left: auto;
+  margin-left: 0;
 }
 
 /* spinner no botão */
@@ -1768,7 +1773,7 @@ select:focus {
 @media (max-width: 768px) {
   .tabs { margin-bottom: 0.5rem; }
 
-  .matches-controls-col .btn-save-all { width: 100%; justify-content: center; }
+  .btn-save-all { width: 100%; justify-content: center; }
   .matches-filters { flex-direction: column; }
   .toolbar-control { width: 100%; }
 }
@@ -2521,12 +2526,6 @@ select:focus {
   gap: 0.9rem;
   margin-top: 0.25rem;
   margin-bottom: 0.9rem;
-}
-
-.matches-controls-col .btn-save-all {
-  display: block;
-  width: fit-content;
-  margin-bottom: 0.75rem;
 }
 
 .matches-controls-col .matches-filters {
