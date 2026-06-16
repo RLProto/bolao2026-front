@@ -156,136 +156,138 @@ export default function MatchesTab({
 }) {
   return (
     <section className="section">
-      <div className="champion-pick-box">
-        <div className="champion-pick-header">
-          <div>
-            <h3 className="champion-pick-title">Palpite no campeão</h3>
-            <p className="champion-pick-subtitle">
-              Quem acertar o campeão ganha <strong>40 pontos bônus</strong>.
-            </p>
+      <div className="matches-top-row">
+        {/* Coluna esquerda: salvar + filtros */}
+        <div className="matches-controls-col">
+          <div className="matches-toolbar">
+            <button
+              className="btn primary small btn-save-all"
+              onClick={onSaveAllBets}
+              disabled={savingAll || matchesLoading}
+            >
+              {savingAll && <span className="btn-spinner" aria-hidden="true" />}
+              <span>{savingAll ? "Salvando..." : "Salvar todos os palpites"}</span>
+            </button>
           </div>
-        </div>
 
-        {championPickLoading ? (
-          <div className="loading-state">
-            <span className="spinner" aria-hidden="true" />
-            Carregando...
-          </div>
-        ) : championPick?.locked ? (
-          /* ── Estado bloqueado ── */
-          <div className="champion-pick-locked-view">
-            <span className="champion-pick-locked-label">Seu palpite</span>
-            <span className="champion-pick-locked-team">
-              {championPick.team_name ?? "Não registrado"}
-            </span>
-            <span className="champion-pick-info champion-pick-info-locked">
-              Prazo encerrado em{" "}
-              <strong>{formatDateTime(championPick?.lock_at_utc)}</strong>.
-            </span>
-          </div>
-        ) : (
-          /* ── Estado aberto ── */
-          <>
-            <div className="champion-pick-controls">
-              <div className="champion-pick-field">
-                <label className="filter-label" htmlFor="champion-team-select">
-                  Campeão
-                </label>
-                <select
-                  id="champion-team-select"
-                  className="filter-select champion-pick-select"
-                  value={selectedChampionTeamId}
-                  onChange={(e) => onSelectedChampionTeamIdChange(e.target.value)}
-                  disabled={savingChampionPick}
-                >
-                  <option value="">Selecione uma seleção</option>
-                  {teams.map((team) => (
-                    <option key={team.id} value={team.id}>
-                      {team.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <button
-                className="btn primary small champion-pick-save-btn"
-                onClick={onSaveChampionPick}
-                disabled={savingChampionPick || !selectedChampionTeamId}
+          <div className="matches-filters">
+            <div className="toolbar-control">
+              <label className="filter-label">Fase</label>
+              <select
+                value={selectedRound}
+                onChange={(e) => onSelectedRoundChange(e.target.value)}
+                className="filter-select"
               >
-                {savingChampionPick
-                  ? "Salvando..."
-                  : championPick?.team_id
-                  ? "Alterar palpite"
-                  : "Salvar palpite"}
-              </button>
+                {ROUND_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            {championPick?.team_name && (
-              <div className="champion-pick-current">
-                Seu palpite atual: <strong>{championPick.team_name}</strong>
+            <div
+              className="toolbar-control"
+              style={{
+                opacity: isGroupRound ? 1 : 0,
+                pointerEvents: isGroupRound ? "auto" : "none",
+              }}
+            >
+              <label className="filter-label">Ordenar por</label>
+              <select
+                value={orderMode}
+                onChange={(e) => onOrderModeChange(e.target.value)}
+                className="filter-select"
+                disabled={!isGroupRound}
+              >
+                <option value="date">Data</option>
+                <option value="group">Grupo</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Coluna direita: palpite no campeão */}
+        <div className="champion-pick-box">
+          <div className="champion-pick-header">
+            <div>
+              <h3 className="champion-pick-title">Palpite no campeão</h3>
+              <p className="champion-pick-subtitle">
+                Quem acertar o campeão ganha <strong>40 pontos bônus</strong>.
+              </p>
+            </div>
+          </div>
+
+          {championPickLoading ? (
+            <div className="loading-state">
+              <span className="spinner" aria-hidden="true" />
+              Carregando...
+            </div>
+          ) : championPick?.locked ? (
+            <div className="champion-pick-locked-view">
+              <span className="champion-pick-locked-label">Seu palpite</span>
+              <span className="champion-pick-locked-team">
+                {championPick.team_name ?? "Não registrado"}
+              </span>
+              <span className="champion-pick-info champion-pick-info-locked">
+                Prazo encerrado em{" "}
+                <strong>{formatDateTime(championPick?.lock_at_utc)}</strong>.
+              </span>
+            </div>
+          ) : (
+            <>
+              <div className="champion-pick-controls">
+                <div className="champion-pick-field">
+                  <label className="filter-label" htmlFor="champion-team-select">
+                    Campeão
+                  </label>
+                  <select
+                    id="champion-team-select"
+                    className="filter-select champion-pick-select"
+                    value={selectedChampionTeamId}
+                    onChange={(e) => onSelectedChampionTeamIdChange(e.target.value)}
+                    disabled={savingChampionPick}
+                  >
+                    <option value="">Selecione uma seleção</option>
+                    {teams.map((team) => (
+                      <option key={team.id} value={team.id}>
+                        {team.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <button
+                  className="btn primary small champion-pick-save-btn"
+                  onClick={onSaveChampionPick}
+                  disabled={savingChampionPick || !selectedChampionTeamId}
+                >
+                  {savingChampionPick
+                    ? "Salvando..."
+                    : championPick?.team_id
+                    ? "Alterar palpite"
+                    : "Salvar palpite"}
+                </button>
               </div>
-            )}
 
-            <div className="champion-pick-info">
-              Você pode alterar seu palpite até{" "}
-              <strong>{formatDateTime(championPick?.lock_at_utc)}</strong>.
-            </div>
+              {championPick?.team_name && (
+                <div className="champion-pick-current">
+                  Seu palpite atual: <strong>{championPick.team_name}</strong>
+                </div>
+              )}
 
-            {championPickError && (
-              <div className="alert alert-error mt-8">{championPickError}</div>
-            )}
-          </>
-        )}
-      </div>
+              <div className="champion-pick-info">
+                Você pode alterar seu palpite até{" "}
+                <strong>{formatDateTime(championPick?.lock_at_utc)}</strong>.
+              </div>
 
-      <div className="matches-toolbar">
-        <button
-          className="btn primary small btn-save-all"
-          onClick={onSaveAllBets}
-          disabled={savingAll || matchesLoading}
-        >
-          {savingAll && <span className="btn-spinner" aria-hidden="true" />}
-          <span>{savingAll ? "Salvando..." : "Salvar todos os palpites"}</span>
-        </button>
-      </div>
-
-      <div className="matches-filters">
-        <div className="toolbar-control">
-          <label className="filter-label">Fase</label>
-          <select
-            value={selectedRound}
-            onChange={(e) => onSelectedRoundChange(e.target.value)}
-            className="filter-select"
-          >
-            {ROUND_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div
-          className="toolbar-control"
-          style={{
-            opacity: isGroupRound ? 1 : 0,
-            pointerEvents: isGroupRound ? "auto" : "none",
-          }}
-        >
-          <label className="filter-label">Ordenar por</label>
-          <select
-            value={orderMode}
-            onChange={(e) => onOrderModeChange(e.target.value)}
-            className="filter-select"
-            disabled={!isGroupRound}
-          >
-            <option value="date">Data</option>
-            <option value="group">Grupo</option>
-          </select>
+              {championPickError && (
+                <div className="alert alert-error mt-8">{championPickError}</div>
+              )}
+            </>
+          )}
         </div>
       </div>
-
-      <p className="tz-hint">Horários exibidos no fuso horário local do seu dispositivo.</p>
 
       {matchesLoading && !savingAll && (
         <div className="loading-state">

@@ -2525,16 +2525,57 @@ select:focus {
   }
 }
 
+/* ================== TOP ROW (controles + campeão) ================== */
+
+.matches-top-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.matches-controls-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.matches-controls-col .matches-toolbar {
+  position: static;
+  background: transparent;
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 0;
+  margin-bottom: 0;
+}
+
+.matches-controls-col .matches-filters {
+  margin-bottom: 0;
+}
+
 /* ================== PALPITE NO CAMPEÃO ================== */
 
 .champion-pick-box {
-  margin-top: 0.2rem;
-  margin-bottom: 0.95rem;
+  flex: 1;
+  min-width: 0;
   padding: 0.95rem 1rem;
   border-radius: 16px;
   border: 1px solid var(--card-border);
   background: transparent;
   box-shadow: none;
+}
+
+@media (max-width: 640px) {
+  .matches-top-row {
+    flex-direction: column-reverse;
+  }
+
+  .matches-controls-col {
+    width: 100%;
+  }
 }
 
 .champion-pick-header {
