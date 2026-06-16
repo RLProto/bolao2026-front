@@ -2537,7 +2537,7 @@ select:focus {
 .matches-controls-col {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .matches-controls-col .matches-filters {
