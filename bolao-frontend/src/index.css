@@ -1777,6 +1777,7 @@ select:focus {
   .btn-save-all { width: 100%; justify-content: center; }
   .matches-filters { flex-direction: column; }
   .toolbar-control { width: 100%; }
+  .matches-controls-col { align-items: stretch; }
 }
 
 /* =========================
@@ -2532,6 +2533,7 @@ select:focus {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  align-items: flex-start;
 }
 
 .matches-controls-col .matches-filters {
