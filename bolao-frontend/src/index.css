@@ -1487,6 +1487,7 @@ select:focus {
 .rank-overall-pos {
   font-size: 0.78rem;
   color: rgba(255,255,255,0.3);
+  text-align: center;
 }
 
 /* ================== ANIMAÇÕES ================== */

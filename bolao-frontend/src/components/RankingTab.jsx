@@ -199,7 +199,7 @@ export default function RankingTab({
                     <th>#</th>
                     <th>Nome</th>
                     <th>Pts</th>
-                    <th>Geral</th>
+                    <th style={{ textAlign: "center" }}>Geral</th>
                   </tr>
                 </thead>
                 <tbody>
