@@ -710,12 +710,21 @@ def login_user(request: Request, payload: UserLogin, db: Session = Depends(get_d
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Email ou senha invalidos")
 
-    # Sempre renova o token no login para invalidar sessoes anteriores
-    token, expires_at = generate_auth_token_with_expiry()
-    user.auth_token = token
-    user.auth_token_expires_at = expires_at
-    db.commit()
-    db.refresh(user)
+    # Reutiliza o token existente se ainda for válido — permite sessões simultâneas
+    # em múltiplos dispositivos (desktop + mobile) sem invalidar uns aos outros.
+    # Só gera token novo se não houver token ou ele estiver expirado.
+    now = datetime.now(timezone.utc)
+    token_valido = (
+        user.auth_token
+        and user.auth_token_expires_at
+        and user.auth_token_expires_at > now
+    )
+    if not token_valido:
+        token, expires_at = generate_auth_token_with_expiry()
+        user.auth_token = token
+        user.auth_token_expires_at = expires_at
+        db.commit()
+        db.refresh(user)
 
     return UserAuthOut(
         id=user.id,
