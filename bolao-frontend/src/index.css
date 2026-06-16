@@ -2528,6 +2528,10 @@ select:focus {
   margin-bottom: 0.9rem;
 }
 
+.matches-controls-col .btn-save-all {
+  margin-bottom: 0.75rem;
+}
+
 .matches-controls-col .matches-filters {
   margin-bottom: 0;
 }
