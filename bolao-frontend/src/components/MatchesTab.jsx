@@ -156,18 +156,21 @@ export default function MatchesTab({
 }) {
   return (
     <section className="section">
-      <div className="matches-top-row">
-        {/* Coluna esquerda: botão + filtros */}
-        <div className="matches-controls-col">
-          <button
-            className="btn primary small btn-save-all"
-            onClick={onSaveAllBets}
-            disabled={savingAll || matchesLoading}
-          >
-            {savingAll && <span className="btn-spinner" aria-hidden="true" />}
-            <span>{savingAll ? "Salvando..." : "Salvar todos os palpites"}</span>
-          </button>
+      {/* Container height-0 sticky: mantém o botão alinhado ao card e sticky no scroll */}
+      <div className="save-btn-float">
+        <button
+          className="btn primary small btn-save-all"
+          onClick={onSaveAllBets}
+          disabled={savingAll || matchesLoading}
+        >
+          {savingAll && <span className="btn-spinner" aria-hidden="true" />}
+          <span>{savingAll ? "Salvando..." : "Salvar todos os palpites"}</span>
+        </button>
+      </div>
 
+      <div className="matches-top-row">
+        {/* Coluna esquerda: filtros */}
+        <div className="matches-controls-col">
           <div className="matches-filters">
             <div className="toolbar-control">
               <label className="filter-label">Fase</label>

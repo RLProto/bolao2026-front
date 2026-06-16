@@ -675,18 +675,26 @@ select:focus {
   padding-left: 1.1rem;
 }
 
-/* ====== TOOLBAR SUPERIOR (botão salvar — sticky) ====== */
-
-.matches-toolbar {
+/*
+ * Container height-0 com overflow:visible + position:sticky.
+ * O botão dentro tem position:relative e flutua para fora do container,
+ * aparecendo no mesmo Y que o topo do card do campeão (que está no grid abaixo).
+ * Sticky funciona em relação à section inteira — persiste durante o scroll dos cards.
+ */
+.save-btn-float {
   position: sticky;
   top: var(--topbar-h);
-  z-index: 10;
-  background: #020617;
-  padding: 0.4rem 0;
-  margin-bottom: 0.5rem;
+  z-index: 20;
+  height: 0;
+  overflow: visible;
 }
 
-/* filtros de etapa/ordenação — estáticos, abaixo do toolbar */
+.save-btn-float .btn-save-all {
+  position: relative;
+  top: 0.5rem;
+}
+
+/* filtros de etapa/ordenação — estáticos, abaixo do botão */
 .matches-filters {
   display: flex;
   flex-wrap: wrap;
@@ -2521,23 +2529,40 @@ select:focus {
 /* ================== TOP ROW (controles + campeão) ================== */
 
 .matches-top-row {
-  position: sticky;
-  top: var(--topbar-h);
-  z-index: 10;
-  background: #020617;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.9rem;
-  padding: 0.4rem 0 0.6rem;
-  margin-bottom: 0.6rem;
+  padding-top: 0.5rem;   /* alinha topo do champion card com topo do botão */
+  margin-bottom: 0.9rem;
 }
 
-.matches-controls-col .btn-save-all {
-  margin-bottom: 0.75rem;
+/* na coluna esquerda, empurra os filtros abaixo do botão flutuante */
+.matches-controls-col {
+  padding-top: calc(34px + 0.75rem);
 }
 
 .matches-controls-col .matches-filters {
   margin-bottom: 0;
+}
+
+@media (max-width: 719px) {
+  .save-btn-float {
+    position: static;
+    height: auto;
+    margin-bottom: 0.5rem;
+  }
+  .save-btn-float .btn-save-all {
+    position: static;
+    width: 100%;
+    justify-content: center;
+  }
+  .matches-top-row {
+    grid-template-columns: 1fr;
+    padding-top: 0;
+  }
+  .matches-controls-col {
+    padding-top: 0;
+  }
 }
 
 /* ================== PALPITE NO CAMPEÃO ================== */
