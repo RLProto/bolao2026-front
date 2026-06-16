@@ -675,16 +675,8 @@ select:focus {
   padding-left: 1.1rem;
 }
 
-/*
- * Container height-0 com overflow:visible + position:sticky.
- * O botão dentro tem position:relative e flutua para fora do container,
- * aparecendo no mesmo Y que o topo do card do campeão (que está no grid abaixo).
- * Sticky funciona em relação à section inteira — persiste durante o scroll dos cards.
- */
+/* Desktop: height-0 trick para alinhar botão com o topo do card do campeão */
 .save-btn-float {
-  position: sticky;
-  top: var(--topbar-h);
-  z-index: 20;
   height: 0;
   overflow: visible;
 }
@@ -2547,9 +2539,13 @@ select:focus {
 
 @media (max-width: 719px) {
   .save-btn-float {
-    position: static;
+    position: sticky;
+    top: var(--topbar-h);
+    z-index: 20;
     height: auto;
-    margin-bottom: 0.5rem;
+    background: #020617;
+    padding: 0.4rem 0;
+    margin-bottom: 0.4rem;
   }
   .save-btn-float .btn-save-all {
     position: static;
