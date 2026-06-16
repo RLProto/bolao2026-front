@@ -2537,18 +2537,7 @@ select:focus {
 .matches-controls-col {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-}
-
-.matches-controls-col .matches-toolbar {
-  position: static;
-  background: transparent;
-  margin-left: 0;
-  margin-right: 0;
-  padding-left: 0;
-  padding-right: 0;
-  padding-top: 0;
-  margin-bottom: 0;
+  justify-content: center;
 }
 
 .matches-controls-col .matches-filters {
@@ -2561,7 +2550,7 @@ select:focus {
   min-width: 0;
   padding: 0.95rem 1rem;
   border-radius: 16px;
-  border: 1px solid var(--card-border);
+  border: 2px solid var(--card-border);
   background: transparent;
   box-shadow: none;
 }
