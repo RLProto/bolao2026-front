@@ -1484,7 +1484,8 @@ select:focus {
   white-space: nowrap;
 }
 
-.rank-overall-pos {
+.ranking-table td.rank-overall-pos,
+.ranking-table th.rank-overall-pos {
   font-size: 0.78rem;
   color: rgba(255,255,255,0.3);
   text-align: center;
