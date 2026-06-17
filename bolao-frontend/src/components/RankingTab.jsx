@@ -73,6 +73,7 @@ export default function RankingTab({
   const RankingRows = ({ rows, showOverall = false }) =>
     rows.map((r, index) => {
       const isMe = r.user_id === session.id;
+      const isLast = index === rows.length - 1;
       const rowClass = isMe
         ? "me-row"
         : index === 0 ? "rank-1"
@@ -88,6 +89,7 @@ export default function RankingTab({
             <div className="rank-name-cell">
               <span className="rank-name-text">{r.user_name}</span>
               {isMe && <span className="rank-you-badge">você</span>}
+              {isLast && <span title="Lanterna">🔦</span>}
             </div>
           </td>
           <td>
