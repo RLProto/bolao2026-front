@@ -79,7 +79,7 @@ export default function RankingTab({
 
   const BetToggle = () => (
     <label className="rank-bet-toggle" title="Mostrar palpite do último jogo">
-      <span className="rank-bet-toggle-label">Placares</span>
+      <span className="rank-bet-toggle-label">Palpites</span>
       <span
         className={`rank-bet-track${showLastBet ? " on" : ""}`}
         onClick={() => setShowLastBet((v) => !v)}
