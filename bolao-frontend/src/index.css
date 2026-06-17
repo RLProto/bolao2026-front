@@ -1491,6 +1491,98 @@ select:focus {
   text-align: center;
 }
 
+/* ── Ranking: toggle de último palpite ── */
+.rank-bet-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: auto;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.rank-bet-toggle-flags {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.rank-bet-toggle-x {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+.rank-bet-flag-wrap .team-flag,
+.rank-bet-flag-wrap .team-flag-placeholder {
+  width: 1.1rem;
+  height: 1.1rem;
+  animation: none;
+}
+
+.rank-bet-track {
+  position: relative;
+  width: 2.1rem;
+  height: 1.15rem;
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 999px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.rank-bet-track.on {
+  background: var(--accent);
+}
+
+.rank-bet-thumb {
+  position: absolute;
+  top: 0.14rem;
+  left: 0.14rem;
+  width: 0.87rem;
+  height: 0.87rem;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  pointer-events: none;
+}
+
+.rank-bet-track.on .rank-bet-thumb {
+  transform: translateX(0.95rem);
+}
+
+/* ── Ranking: coluna de palpite ── */
+.ranking-table td.rank-bet-col,
+.ranking-table th.rank-bet-col {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.rank-bet-col-header-inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+}
+
+.rank-bet-header-x {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+.rank-bet-score {
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.rank-bet-none,
+.rank-bet-loading {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
 /* ================== ANIMAÇÕES ================== */
 
 @keyframes fadeUp {

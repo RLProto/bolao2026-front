@@ -13,8 +13,9 @@ export default function RankingTab({
   matches = [],
 }) {
   const [selectedLeagueId, setSelectedLeagueId] = useState("geral");
-  const [leagueBets, setLeagueBets] = useState([]);
-  const [leagueBetsLoading, setLeagueBetsLoading] = useState(false);
+  const [showLastBet, setShowLastBet] = useState(false);
+  const [lastMatchBets, setLastMatchBets] = useState([]);
+  const [lastBetsLoading, setLastBetsLoading] = useState(false);
 
   const selectedLeague = useMemo(
     () => (selectedLeagueId === "geral" ? null : leagues.find((l) => l.id === selectedLeagueId) ?? null),
@@ -36,28 +37,34 @@ export default function RankingTab({
     return locked[0] ?? null;
   }, [matches]);
 
-  // Busca palpites do último jogo apenas quando uma liga está selecionada
+  // Fetch bets when toggle is on OR when viewing a league
   useEffect(() => {
-    if (selectedLeagueId === "geral" || !lastLockedMatch) {
-      setLeagueBets([]);
+    const needBets = showLastBet || selectedLeagueId !== "geral";
+    if (!needBets || !lastLockedMatch) {
+      setLastMatchBets([]);
       return;
     }
     let cancelled = false;
-    setLeagueBetsLoading(true);
+    setLastBetsLoading(true);
     fetchPublicBets({ matchId: lastLockedMatch.id })
-      .then((data) => { if (!cancelled) setLeagueBets(data || []); })
-      .catch(() => { if (!cancelled) setLeagueBets([]); })
-      .finally(() => { if (!cancelled) setLeagueBetsLoading(false); });
+      .then((data) => { if (!cancelled) setLastMatchBets(data || []); })
+      .catch(() => { if (!cancelled) setLastMatchBets([]); })
+      .finally(() => { if (!cancelled) setLastBetsLoading(false); });
     return () => { cancelled = true; };
-  }, [selectedLeagueId, lastLockedMatch?.id]);
+  }, [selectedLeagueId, lastLockedMatch?.id, showLastBet]);
+
+  const betsMap = useMemo(
+    () => new Map(lastMatchBets.map((b) => [b.user_id, b])),
+    [lastMatchBets]
+  );
 
   const leagueLastGameBets = useMemo(() => {
     if (!selectedLeague || !lastLockedMatch) return [];
     const memberIds = new Set(selectedLeague.members.map((m) => m.user_id));
-    return leagueBets
+    return lastMatchBets
       .filter((b) => memberIds.has(b.user_id))
       .sort((a, b) => a.user_name.localeCompare(b.user_name, "pt-BR"));
-  }, [selectedLeague, lastLockedMatch, leagueBets]);
+  }, [selectedLeague, lastLockedMatch, lastMatchBets]);
 
   const medals = ["🥇", "🥈", "🥉"];
   const ptsColorClass = (index) =>
@@ -70,6 +77,49 @@ export default function RankingTab({
     return <span style={{ paddingLeft: "0.15rem", color: "var(--text-muted)" }}>{index + 1}</span>;
   };
 
+  const BetToggle = () => (
+    <label className="rank-bet-toggle" title="Mostrar palpite do último jogo">
+      {lastLockedMatch && (
+        <span className="rank-bet-toggle-flags">
+          <span className="rank-bet-flag-wrap">
+            <FlagIcon code={lastLockedMatch.home_team_code} name={lastLockedMatch.home_team_name} />
+          </span>
+          <span className="rank-bet-toggle-x">×</span>
+          <span className="rank-bet-flag-wrap">
+            <FlagIcon code={lastLockedMatch.away_team_code} name={lastLockedMatch.away_team_name} />
+          </span>
+        </span>
+      )}
+      <span
+        className={`rank-bet-track${showLastBet ? " on" : ""}`}
+        onClick={() => setShowLastBet((v) => !v)}
+        role="switch"
+        aria-checked={showLastBet}
+        tabIndex={0}
+        onKeyDown={(e) => e.key === " " && setShowLastBet((v) => !v)}
+      >
+        <span className="rank-bet-thumb" />
+      </span>
+    </label>
+  );
+
+  const BetColHeader = () =>
+    lastLockedMatch ? (
+      <th className="rank-bet-col">
+        <span className="rank-bet-col-header-inner">
+          <span className="rank-bet-flag-wrap">
+            <FlagIcon code={lastLockedMatch.home_team_code} name={lastLockedMatch.home_team_name} />
+          </span>
+          <span className="rank-bet-header-x">×</span>
+          <span className="rank-bet-flag-wrap">
+            <FlagIcon code={lastLockedMatch.away_team_code} name={lastLockedMatch.away_team_name} />
+          </span>
+        </span>
+      </th>
+    ) : (
+      <th className="rank-bet-col">Ult.</th>
+    );
+
   const RankingRows = ({ rows, showOverall = false }) =>
     rows.map((r, index) => {
       const isMe = r.user_id === session.id;
@@ -80,6 +130,7 @@ export default function RankingTab({
         : index === 1 ? "rank-2"
         : index === 2 ? "rank-3"
         : "";
+      const bet = showLastBet ? betsMap.get(r.user_id) : null;
       return (
         <tr key={r.user_id} className={rowClass}>
           <td className="rank-pos-cell">
@@ -98,13 +149,23 @@ export default function RankingTab({
           {showOverall && (
             <td className="rank-overall-pos">{r.overallPos}°</td>
           )}
+          {showLastBet && (
+            <td className="rank-bet-col">
+              {lastBetsLoading
+                ? <span className="rank-bet-loading">…</span>
+                : bet
+                ? <span className="rank-bet-score">{bet.home_score_prediction} × {bet.away_score_prediction}</span>
+                : <span className="rank-bet-none">—</span>
+              }
+            </td>
+          )}
         </tr>
       );
     });
 
   return (
     <section className="section">
-      {/* Seletor de liga — só aparece se o usuário tem ligas */}
+      {/* Seletor de liga */}
       {leagues.length > 0 && (
         <div style={{ marginBottom: "1.25rem" }}>
           <select
@@ -154,18 +215,21 @@ export default function RankingTab({
           <div className="ranking-card-header">
             <span className="ranking-card-icon">🏆</span>
             <h2 className="section-title">Ranking geral</h2>
+            {lastLockedMatch && <BetToggle />}
           </div>
           <table className="ranking-table">
             <colgroup>
               <col style={{ width: "2.5rem" }} />
               <col />
               <col style={{ width: "3rem" }} />
+              {showLastBet && <col style={{ width: "4rem" }} />}
             </colgroup>
             <thead>
               <tr>
                 <th>#</th>
                 <th>Nome</th>
                 <th>Pts</th>
+                {showLastBet && <BetColHeader />}
               </tr>
             </thead>
             <tbody>
@@ -183,6 +247,7 @@ export default function RankingTab({
             <div className="ranking-card-header">
               <span className="ranking-card-icon">🏅</span>
               <h2 className="section-title">{selectedLeague.name}</h2>
+              {lastLockedMatch && <BetToggle />}
             </div>
             {leagueRanking.length === 0 ? (
               <p className="empty-state" style={{ padding: "0.75rem 0" }}>
@@ -195,6 +260,7 @@ export default function RankingTab({
                   <col />
                   <col style={{ width: "3rem" }} />
                   <col style={{ width: "3rem" }} />
+                  {showLastBet && <col style={{ width: "4rem" }} />}
                 </colgroup>
                 <thead>
                   <tr>
@@ -202,6 +268,7 @@ export default function RankingTab({
                     <th>Nome</th>
                     <th>Pts</th>
                     <th className="rank-overall-pos">Geral</th>
+                    {showLastBet && <BetColHeader />}
                   </tr>
                 </thead>
                 <tbody>
@@ -225,7 +292,7 @@ export default function RankingTab({
                   </span>
                 </h3>
               </div>
-              {leagueBetsLoading ? (
+              {lastBetsLoading ? (
                 <p style={{ margin: 0, fontSize: "0.85rem", opacity: 0.5 }}>Carregando...</p>
               ) : leagueLastGameBets.length === 0 ? (
                 <p style={{ margin: 0, fontSize: "0.85rem", opacity: 0.5 }}>
