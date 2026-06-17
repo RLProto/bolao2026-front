@@ -1502,16 +1502,12 @@ select:focus {
   flex-shrink: 0;
 }
 
-.rank-bet-toggle-flags {
-  display: flex;
-  align-items: center;
-  gap: 0.15rem;
-}
-
-.rank-bet-toggle-x {
-  font-size: 0.6rem;
+.rank-bet-toggle-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--text-muted);
-  line-height: 1;
 }
 
 .rank-bet-flag-wrap .team-flag,

@@ -79,17 +79,7 @@ export default function RankingTab({
 
   const BetToggle = () => (
     <label className="rank-bet-toggle" title="Mostrar palpite do último jogo">
-      {lastLockedMatch && (
-        <span className="rank-bet-toggle-flags">
-          <span className="rank-bet-flag-wrap">
-            <FlagIcon code={lastLockedMatch.home_team_code} name={lastLockedMatch.home_team_name} />
-          </span>
-          <span className="rank-bet-toggle-x">×</span>
-          <span className="rank-bet-flag-wrap">
-            <FlagIcon code={lastLockedMatch.away_team_code} name={lastLockedMatch.away_team_name} />
-          </span>
-        </span>
-      )}
+      <span className="rank-bet-toggle-label">Placares</span>
       <span
         className={`rank-bet-track${showLastBet ? " on" : ""}`}
         onClick={() => setShowLastBet((v) => !v)}
