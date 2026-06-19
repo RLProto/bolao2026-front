@@ -370,3 +370,23 @@ export const createLeague     = (name)           => leagueRequest("/leagues", "P
 export const addLeagueMember  = (id, userId)     => leagueRequest(`/leagues/${id}/members`, "POST", { user_id: userId });
 export const leaveLeague      = (id)             => leagueRequest(`/leagues/${id}/members/me`, "DELETE");
 export const deleteLeague     = (id)             => leagueRequest(`/leagues/${id}`, "DELETE");
+
+export async function adminOverrideBet({ secondaryPassword, userId, matchId, homeScore, awayScore }) {
+  const res = await fetch(`${API_URL}/admin/bet-override`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getHeadersWithAuth() },
+    body: JSON.stringify({
+      secondary_password: secondaryPassword,
+      user_id: userId,
+      match_id: matchId,
+      home_score_prediction: homeScore,
+      away_score_prediction: awayScore,
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    if (res.status === 403) fireUnauthorized();
+    throw new Error(data.detail || "Erro ao salvar palpite.");
+  }
+  return data;
+}

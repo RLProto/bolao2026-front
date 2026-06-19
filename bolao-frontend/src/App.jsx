@@ -28,6 +28,7 @@ import StatsTab from "./components/StatsTab";
 import BetHistoryTab from "./components/BetHistoryTab";
 import ResultsTab from "./components/ResultsTab";
 import LeaguesPage from "./components/LeaguesPage";
+import AdminOverridePage from "./components/AdminOverridePage";
 
 function formatDateTime(isoString) {
   if (!isoString) return "";
@@ -753,6 +754,18 @@ function App() {
           </button>
         )}
 
+        {isSuperAdmin && (
+          <button
+            className={`menu-item ${page === "override" ? "active" : ""}`}
+            onClick={() => {
+              setPage("override");
+              setMenuOpen(false);
+            }}
+          >
+            Override de palpite
+          </button>
+        )}
+
         {isAdmin && (
           <button
             className={`menu-item ${page === "results" ? "active" : ""}`}
@@ -968,6 +981,8 @@ function App() {
             )}
           </>
         )}
+
+        {page === "override" && isSuperAdmin && <AdminOverridePage />}
 
         {page === "results" && (
           <>
