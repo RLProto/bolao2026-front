@@ -1462,6 +1462,89 @@ def list_users(db: Session = Depends(get_db), current_user: User = Depends(get_c
     return [{"id": u.id, "name": u.name} for u in users]
 
 
+class BetOverridePayload(BaseModel):
+    secondary_password: str
+    user_id: int
+    match_id: int
+    home_score_prediction: int = Field(..., ge=0)
+    away_score_prediction: int = Field(..., ge=0)
+
+
+@app.post("/admin/bet-override")
+@limiter.limit("5/minute")
+def admin_bet_override(
+    request: Request,
+    payload: BetOverridePayload,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if not is_superuser(current_user):
+        raise HTTPException(status_code=403, detail="Acesso negado.")
+
+    override_pw = os.getenv("ADMIN_OVERRIDE_PW", "")
+    if not override_pw or not secrets.compare_digest(
+        payload.secondary_password.encode(), override_pw.encode()
+    ):
+        raise HTTPException(status_code=401, detail="Senha incorreta.")
+
+    target_user = db.query(User).filter(User.id == payload.user_id).first()
+    if not target_user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+
+    match = db.query(Match).filter(Match.id == payload.match_id).first()
+    if not match:
+        raise HTTPException(status_code=404, detail="Partida não encontrada.")
+
+    now = datetime.now(timezone.utc)
+    bet = db.query(Bet).filter(
+        Bet.user_id == payload.user_id,
+        Bet.match_id == payload.match_id,
+    ).first()
+
+    if bet is None:
+        bet = Bet(
+            user_id=payload.user_id,
+            match_id=payload.match_id,
+            home_score_prediction=payload.home_score_prediction,
+            away_score_prediction=payload.away_score_prediction,
+            created_at=now,
+            updated_at=now,
+        )
+        db.add(bet)
+        db.add(BetHistory(
+            user_id=payload.user_id,
+            user_name=target_user.name,
+            match_id=payload.match_id,
+            home_score_prediction=payload.home_score_prediction,
+            away_score_prediction=payload.away_score_prediction,
+            prev_home_score_prediction=None,
+            prev_away_score_prediction=None,
+            action_type="insert",
+            changed_at_utc=now,
+        ))
+    else:
+        prev_home = bet.home_score_prediction
+        prev_away = bet.away_score_prediction
+        bet.home_score_prediction = payload.home_score_prediction
+        bet.away_score_prediction = payload.away_score_prediction
+        bet.updated_at = now
+        db.add(BetHistory(
+            user_id=payload.user_id,
+            user_name=target_user.name,
+            match_id=payload.match_id,
+            home_score_prediction=payload.home_score_prediction,
+            away_score_prediction=payload.away_score_prediction,
+            prev_home_score_prediction=prev_home,
+            prev_away_score_prediction=prev_away,
+            action_type="update",
+            changed_at_utc=now,
+        ))
+
+    db.commit()
+    db.refresh(bet)
+    return {"status": "ok", "bet_id": bet.id, "user_name": target_user.name}
+
+
 @app.get("/admin/matches")
 def list_matches_admin(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     if not is_admin(current_user):
