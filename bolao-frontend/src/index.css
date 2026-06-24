@@ -1493,11 +1493,19 @@ select:focus {
 }
 
 /* ── Ranking: toggle de último palpite ── */
+.ranking-card-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .rank-bet-toggle {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  margin-left: auto;
   cursor: pointer;
   user-select: none;
   flex-shrink: 0;

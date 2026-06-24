@@ -260,8 +260,10 @@ export default function RankingTab({
           <div className="ranking-card-header">
             <span className="ranking-card-icon">🏆</span>
             <h2 className="section-title">Ranking geral</h2>
-            {lastLockedMatches.length > 0 && <BetToggle />}
-            {showLastBet && <MatchPicker />}
+            <div className="ranking-card-header-actions">
+              {lastLockedMatches.length > 0 && <BetToggle />}
+              {showLastBet && <MatchPicker />}
+            </div>
           </div>
           <table className="ranking-table">
             <colgroup>
@@ -293,8 +295,10 @@ export default function RankingTab({
             <div className="ranking-card-header">
               <span className="ranking-card-icon">🏅</span>
               <h2 className="section-title">{selectedLeague.name}</h2>
-              {lastLockedMatches.length > 0 && <BetToggle />}
-              {showLastBet && <MatchPicker />}
+              <div className="ranking-card-header-actions">
+                {lastLockedMatches.length > 0 && <BetToggle />}
+                {showLastBet && <MatchPicker />}
+              </div>
             </div>
             {leagueRanking.length === 0 ? (
               <p className="empty-state" style={{ padding: "0.75rem 0" }}>
