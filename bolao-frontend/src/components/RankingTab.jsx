@@ -294,7 +294,7 @@ export default function RankingTab({
               <span className="ranking-card-icon">🏅</span>
               <h2 className="section-title">{selectedLeague.name}</h2>
               {lastLockedMatches.length > 0 && <BetToggle />}
-              <MatchPicker />
+              {showLastBet && <MatchPicker />}
             </div>
             {leagueRanking.length === 0 ? (
               <p className="empty-state" style={{ padding: "0.75rem 0" }}>
