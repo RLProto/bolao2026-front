@@ -1310,6 +1310,7 @@ select:focus {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
   padding-bottom: 0.55rem;
   margin-bottom: 0.55rem;
   border-bottom: 1px solid rgba(148, 163, 184, 0.15);
@@ -1577,6 +1578,30 @@ select:focus {
 .rank-bet-loading {
   color: var(--text-muted);
   font-size: 0.8rem;
+}
+
+/* ── Ranking: seletor de jogo (quando há simultâneos) ── */
+.rank-match-picker {
+  display: flex;
+  gap: 0.35rem;
+  margin-left: auto;
+}
+
+.rank-match-picker-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.rank-match-picker-btn.active {
+  border-color: var(--accent);
+  background: rgba(34, 197, 94, 0.12);
 }
 
 /* ── Partidas: toggle "Ocultar finalizados" ── */

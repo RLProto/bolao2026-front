@@ -14,8 +14,9 @@ export default function RankingTab({
 }) {
   const [selectedLeagueId, setSelectedLeagueId] = useState("geral");
   const [showLastBet, setShowLastBet] = useState(false);
-  const [lastMatchBets, setLastMatchBets] = useState([]);
+  const [lastMatchBetsByMatch, setLastMatchBetsByMatch] = useState({}); // { [matchId]: Bet[] }
   const [lastBetsLoading, setLastBetsLoading] = useState(false);
+  const [selectedLastMatchIndex, setSelectedLastMatchIndex] = useState(0);
 
   const selectedLeague = useMemo(
     () => (selectedLeagueId === "geral" ? null : leagues.find((l) => l.id === selectedLeagueId) ?? null),
@@ -30,41 +31,71 @@ export default function RankingTab({
       .filter((r) => memberIds.has(r.user_id));
   }, [selectedLeague, ranking]);
 
-  const lastLockedMatch = useMemo(() => {
-    const locked = matches
-      .filter((m) => m.is_locked)
-      .sort((a, b) => new Date(b.kickoff_at_utc) - new Date(a.kickoff_at_utc));
-    return locked[0] ?? null;
+  // Jogo(s) mais recentes que já começaram — pode ser mais de um quando há
+  // horários simultâneos (ex: 3ª rodada da fase de grupos).
+  const lastLockedMatches = useMemo(() => {
+    const locked = matches.filter((m) => m.is_locked);
+    if (locked.length === 0) return [];
+    const maxKickoff = locked.reduce(
+      (max, m) => Math.max(max, new Date(m.kickoff_at_utc).getTime()),
+      -Infinity
+    );
+    return locked
+      .filter((m) => new Date(m.kickoff_at_utc).getTime() === maxKickoff)
+      .sort((a, b) => a.id - b.id);
   }, [matches]);
 
-  // Fetch bets when toggle is on OR when viewing a league
+  const lastLockedIdsKey = lastLockedMatches.map((m) => m.id).join(",");
+
+  // Garante que o índice selecionado continue válido se a lista mudar
+  useEffect(() => {
+    if (selectedLastMatchIndex >= lastLockedMatches.length) {
+      setSelectedLastMatchIndex(0);
+    }
+  }, [lastLockedMatches.length, selectedLastMatchIndex]);
+
+  const activeLastMatch = lastLockedMatches[selectedLastMatchIndex] ?? lastLockedMatches[0] ?? null;
+
+  // Busca os palpites de todos os jogos do grupo simultâneo de uma vez —
+  // assim trocar entre Jogo 1 / Jogo 2 não exige refetch.
   useEffect(() => {
     const needBets = showLastBet || selectedLeagueId !== "geral";
-    if (!needBets || !lastLockedMatch) {
-      setLastMatchBets([]);
+    if (!needBets || lastLockedMatches.length === 0) {
+      setLastMatchBetsByMatch({});
       return;
     }
     let cancelled = false;
     setLastBetsLoading(true);
-    fetchPublicBets({ matchId: lastLockedMatch.id })
-      .then((data) => { if (!cancelled) setLastMatchBets(data || []); })
-      .catch(() => { if (!cancelled) setLastMatchBets([]); })
+    Promise.all(
+      lastLockedMatches.map((m) =>
+        fetchPublicBets({ matchId: m.id }).then((data) => [m.id, data || []])
+      )
+    )
+      .then((results) => {
+        if (cancelled) return;
+        const map = {};
+        results.forEach(([id, data]) => { map[id] = data; });
+        setLastMatchBetsByMatch(map);
+      })
+      .catch(() => { if (!cancelled) setLastMatchBetsByMatch({}); })
       .finally(() => { if (!cancelled) setLastBetsLoading(false); });
     return () => { cancelled = true; };
-  }, [selectedLeagueId, lastLockedMatch?.id, showLastBet]);
+  }, [selectedLeagueId, lastLockedIdsKey, showLastBet]);
 
-  const betsMap = useMemo(
-    () => new Map(lastMatchBets.map((b) => [b.user_id, b])),
-    [lastMatchBets]
-  );
+  const betsMap = useMemo(() => {
+    if (!activeLastMatch) return new Map();
+    const bets = lastMatchBetsByMatch[activeLastMatch.id] || [];
+    return new Map(bets.map((b) => [b.user_id, b]));
+  }, [lastMatchBetsByMatch, activeLastMatch]);
 
   const leagueLastGameBets = useMemo(() => {
-    if (!selectedLeague || !lastLockedMatch) return [];
+    if (!selectedLeague || !activeLastMatch) return [];
     const memberIds = new Set(selectedLeague.members.map((m) => m.user_id));
-    return lastMatchBets
+    const bets = lastMatchBetsByMatch[activeLastMatch.id] || [];
+    return bets
       .filter((b) => memberIds.has(b.user_id))
       .sort((a, b) => a.user_name.localeCompare(b.user_name, "pt-BR"));
-  }, [selectedLeague, lastLockedMatch, lastMatchBets]);
+  }, [selectedLeague, activeLastMatch, lastMatchBetsByMatch]);
 
   const medals = ["🥇", "🥈", "🥉"];
   const ptsColorClass = (index) =>
@@ -93,16 +124,40 @@ export default function RankingTab({
     </label>
   );
 
+  // Seletor Jogo 1 / Jogo 2 — só aparece quando há jogos simultâneos
+  const MatchPicker = () =>
+    lastLockedMatches.length > 1 ? (
+      <div className="rank-match-picker">
+        {lastLockedMatches.map((m, idx) => (
+          <button
+            key={m.id}
+            type="button"
+            className={`rank-match-picker-btn${idx === selectedLastMatchIndex ? " active" : ""}`}
+            onClick={() => setSelectedLastMatchIndex(idx)}
+            title={`${m.home_team_name ?? m.home_team_code} x ${m.away_team_name ?? m.away_team_code}`}
+          >
+            <span className="rank-bet-flag-wrap">
+              <FlagIcon code={m.home_team_code} name={m.home_team_name} />
+            </span>
+            <span className="rank-bet-header-x">×</span>
+            <span className="rank-bet-flag-wrap">
+              <FlagIcon code={m.away_team_code} name={m.away_team_name} />
+            </span>
+          </button>
+        ))}
+      </div>
+    ) : null;
+
   const BetColHeader = () =>
-    lastLockedMatch ? (
+    activeLastMatch ? (
       <th className="rank-bet-col">
         <span className="rank-bet-col-header-inner">
           <span className="rank-bet-flag-wrap">
-            <FlagIcon code={lastLockedMatch.home_team_code} name={lastLockedMatch.home_team_name} />
+            <FlagIcon code={activeLastMatch.home_team_code} name={activeLastMatch.home_team_name} />
           </span>
           <span className="rank-bet-header-x">×</span>
           <span className="rank-bet-flag-wrap">
-            <FlagIcon code={lastLockedMatch.away_team_code} name={lastLockedMatch.away_team_name} />
+            <FlagIcon code={activeLastMatch.away_team_code} name={activeLastMatch.away_team_name} />
           </span>
         </span>
       </th>
@@ -205,7 +260,8 @@ export default function RankingTab({
           <div className="ranking-card-header">
             <span className="ranking-card-icon">🏆</span>
             <h2 className="section-title">Ranking geral</h2>
-            {lastLockedMatch && <BetToggle />}
+            {lastLockedMatches.length > 0 && <BetToggle />}
+            {showLastBet && <MatchPicker />}
           </div>
           <table className="ranking-table">
             <colgroup>
@@ -237,7 +293,8 @@ export default function RankingTab({
             <div className="ranking-card-header">
               <span className="ranking-card-icon">🏅</span>
               <h2 className="section-title">{selectedLeague.name}</h2>
-              {lastLockedMatch && <BetToggle />}
+              {lastLockedMatches.length > 0 && <BetToggle />}
+              <MatchPicker />
             </div>
             {leagueRanking.length === 0 ? (
               <p className="empty-state" style={{ padding: "0.75rem 0" }}>
@@ -269,16 +326,16 @@ export default function RankingTab({
           </div>
 
           {/* Palpites do último jogo */}
-          {lastLockedMatch && (
+          {activeLastMatch && (
             <div className="ranking-card" style={{ marginTop: "1rem" }}>
               <div className="ranking-card-header">
                 <h3 className="section-title" style={{ fontSize: "0.9rem" }}>
                   <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", verticalAlign: "middle" }}>
-                    <FlagIcon code={lastLockedMatch.home_team_code} name={lastLockedMatch.home_team_name} />
-                    {lastLockedMatch.home_team_name ?? lastLockedMatch.home_team_code}
+                    <FlagIcon code={activeLastMatch.home_team_code} name={activeLastMatch.home_team_name} />
+                    {activeLastMatch.home_team_name ?? activeLastMatch.home_team_code}
                     {" x "}
-                    {lastLockedMatch.away_team_name ?? lastLockedMatch.away_team_code}
-                    <FlagIcon code={lastLockedMatch.away_team_code} name={lastLockedMatch.away_team_name} />
+                    {activeLastMatch.away_team_name ?? activeLastMatch.away_team_code}
+                    <FlagIcon code={activeLastMatch.away_team_code} name={activeLastMatch.away_team_name} />
                   </span>
                 </h3>
               </div>
