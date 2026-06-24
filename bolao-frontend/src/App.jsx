@@ -525,24 +525,21 @@ function App() {
     return map;
   }, [matches]);
 
-  // Modo "hide": ignora filtro de Fase e mostra só o(s) próximo(s) jogo(s) a
-  // acontecer (menor kickoff entre os sem resultado). Se a Copa já encerrou,
-  // mostra a última partida finalizada como referência.
+  // Modo "hide": ignora filtro de Fase e esconde jogos passados, mantendo
+  // visível o jogo mais recente que já começou (em andamento ou recém
+  // finalizado) em diante — jogos futuros continuam aparecendo normalmente.
   const nextMatches = useMemo(() => {
     if (!matches.length) return [];
-    const pending = matches.filter((m) => m.home_score == null || m.away_score == null);
-    if (pending.length === 0) {
-      const lastFinished = [...matches].sort(
-        (a, b) => new Date(b.kickoff_at_utc).getTime() - new Date(a.kickoff_at_utc).getTime()
-      )[0];
-      return lastFinished ? [lastFinished] : [];
-    }
-    const earliestKickoff = pending.reduce(
-      (min, m) => Math.min(min, new Date(m.kickoff_at_utc).getTime()),
-      Infinity
+    const startedMatches = matches.filter((m) => m.is_locked);
+    if (startedMatches.length === 0) return matches; // nada começou ainda, nada a esconder
+
+    const anchorTimestamp = startedMatches.reduce(
+      (max, m) => Math.max(max, new Date(m.kickoff_at_utc).getTime()),
+      -Infinity
     );
-    return pending
-      .filter((m) => new Date(m.kickoff_at_utc).getTime() === earliestKickoff)
+
+    return matches
+      .filter((m) => new Date(m.kickoff_at_utc).getTime() >= anchorTimestamp)
       .sort((a, b) => new Date(a.kickoff_at_utc).getTime() - new Date(b.kickoff_at_utc).getTime());
   }, [matches]);
 
