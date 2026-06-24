@@ -1511,6 +1511,23 @@ select:focus {
   flex-shrink: 0;
 }
 
+/* No mobile, o toggle fica colado ao título e só o seletor de bandeiras
+   quebra pra linha de baixo, alinhado à direita */
+@media (max-width: 719px) {
+  .ranking-card-header-actions {
+    display: contents;
+  }
+
+  .rank-bet-toggle {
+    margin-left: auto;
+  }
+
+  .rank-match-picker {
+    flex-basis: 100%;
+    justify-content: flex-end;
+  }
+}
+
 .rank-bet-toggle-label {
   font-size: 0.72rem;
   font-weight: 600;
