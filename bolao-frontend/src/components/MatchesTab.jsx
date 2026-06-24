@@ -145,6 +145,8 @@ export default function MatchesTab({
   orderMode,
   onOrderModeChange,
   isGroupRound,
+  hideFinished,
+  onHideFinishedChange,
   teams,
   championPick,
   championPickLoading,
@@ -172,12 +174,19 @@ export default function MatchesTab({
         {/* Coluna esquerda: filtros */}
         <div className="matches-controls-col">
           <div className="matches-filters">
-            <div className="toolbar-control">
+            <div
+              className="toolbar-control"
+              style={{
+                opacity: hideFinished ? 0.45 : 1,
+                pointerEvents: hideFinished ? "none" : "auto",
+              }}
+            >
               <label className="filter-label">Fase</label>
               <select
                 value={selectedRound}
                 onChange={(e) => onSelectedRoundChange(e.target.value)}
                 className="filter-select"
+                disabled={hideFinished}
               >
                 {ROUND_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -190,8 +199,8 @@ export default function MatchesTab({
             <div
               className="toolbar-control"
               style={{
-                opacity: isGroupRound ? 1 : 0,
-                pointerEvents: isGroupRound ? "auto" : "none",
+                opacity: isGroupRound && !hideFinished ? 1 : 0,
+                pointerEvents: isGroupRound && !hideFinished ? "auto" : "none",
               }}
             >
               <label className="filter-label">Ordenar por</label>
@@ -199,12 +208,26 @@ export default function MatchesTab({
                 value={orderMode}
                 onChange={(e) => onOrderModeChange(e.target.value)}
                 className="filter-select"
-                disabled={!isGroupRound}
+                disabled={!isGroupRound || hideFinished}
               >
                 <option value="date">Data</option>
                 <option value="group">Grupo</option>
               </select>
             </div>
+
+            <label className="matches-hide-toggle" title="Mostrar só o próximo jogo a acontecer">
+              <span className="matches-hide-toggle-label">Próximo jogo</span>
+              <span
+                className={`rank-bet-track${hideFinished ? " on" : ""}`}
+                onClick={() => onHideFinishedChange(!hideFinished)}
+                role="switch"
+                aria-checked={hideFinished}
+                tabIndex={0}
+                onKeyDown={(e) => e.key === " " && onHideFinishedChange(!hideFinished)}
+              >
+                <span className="rank-bet-thumb" />
+              </span>
+            </label>
           </div>
         </div>
 

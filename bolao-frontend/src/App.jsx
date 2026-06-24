@@ -125,6 +125,7 @@ function App() {
 
   const [selectedRound, setSelectedRound] = useState("all");
   const [orderMode, setOrderMode] = useState("date"); // date | group
+  const [hideFinished, setHideFinished] = useState(false);
 
   const isGroupRound = ["all", "1a rodada", "2a rodada", "3a rodada"].includes(
     selectedRound
@@ -524,7 +525,30 @@ function App() {
     return map;
   }, [matches]);
 
+  // Modo "hide": ignora filtro de Fase e mostra só o(s) próximo(s) jogo(s) a
+  // acontecer (menor kickoff entre os sem resultado). Se a Copa já encerrou,
+  // mostra a última partida finalizada como referência.
+  const nextMatches = useMemo(() => {
+    if (!matches.length) return [];
+    const pending = matches.filter((m) => m.home_score == null || m.away_score == null);
+    if (pending.length === 0) {
+      const lastFinished = [...matches].sort(
+        (a, b) => new Date(b.kickoff_at_utc).getTime() - new Date(a.kickoff_at_utc).getTime()
+      )[0];
+      return lastFinished ? [lastFinished] : [];
+    }
+    const earliestKickoff = pending.reduce(
+      (min, m) => Math.min(min, new Date(m.kickoff_at_utc).getTime()),
+      Infinity
+    );
+    return pending
+      .filter((m) => new Date(m.kickoff_at_utc).getTime() === earliestKickoff)
+      .sort((a, b) => new Date(a.kickoff_at_utc).getTime() - new Date(b.kickoff_at_utc).getTime());
+  }, [matches]);
+
   const visibleMatches = useMemo(() => {
+    if (hideFinished) return nextMatches;
+
     const filtered = matches.filter((m) => {
       if (selectedRound === "all") return true;
       return roundByMatchId[m.id] === selectedRound;
@@ -557,7 +581,7 @@ function App() {
         new Date(b.kickoff_at_utc).getTime()
       );
     });
-  }, [matches, selectedRound, orderMode, roundByMatchId]);
+  }, [matches, selectedRound, orderMode, roundByMatchId, hideFinished, nextMatches]);
 
   // ---------------- VIEWS ----------------
 
@@ -840,6 +864,8 @@ function App() {
                 orderMode={orderMode}
                 onOrderModeChange={setOrderMode}
                 isGroupRound={isGroupRound}
+                hideFinished={hideFinished}
+                onHideFinishedChange={setHideFinished}
                 teams={teams}
                 championPick={championPick}
                 championPickLoading={championPickLoading}
