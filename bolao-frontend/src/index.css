@@ -1584,7 +1584,6 @@ select:focus {
 .rank-match-picker {
   display: flex;
   gap: 0.35rem;
-  margin-left: auto;
 }
 
 .rank-match-picker-btn {
