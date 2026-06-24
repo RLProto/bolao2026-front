@@ -14,12 +14,15 @@ export default function ViewBetsTab({
   const [selectedUserId, setSelectedUserId] = useState("all");
   const [hideCompleted, setHideCompleted] = useState(false);
   const [championOpen, setChampionOpen] = useState(false);
+  const [selectedScores, setSelectedScores] = useState(new Set());
+  const [scorePopoverOpen, setScorePopoverOpen] = useState(false);
 
   const [bets, setBets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const autoSelected = useRef(false);
+  const scorePopoverRef = useRef(null);
 
   const lockedMatches = useMemo(() => {
     const base = matches
@@ -65,6 +68,32 @@ export default function ViewBetsTab({
     }
   }
 
+  // Reseta a seleção de placares ao trocar de jogo — as opções dependem do jogo selecionado
+  useEffect(() => {
+    setSelectedScores(new Set());
+  }, [selectedMatchId]);
+
+  // Fecha o popover de placares ao clicar fora
+  useEffect(() => {
+    if (!scorePopoverOpen) return;
+    function handleClickOutside(e) {
+      if (scorePopoverRef.current && !scorePopoverRef.current.contains(e.target)) {
+        setScorePopoverOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [scorePopoverOpen]);
+
+  function toggleScore(key) {
+    setSelectedScores((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
+
   const lockedMatchIds = useMemo(
     () => new Set(lockedMatches.map((m) => m.id)),
     [lockedMatches]
@@ -96,13 +125,33 @@ export default function ViewBetsTab({
     return map;
   }, [lockedMatches]);
 
+  // Placares distintos palpitados no jogo selecionado, com contagem — só faz sentido com um jogo específico
+  const scoreOptions = useMemo(() => {
+    if (selectedMatchId === "all") return [];
+    const map = new Map();
+    lockedBets
+      .filter((b) => b.match_id === selectedMatchId)
+      .forEach((b) => {
+        const key = `${b.home_score_prediction}-${b.away_score_prediction}`;
+        if (!map.has(key)) {
+          map.set(key, { key, home: b.home_score_prediction, away: b.away_score_prediction, count: 0 });
+        }
+        map.get(key).count += 1;
+      });
+    return Array.from(map.values()).sort((a, b) => b.count - a.count || a.home - b.home || a.away - b.away);
+  }, [lockedBets, selectedMatchId]);
+
   const filteredBets = useMemo(() => {
     return lockedBets.filter((b) => {
       if (selectedMatchId !== "all" && b.match_id !== selectedMatchId) return false;
       if (selectedUserId !== "all" && b.user_id !== selectedUserId) return false;
+      if (selectedScores.size > 0) {
+        const key = `${b.home_score_prediction}-${b.away_score_prediction}`;
+        if (!selectedScores.has(key)) return false;
+      }
       return true;
     });
-  }, [lockedBets, selectedMatchId, selectedUserId]);
+  }, [lockedBets, selectedMatchId, selectedUserId, selectedScores]);
 
   const groupedByMatch = useMemo(() => {
     const map = new Map();
@@ -235,6 +284,47 @@ export default function ViewBetsTab({
               ))}
             </select>
           </div>
+
+          {selectedMatchId !== "all" && scoreOptions.length > 0 && (
+            <div className="score-filter-wrap" ref={scorePopoverRef} style={{ display: "flex", flexDirection: "column", gap: "0.45rem", position: "relative" }}>
+              <label className="filter-label" style={{ fontSize: "0.9rem", fontWeight: 600 }}>Placar</label>
+              <button
+                type="button"
+                className="filter-select score-filter-btn"
+                style={{ minHeight: "44px" }}
+                onClick={() => setScorePopoverOpen((v) => !v)}
+              >
+                {selectedScores.size === 0
+                  ? "Todos os placares"
+                  : `${selectedScores.size} placar${selectedScores.size > 1 ? "es" : ""} selecionado${selectedScores.size > 1 ? "s" : ""}`}
+                <span style={{ marginLeft: "auto", opacity: 0.6 }}>{scorePopoverOpen ? "▲" : "▼"}</span>
+              </button>
+
+              {scorePopoverOpen && (
+                <div className="score-filter-popover">
+                  <div className="score-filter-popover-header">
+                    <span>Selecionar placares</span>
+                    {selectedScores.size > 0 && (
+                      <button type="button" className="score-filter-clear" onClick={() => setSelectedScores(new Set())}>
+                        Limpar
+                      </button>
+                    )}
+                  </div>
+                  {scoreOptions.map((opt) => (
+                    <label key={opt.key} className="score-filter-option">
+                      <input
+                        type="checkbox"
+                        checked={selectedScores.has(opt.key)}
+                        onChange={() => toggleScore(opt.key)}
+                      />
+                      <span className="score-filter-option-score">{opt.home} x {opt.away}</span>
+                      <span className="score-filter-option-count">{opt.count}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
