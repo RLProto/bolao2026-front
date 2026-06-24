@@ -231,6 +231,7 @@ export default function ViewBetsTab({
           marginTop: "1.25rem", marginBottom: "1.25rem", padding: "1rem 1.1rem",
           border: "1px solid rgba(255,255,255,0.08)", borderRadius: "16px",
           background: "rgba(255,255,255,0.03)",
+          position: "relative", zIndex: 25,
         }}
       >
         <div
