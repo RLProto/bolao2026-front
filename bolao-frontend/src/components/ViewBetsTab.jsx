@@ -68,10 +68,10 @@ export default function ViewBetsTab({
     }
   }
 
-  // Reseta a seleção de placares ao trocar de jogo — as opções dependem do jogo selecionado
+  // Reseta a seleção de placares ao trocar de jogo ou usuário — as opções dependem desse contexto
   useEffect(() => {
     setSelectedScores(new Set());
-  }, [selectedMatchId]);
+  }, [selectedMatchId, selectedUserId]);
 
   // Fecha o popover de placares ao clicar fora
   useEffect(() => {
@@ -125,21 +125,26 @@ export default function ViewBetsTab({
     return map;
   }, [lockedMatches]);
 
-  // Placares distintos palpitados no jogo selecionado, com contagem — só faz sentido com um jogo específico
+  // Placares distintos disponíveis para filtrar, com contagem.
+  // Com jogo específico: placares daquele jogo. Com "todos os jogos" + usuário específico:
+  // placares agregados de todos os jogos daquele usuário. Sem jogo nem usuário: nada a mostrar.
   const scoreOptions = useMemo(() => {
-    if (selectedMatchId === "all") return [];
+    if (selectedMatchId === "all" && selectedUserId === "all") return [];
+    const scoped = lockedBets.filter((b) => {
+      if (selectedMatchId !== "all" && b.match_id !== selectedMatchId) return false;
+      if (selectedUserId !== "all" && b.user_id !== selectedUserId) return false;
+      return true;
+    });
     const map = new Map();
-    lockedBets
-      .filter((b) => b.match_id === selectedMatchId)
-      .forEach((b) => {
-        const key = `${b.home_score_prediction}-${b.away_score_prediction}`;
-        if (!map.has(key)) {
-          map.set(key, { key, home: b.home_score_prediction, away: b.away_score_prediction, count: 0 });
-        }
-        map.get(key).count += 1;
-      });
+    scoped.forEach((b) => {
+      const key = `${b.home_score_prediction}-${b.away_score_prediction}`;
+      if (!map.has(key)) {
+        map.set(key, { key, home: b.home_score_prediction, away: b.away_score_prediction, count: 0 });
+      }
+      map.get(key).count += 1;
+    });
     return Array.from(map.values()).sort((a, b) => b.count - a.count || a.home - b.home || a.away - b.away);
-  }, [lockedBets, selectedMatchId]);
+  }, [lockedBets, selectedMatchId, selectedUserId]);
 
   const filteredBets = useMemo(() => {
     return lockedBets.filter((b) => {
@@ -285,7 +290,7 @@ export default function ViewBetsTab({
             </select>
           </div>
 
-          {selectedMatchId !== "all" && scoreOptions.length > 0 && (
+          {(selectedMatchId !== "all" || selectedUserId !== "all") && scoreOptions.length > 0 && (
             <div className="score-filter-wrap" ref={scorePopoverRef} style={{ display: "flex", flexDirection: "column", gap: "0.45rem", position: "relative" }}>
               <label className="filter-label" style={{ fontSize: "0.9rem", fontWeight: 600 }}>Placar</label>
               <button
