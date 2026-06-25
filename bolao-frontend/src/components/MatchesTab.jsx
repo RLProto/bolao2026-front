@@ -216,7 +216,7 @@ export default function MatchesTab({
             </div>
 
             <label className="matches-hide-toggle" title="Esconder jogos passados">
-              <span className="matches-hide-toggle-label">Ocultar finalizados</span>
+              <span className="matches-hide-toggle-label">Ocultar jogos finalizados</span>
               <span
                 className={`rank-bet-track${hideFinished ? " on" : ""}`}
                 onClick={() => onHideFinishedChange(!hideFinished)}
