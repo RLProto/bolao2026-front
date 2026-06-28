@@ -3079,11 +3079,15 @@ select:focus {
 }
 
 /* ----- Evolução (aba) ----- */
+.evolution-card {
+  border-radius: 8px;
+}
+
 .evolution-chart-wrap {
   width: 100%;
   background: rgba(2, 6, 23, 0.4);
   border: 1px solid var(--card-border);
-  border-radius: var(--radius-lg);
+  border-radius: 8px;
   padding: 0.75rem;
   box-sizing: border-box;
 }
@@ -3102,7 +3106,7 @@ select:focus {
   margin-top: 0.85rem;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: var(--radius-lg);
+  border-radius: 8px;
   padding: 0.75rem 1rem;
   display: flex;
   flex-wrap: wrap;

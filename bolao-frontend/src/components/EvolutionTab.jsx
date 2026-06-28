@@ -7,8 +7,8 @@ const CHART_W = 760;
 const CHART_H = 320;
 const PAD_L = 36;
 const PAD_R = 16;
-const PAD_T = 16;
-const PAD_B = 28;
+const PAD_T = 34;
+const PAD_B = 46;
 
 function buildPoints(data) {
   const n = data.length;
@@ -92,7 +92,7 @@ async function drawEvolutionCanvas(data, userName) {
   const yTicks = 5;
   for (let i = 0; i <= yTicks; i++) {
     const pos = Math.round(minPos + (span * i) / yTicks);
-    const y = chartTop + innerH - (i / yTicks) * innerH;
+    const y = chartTop + (i / yTicks) * innerH;
     ctx.fillText(`#${pos}`, chartLeft - 10, y + 4);
     ctx.strokeStyle = "rgba(255,255,255,0.04)";
     ctx.beginPath();
@@ -206,6 +206,20 @@ export default function EvolutionTab({ session, allUsers = [], allUsersLoading =
       worstIdx: positions.indexOf(Math.max(...positions)),
     };
   }, [data]);
+  const yTicks = useMemo(() => {
+    if (!data.length) return [];
+    const positions = data.map((d) => d.position);
+    const minPos = Math.min(...positions);
+    const maxPos = Math.max(...positions);
+    const span = Math.max(maxPos - minPos, 1);
+    const innerH = CHART_H - PAD_T - PAD_B;
+    const count = 4;
+    return Array.from({ length: count + 1 }, (_, i) => {
+      const pos = Math.round(minPos + (span * i) / count);
+      const y = PAD_T + (i / count) * innerH;
+      return { y, label: `#${pos}` };
+    });
+  }, [data]);
   const selectedUserName = useMemo(
     () => allUsers.find((u) => u.id === Number(selectedUserId))?.name || session?.name || "",
     [allUsers, selectedUserId, session]
@@ -224,7 +238,7 @@ export default function EvolutionTab({ session, allUsers = [], allUsersLoading =
 
   return (
     <section className="section">
-      <div className="ranking-card">
+      <div className="ranking-card evolution-card">
         <div className="ranking-card-header">
           <h2 className="section-title">Evolução no ranking</h2>
         </div>
@@ -273,6 +287,54 @@ export default function EvolutionTab({ session, allUsers = [], allUsersLoading =
                 className="evolution-chart-svg"
                 preserveAspectRatio="xMidYMid meet"
               >
+                {yTicks.map((t, i) => (
+                  <g key={i}>
+                    <line
+                      x1={PAD_L}
+                      x2={CHART_W - PAD_R}
+                      y1={t.y}
+                      y2={t.y}
+                      stroke="rgba(148, 163, 184, 0.12)"
+                      strokeWidth="1"
+                    />
+                    <text
+                      x={PAD_L - 8}
+                      y={t.y}
+                      textAnchor="end"
+                      dominantBaseline="middle"
+                      fontSize="10"
+                      fill="#64748a"
+                    >
+                      {t.label}
+                    </text>
+                  </g>
+                ))}
+                <line
+                  x1={PAD_L}
+                  x2={PAD_L}
+                  y1={PAD_T}
+                  y2={CHART_H - PAD_B}
+                  stroke="rgba(148, 163, 184, 0.2)"
+                  strokeWidth="1"
+                />
+                <line
+                  x1={PAD_L}
+                  x2={CHART_W - PAD_R}
+                  y1={CHART_H - PAD_B}
+                  y2={CHART_H - PAD_B}
+                  stroke="rgba(148, 163, 184, 0.2)"
+                  strokeWidth="1"
+                />
+                {points.length > 1 && (
+                  <>
+                    <text x={PAD_L} y={CHART_H - PAD_B + 16} textAnchor="start" fontSize="10" fill="#64748a">
+                      Jogo 1
+                    </text>
+                    <text x={CHART_W - PAD_R} y={CHART_H - PAD_B + 16} textAnchor="end" fontSize="10" fill="#64748a">
+                      Jogo {points.length}
+                    </text>
+                  </>
+                )}
                 <polyline
                   points={points.map((p) => `${p.x},${p.y}`).join(" ")}
                   fill="none"
@@ -304,9 +366,9 @@ export default function EvolutionTab({ session, allUsers = [], allUsersLoading =
                 })}
                 {bestIdx >= 0 && (
                   <text
-                    x={points[bestIdx].x > CHART_W - PAD_R - 80 ? points[bestIdx].x - 6 : points[bestIdx].x + 6}
-                    y={points[bestIdx].y < PAD_T + 14 ? points[bestIdx].y + 20 : points[bestIdx].y - 10}
-                    textAnchor={points[bestIdx].x > CHART_W - PAD_R - 80 ? "end" : "start"}
+                    x={Math.min(Math.max(points[bestIdx].x, PAD_L + 34), CHART_W - PAD_R - 34)}
+                    y={points[bestIdx].y - 14}
+                    textAnchor="middle"
                     fontSize="12"
                     fontWeight="600"
                     fill="#f5c542"
@@ -316,9 +378,9 @@ export default function EvolutionTab({ session, allUsers = [], allUsersLoading =
                 )}
                 {worstIdx >= 0 && worstIdx !== bestIdx && (
                   <text
-                    x={points[worstIdx].x > CHART_W - PAD_R - 80 ? points[worstIdx].x - 6 : points[worstIdx].x + 6}
-                    y={points[worstIdx].y > CHART_H - PAD_B - 14 ? points[worstIdx].y - 12 : points[worstIdx].y + 18}
-                    textAnchor={points[worstIdx].x > CHART_W - PAD_R - 80 ? "end" : "start"}
+                    x={Math.min(Math.max(points[worstIdx].x, PAD_L + 34), CHART_W - PAD_R - 34)}
+                    y={points[worstIdx].y + 24}
+                    textAnchor="middle"
                     fontSize="12"
                     fontWeight="600"
                     fill="#e74c3c"
