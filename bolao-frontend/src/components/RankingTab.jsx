@@ -361,10 +361,10 @@ export default function RankingTab({
       {selectedLeagueId === "mata_mata" && (
         <div className="ranking-card">
           <div className="ranking-card-header">
-            <span className="ranking-card-icon">⚔️</span>
             <h2 className="section-title">Ranking Mata-mata</h2>
             <div className="ranking-card-header-actions">
-              <ChampionToggle />
+              {lastLockedMatches.length > 0 && <BetToggle />}
+              {showLastBet && <MatchPicker />}
             </div>
           </div>
           {mataMataLoading ? (
@@ -392,16 +392,18 @@ export default function RankingTab({
                 <col style={{ width: "2.5rem" }} />
                 <col />
                 <col style={{ width: "3rem" }} />
+                {showLastBet && <col style={{ width: "4rem" }} />}
               </colgroup>
               <thead>
                 <tr>
                   <th>#</th>
                   <th>Nome</th>
                   <th>Pts</th>
+                  {showLastBet && <BetColHeader />}
                 </tr>
               </thead>
               <tbody>
-                <RankingRows rows={mataMataRanking} showBetCol={false} />
+                <RankingRows rows={mataMataRanking} />
               </tbody>
             </table>
           )}
