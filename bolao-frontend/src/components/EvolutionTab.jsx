@@ -198,6 +198,14 @@ export default function EvolutionTab({ session, allUsers = [], allUsersLoading =
   }, [selectedUserId]);
 
   const points = useMemo(() => buildPoints(data), [data]);
+  const { bestIdx, worstIdx } = useMemo(() => {
+    if (!data.length) return { bestIdx: -1, worstIdx: -1 };
+    const positions = data.map((d) => d.position);
+    return {
+      bestIdx: positions.indexOf(Math.min(...positions)),
+      worstIdx: positions.indexOf(Math.max(...positions)),
+    };
+  }, [data]);
   const selectedUserName = useMemo(
     () => allUsers.find((u) => u.id === Number(selectedUserId))?.name || session?.name || "",
     [allUsers, selectedUserId, session]
@@ -218,7 +226,6 @@ export default function EvolutionTab({ session, allUsers = [], allUsersLoading =
     <section className="section">
       <div className="ranking-card">
         <div className="ranking-card-header">
-          <span className="ranking-card-icon">📈</span>
           <h2 className="section-title">Evolução no ranking</h2>
         </div>
 
@@ -272,20 +279,53 @@ export default function EvolutionTab({ session, allUsers = [], allUsersLoading =
                   stroke="#22c55e"
                   strokeWidth="2"
                 />
-                {points.map((p, i) => (
-                  <circle
-                    key={p.match_id}
-                    cx={p.x}
-                    cy={p.y}
-                    r={i === selectedIdx ? 6 : 4}
-                    fill={i === selectedIdx ? "#facc15" : "#22c55e"}
-                    stroke="#020617"
-                    strokeWidth="1"
-                    className="evolution-chart-point"
-                    onClick={() => setSelectedIdx(i)}
-                    onTouchStart={() => setSelectedIdx(i)}
-                  />
-                ))}
+                {points.map((p, i) => {
+                  const isSelected = i === selectedIdx;
+                  const isBest = i === bestIdx;
+                  const isWorst = i === worstIdx && worstIdx !== bestIdx;
+                  let fill = "#22c55e";
+                  if (isSelected) fill = "#facc15";
+                  else if (isBest) fill = "#f5c542";
+                  else if (isWorst) fill = "#e74c3c";
+                  return (
+                    <circle
+                      key={p.match_id}
+                      cx={p.x}
+                      cy={p.y}
+                      r={isSelected || isBest || isWorst ? 6 : 4}
+                      fill={fill}
+                      stroke="#020617"
+                      strokeWidth="1"
+                      className="evolution-chart-point"
+                      onClick={() => setSelectedIdx(i)}
+                      onTouchStart={() => setSelectedIdx(i)}
+                    />
+                  );
+                })}
+                {bestIdx >= 0 && (
+                  <text
+                    x={points[bestIdx].x > CHART_W - PAD_R - 80 ? points[bestIdx].x - 6 : points[bestIdx].x + 6}
+                    y={points[bestIdx].y - 10}
+                    textAnchor={points[bestIdx].x > CHART_W - PAD_R - 80 ? "end" : "start"}
+                    fontSize="12"
+                    fontWeight="600"
+                    fill="#f5c542"
+                  >
+                    Melhor: #{points[bestIdx].position}
+                  </text>
+                )}
+                {worstIdx >= 0 && worstIdx !== bestIdx && (
+                  <text
+                    x={points[worstIdx].x > CHART_W - PAD_R - 80 ? points[worstIdx].x - 6 : points[worstIdx].x + 6}
+                    y={points[worstIdx].y + 18}
+                    textAnchor={points[worstIdx].x > CHART_W - PAD_R - 80 ? "end" : "start"}
+                    fontSize="12"
+                    fontWeight="600"
+                    fill="#e74c3c"
+                  >
+                    Pior: #{points[worstIdx].position}
+                  </text>
+                )}
               </svg>
             </div>
 
