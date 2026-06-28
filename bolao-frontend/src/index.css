@@ -1543,6 +1543,17 @@ select:focus {
   animation: none;
 }
 
+.rank-champion-flag {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.rank-champion-flag-none {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
 .rank-bet-track {
   position: relative;
   width: 2.1rem;

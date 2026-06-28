@@ -1,7 +1,7 @@
 // src/components/RankingTab.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import FlagIcon from "./FlagIcon";
-import { fetchPublicBets, fetchRanking } from "../api";
+import { fetchPublicBets, fetchRanking, fetchPublicChampionPicks } from "../api";
 
 export default function RankingTab({
   ranking,
@@ -22,6 +22,28 @@ export default function RankingTab({
   const [mataMataLoading, setMataMataLoading] = useState(false);
   const [mataMataError, setMataMataError] = useState("");
   const [mataMataLoaded, setMataMataLoaded] = useState(false);
+
+  const [showChampionFlag, setShowChampionFlag] = useState(false);
+  const [championPicks, setChampionPicks] = useState([]);
+  const [championPicksLoading, setChampionPicksLoading] = useState(false);
+  const [championPicksLoaded, setChampionPicksLoaded] = useState(false);
+
+  // Busca os palpites de campeão só na primeira vez que o toggle é ativado
+  useEffect(() => {
+    if (!showChampionFlag || championPicksLoaded) return;
+    let cancelled = false;
+    setChampionPicksLoading(true);
+    fetchPublicChampionPicks()
+      .then((data) => { if (!cancelled) { setChampionPicks(data || []); setChampionPicksLoaded(true); } })
+      .catch(() => { if (!cancelled) setChampionPicks([]); })
+      .finally(() => { if (!cancelled) setChampionPicksLoading(false); });
+    return () => { cancelled = true; };
+  }, [showChampionFlag, championPicksLoaded]);
+
+  const championPickByUser = useMemo(
+    () => new Map(championPicks.map((p) => [p.user_id, p])),
+    [championPicks]
+  );
 
   // Busca o ranking de mata-mata só na primeira vez que a aba é selecionada
   useEffect(() => {
@@ -142,6 +164,22 @@ export default function RankingTab({
     </label>
   );
 
+  const ChampionToggle = () => (
+    <label className="rank-bet-toggle" title="Mostrar bandeira do campeão escolhido">
+      <span className="rank-bet-toggle-label">Campeão</span>
+      <span
+        className={`rank-bet-track${showChampionFlag ? " on" : ""}`}
+        onClick={() => setShowChampionFlag((v) => !v)}
+        role="switch"
+        aria-checked={showChampionFlag}
+        tabIndex={0}
+        onKeyDown={(e) => e.key === " " && setShowChampionFlag((v) => !v)}
+      >
+        <span className="rank-bet-thumb" />
+      </span>
+    </label>
+  );
+
   // Seletor Jogo 1 / Jogo 2 — só aparece quando há jogos simultâneos
   const MatchPicker = () =>
     lastLockedMatches.length > 1 ? (
@@ -194,6 +232,7 @@ export default function RankingTab({
         : index === 2 ? "rank-3"
         : "";
       const bet = showBetCol ? betsMap.get(r.user_id) : null;
+      const championPick = showChampionFlag ? championPickByUser.get(r.user_id) : null;
       return (
         <tr key={r.user_id} className={rowClass}>
           <td className="rank-pos-cell">
@@ -204,6 +243,19 @@ export default function RankingTab({
               <span className="rank-name-text">{r.user_name}</span>
               {isMe && <span className="rank-you-badge">você</span>}
               {isLast && <span title="Lanterna">🔦</span>}
+              {showChampionFlag && (
+                <span
+                  className="rank-champion-flag rank-bet-flag-wrap"
+                  title={championPick ? `Campeão: ${championPick.team_name}` : "Sem palpite de campeão"}
+                >
+                  {championPicksLoading
+                    ? <span className="rank-champion-flag-none">…</span>
+                    : championPick
+                    ? <FlagIcon code={championPick.team_code} name={championPick.team_name} />
+                    : <span className="rank-champion-flag-none">—</span>
+                  }
+                </span>
+              )}
             </div>
           </td>
           <td>
@@ -278,6 +330,7 @@ export default function RankingTab({
             <span className="ranking-card-icon">🏆</span>
             <h2 className="section-title">Ranking geral</h2>
             <div className="ranking-card-header-actions">
+              <ChampionToggle />
               {lastLockedMatches.length > 0 && <BetToggle />}
               {showLastBet && <MatchPicker />}
             </div>
@@ -310,6 +363,9 @@ export default function RankingTab({
           <div className="ranking-card-header">
             <span className="ranking-card-icon">⚔️</span>
             <h2 className="section-title">Ranking Mata-mata</h2>
+            <div className="ranking-card-header-actions">
+              <ChampionToggle />
+            </div>
           </div>
           {mataMataLoading ? (
             <div className="loading-state">
@@ -361,6 +417,7 @@ export default function RankingTab({
               <span className="ranking-card-icon">🏅</span>
               <h2 className="section-title">{selectedLeague.name}</h2>
               <div className="ranking-card-header-actions">
+                <ChampionToggle />
                 {lastLockedMatches.length > 0 && <BetToggle />}
                 {showLastBet && <MatchPicker />}
               </div>
