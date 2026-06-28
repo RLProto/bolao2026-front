@@ -99,8 +99,8 @@ export async function fetchMatches() {
   return data;
 }
 
-export async function fetchRanking() {
-  const res = await fetch(`${API_URL}/ranking`, {
+export async function fetchRanking(scope = "geral") {
+  const res = await fetch(`${API_URL}/ranking?scope=${scope}`, {
     headers: {
       "Content-Type": "application/json",
     },

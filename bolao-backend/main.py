@@ -1013,13 +1013,26 @@ def upsert_bets_bulk(payload: BetBulkCreate, db: Session = Depends(get_db), curr
 def get_ranking(
     limit: int = Query(250, ge=1, le=500),
     offset: int = Query(0, ge=0),
+    scope: str = Query("geral", pattern="^(geral|mata_mata)$"),
     db: Session = Depends(get_db),
 ):
     # Official champion (-1 never matches any real team id)
     official_team_id = get_official_champion_team_id(db) or -1
 
+    # Ranking "mata_mata": considera só jogos fora da fase de grupos e não
+    # soma o bônus de campeão.
+    stage_filter_sql = "AND m.stage NOT ILIKE '%grupo%'" if scope == "mata_mata" else ""
+    if scope == "mata_mata":
+        total_points_sql = "COALESCE(mp.pts, 0) AS total_points"
+        champion_correct_sql = "0 AS champion_correct"
+    else:
+        total_points_sql = (
+            "COALESCE(mp.pts, 0) + CASE WHEN cp.team_id = :official_team_id THEN 40 ELSE 0 END AS total_points"
+        )
+        champion_correct_sql = "CASE WHEN cp.team_id = :official_team_id THEN 1 ELSE 0 END AS champion_correct"
+
     # Single SQL query: CTE aggregates match points + tiebreakers per user
-    sql = text("""
+    sql = text(f"""
         WITH match_pts AS (
             SELECT b.user_id,
                    SUM(CASE
@@ -1094,15 +1107,14 @@ def get_ranking(
             JOIN matches m ON m.id = b.match_id
                 AND m.home_score IS NOT NULL
                 AND m.away_score IS NOT NULL
+                {stage_filter_sql}
             GROUP BY b.user_id
         )
         SELECT
             u.id        AS user_id,
             u.name      AS user_name,
-            COALESCE(mp.pts, 0)
-            + CASE WHEN cp.team_id = :official_team_id THEN 40 ELSE 0 END
-            AS total_points,
-            CASE WHEN cp.team_id = :official_team_id THEN 1 ELSE 0 END AS champion_correct,
+            {total_points_sql},
+            {champion_correct_sql},
             COALESCE(mp.exact_scores, 0)    AS exact_scores,
             COALESCE(mp.correct_results, 0) AS correct_results,
             COALESCE(mp.winner_goals, 0)    AS winner_goals,

@@ -1,7 +1,7 @@
 // src/components/RankingTab.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import FlagIcon from "./FlagIcon";
-import { fetchPublicBets } from "../api";
+import { fetchPublicBets, fetchRanking } from "../api";
 
 export default function RankingTab({
   ranking,
@@ -18,8 +18,26 @@ export default function RankingTab({
   const [lastBetsLoading, setLastBetsLoading] = useState(false);
   const [selectedLastMatchIndex, setSelectedLastMatchIndex] = useState(0);
 
+  const [mataMataRanking, setMataMataRanking] = useState([]);
+  const [mataMataLoading, setMataMataLoading] = useState(false);
+  const [mataMataError, setMataMataError] = useState("");
+  const [mataMataLoaded, setMataMataLoaded] = useState(false);
+
+  // Busca o ranking de mata-mata só na primeira vez que a aba é selecionada
+  useEffect(() => {
+    if (selectedLeagueId !== "mata_mata" || mataMataLoaded) return;
+    let cancelled = false;
+    setMataMataLoading(true);
+    setMataMataError("");
+    fetchRanking("mata_mata")
+      .then((data) => { if (!cancelled) { setMataMataRanking(data || []); setMataMataLoaded(true); } })
+      .catch((e) => { if (!cancelled) setMataMataError(e.message); })
+      .finally(() => { if (!cancelled) setMataMataLoading(false); });
+    return () => { cancelled = true; };
+  }, [selectedLeagueId, mataMataLoaded]);
+
   const selectedLeague = useMemo(
-    () => (selectedLeagueId === "geral" ? null : leagues.find((l) => l.id === selectedLeagueId) ?? null),
+    () => (selectedLeagueId === "geral" || selectedLeagueId === "mata_mata" ? null : leagues.find((l) => l.id === selectedLeagueId) ?? null),
     [leagues, selectedLeagueId]
   );
 
@@ -165,7 +183,7 @@ export default function RankingTab({
       <th className="rank-bet-col">Ult.</th>
     );
 
-  const RankingRows = ({ rows, showOverall = false }) =>
+  const RankingRows = ({ rows, showOverall = false, showBetCol = showLastBet }) =>
     rows.map((r, index) => {
       const isMe = r.user_id === session.id;
       const isLast = index === rows.length - 1;
@@ -175,7 +193,7 @@ export default function RankingTab({
         : index === 1 ? "rank-2"
         : index === 2 ? "rank-3"
         : "";
-      const bet = showLastBet ? betsMap.get(r.user_id) : null;
+      const bet = showBetCol ? betsMap.get(r.user_id) : null;
       return (
         <tr key={r.user_id} className={rowClass}>
           <td className="rank-pos-cell">
@@ -194,7 +212,7 @@ export default function RankingTab({
           {showOverall && (
             <td className="rank-overall-pos">{r.overallPos}°</td>
           )}
-          {showLastBet && (
+          {showBetCol && (
             <td className="rank-bet-col">
               {lastBetsLoading
                 ? <span className="rank-bet-loading">…</span>
@@ -210,25 +228,24 @@ export default function RankingTab({
 
   return (
     <section className="section">
-      {/* Seletor de liga */}
-      {leagues.length > 0 && (
-        <div style={{ marginBottom: "1.25rem" }}>
-          <select
-            className="filter-select"
-            style={{ width: "100%", minHeight: "44px" }}
-            value={selectedLeagueId}
-            onChange={(e) => {
-              const v = e.target.value;
-              setSelectedLeagueId(v === "geral" ? "geral" : Number(v));
-            }}
-          >
-            <option value="geral">Ranking Geral</option>
-            {leagues.map((l) => (
-              <option key={l.id} value={l.id}>{l.name}</option>
-            ))}
-          </select>
-        </div>
-      )}
+      {/* Seletor de ranking/liga */}
+      <div style={{ marginBottom: "1.25rem" }}>
+        <select
+          className="filter-select"
+          style={{ width: "100%", minHeight: "44px" }}
+          value={selectedLeagueId}
+          onChange={(e) => {
+            const v = e.target.value;
+            setSelectedLeagueId(v === "geral" || v === "mata_mata" ? v : Number(v));
+          }}
+        >
+          <option value="geral">Ranking Geral</option>
+          <option value="mata_mata">Ranking Mata-mata</option>
+          {leagues.map((l) => (
+            <option key={l.id} value={l.id}>{l.name}</option>
+          ))}
+        </select>
+      </div>
 
       {rankingLoading && (
         <div className="loading-state">
@@ -248,7 +265,7 @@ export default function RankingTab({
         </div>
       )}
 
-      {!rankingLoading && !rankingError && ranking.length === 0 && (
+      {selectedLeagueId === "geral" && !rankingLoading && !rankingError && ranking.length === 0 && (
         <p className="empty-state">
           O ranking será exibido após o primeiro jogo com resultado oficial.
         </p>
@@ -284,6 +301,54 @@ export default function RankingTab({
               <RankingRows rows={ranking} />
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* ── Vista mata-mata ── */}
+      {selectedLeagueId === "mata_mata" && (
+        <div className="ranking-card">
+          <div className="ranking-card-header">
+            <span className="ranking-card-icon">⚔️</span>
+            <h2 className="section-title">Ranking Mata-mata</h2>
+          </div>
+          {mataMataLoading ? (
+            <div className="loading-state">
+              <span className="spinner" aria-hidden="true" />
+              Carregando ranking...
+            </div>
+          ) : mataMataError ? (
+            <div className="alert alert-error error-with-retry">
+              {mataMataError}
+              <button
+                className="btn ghost small retry-btn"
+                onClick={() => setMataMataLoaded(false)}
+              >
+                Tentar novamente
+              </button>
+            </div>
+          ) : mataMataRanking.length === 0 ? (
+            <p className="empty-state">
+              O ranking de mata-mata será exibido após o primeiro jogo das fases eliminatórias com resultado oficial.
+            </p>
+          ) : (
+            <table className="ranking-table">
+              <colgroup>
+                <col style={{ width: "2.5rem" }} />
+                <col />
+                <col style={{ width: "3rem" }} />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Nome</th>
+                  <th>Pts</th>
+                </tr>
+              </thead>
+              <tbody>
+                <RankingRows rows={mataMataRanking} showBetCol={false} />
+              </tbody>
+            </table>
+          )}
         </div>
       )}
 
