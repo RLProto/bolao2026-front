@@ -305,7 +305,7 @@ export default function EvolutionTab({ session, allUsers = [], allUsersLoading =
                 {bestIdx >= 0 && (
                   <text
                     x={points[bestIdx].x > CHART_W - PAD_R - 80 ? points[bestIdx].x - 6 : points[bestIdx].x + 6}
-                    y={points[bestIdx].y - 10}
+                    y={points[bestIdx].y < PAD_T + 14 ? points[bestIdx].y + 20 : points[bestIdx].y - 10}
                     textAnchor={points[bestIdx].x > CHART_W - PAD_R - 80 ? "end" : "start"}
                     fontSize="12"
                     fontWeight="600"
@@ -317,7 +317,7 @@ export default function EvolutionTab({ session, allUsers = [], allUsersLoading =
                 {worstIdx >= 0 && worstIdx !== bestIdx && (
                   <text
                     x={points[worstIdx].x > CHART_W - PAD_R - 80 ? points[worstIdx].x - 6 : points[worstIdx].x + 6}
-                    y={points[worstIdx].y + 18}
+                    y={points[worstIdx].y > CHART_H - PAD_B - 14 ? points[worstIdx].y - 12 : points[worstIdx].y + 18}
                     textAnchor={points[worstIdx].x > CHART_W - PAD_R - 80 ? "end" : "start"}
                     fontSize="12"
                     fontWeight="600"
