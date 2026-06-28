@@ -3077,3 +3077,68 @@ select:focus {
     min-width: 0;
   }
 }
+
+/* ----- Evolução (aba) ----- */
+.evolution-chart-wrap {
+  width: 100%;
+  background: rgba(2, 6, 23, 0.4);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem;
+  box-sizing: border-box;
+}
+
+.evolution-chart-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.evolution-chart-point {
+  cursor: pointer;
+}
+
+.evolution-detail-card {
+  margin-top: 0.85rem;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.evolution-detail-match {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  flex-wrap: wrap;
+}
+
+.evolution-detail-stats {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  font-size: 0.92rem;
+  color: var(--text-soft);
+}
+
+@media (max-width: 640px) {
+  .evolution-chart-wrap {
+    padding: 0.5rem;
+  }
+
+  .evolution-detail-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .evolution-detail-match {
+    font-size: 0.85rem;
+  }
+}

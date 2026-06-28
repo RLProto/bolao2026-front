@@ -25,6 +25,7 @@ import MatchesTab from "./components/MatchesTab";
 import RankingTab from "./components/RankingTab";
 import ViewBetsTab from "./components/ViewBetsTab";
 import StatsTab from "./components/StatsTab";
+import EvolutionTab from "./components/EvolutionTab";
 import BetHistoryTab from "./components/BetHistoryTab";
 import ResultsTab from "./components/ResultsTab";
 import LeaguesPage from "./components/LeaguesPage";
@@ -753,6 +754,17 @@ function App() {
         </button>
 
         <button
+          className={`menu-item ${page === "evolucao" ? "active" : ""}`}
+          onClick={() => {
+            setPage("evolucao");
+            setMenuOpen(false);
+            loadAllUsers();
+          }}
+        >
+          Evolução
+        </button>
+
+        <button
           className={`menu-item ${page === "leagues" ? "active" : ""}`}
           onClick={() => {
             setPage("leagues");
@@ -913,6 +925,14 @@ function App() {
           <StatsTab
             matches={matches}
             formatDateTime={formatDateTime}
+          />
+        )}
+
+        {page === "evolucao" && (
+          <EvolutionTab
+            session={session}
+            allUsers={allUsers}
+            allUsersLoading={allUsersLoading}
           />
         )}
 

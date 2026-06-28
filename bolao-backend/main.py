@@ -439,6 +439,20 @@ class RankingItem(BaseModel):
     loser_goals: int = 0
 
 
+class RankingEvolutionItem(BaseModel):
+    match_id: int
+    home_team_name: str
+    home_team_code: str
+    away_team_name: str
+    away_team_code: str
+    home_score: int
+    away_score: int
+    kickoff_at_utc: datetime
+    position: int
+    points: int
+    total_participants: int
+
+
 class ResetPasswordRequest(BaseModel):
     email: EmailStr
 
@@ -1148,6 +1162,100 @@ def get_ranking(
         )
         for row in rows
     ]
+
+
+@app.get("/ranking/evolution", response_model=List[RankingEvolutionItem])
+def get_ranking_evolution(
+    user_id: int = Query(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    target_user = db.query(User).filter(User.id == user_id).first()
+    if not target_user or target_user.profile == HIDDEN_FROM_RANKING_PROFILE:
+        raise HTTPException(status_code=404, detail="Usuario nao encontrado.")
+
+    official_team_id = get_official_champion_team_id(db) or -1
+
+    users = db.query(User.id, User.name).filter(User.profile != HIDDEN_FROM_RANKING_PROFILE).all()
+    user_names = {u.id: u.name for u in users}
+
+    matches = (
+        db.query(Match)
+        .options(joinedload(Match.home_team), joinedload(Match.away_team))
+        .filter(Match.home_score.isnot(None), Match.away_score.isnot(None))
+        .order_by(Match.kickoff_at_utc.asc(), Match.id.asc())
+        .all()
+    )
+
+    bets = (
+        db.query(Bet.user_id, Bet.match_id, Bet.home_score_prediction, Bet.away_score_prediction)
+        .join(Match, Match.id == Bet.match_id)
+        .filter(Match.home_score.isnot(None), Match.away_score.isnot(None))
+        .all()
+    )
+    bets_by_match: Dict[int, List] = {}
+    for bet in bets:
+        if bet.user_id in user_names:
+            bets_by_match.setdefault(bet.match_id, []).append(bet)
+
+    champion_picks = {cp.user_id: cp.team_id for cp in db.query(ChampionPick).all()}
+
+    points: Dict[int, int] = {
+        uid: (CHAMPION_BONUS_POINTS if champion_picks.get(uid) == official_team_id else 0)
+        for uid in user_names
+    }
+    tiebreak: Dict[int, Dict[str, int]] = {
+        uid: {"exact": 0, "correct": 0, "wgoals": 0, "lgoals": 0} for uid in user_names
+    }
+
+    def update_tiebreak(tb: Dict[str, int], match: Match, bet: Bet) -> None:
+        rh, ra, ph, pa = match.home_score, match.away_score, bet.home_score_prediction, bet.away_score_prediction
+        if rh == ph and ra == pa:
+            tb["exact"] += 1
+        real_res = (rh > ra) - (rh < ra)
+        pred_res = (ph > pa) - (ph < pa)
+        if real_res == pred_res:
+            tb["correct"] += 1
+            if rh > ra and ph > pa:
+                if ph == rh and pa != ra:
+                    tb["wgoals"] += 1
+                elif pa == ra and ph != rh:
+                    tb["lgoals"] += 1
+            elif ra > rh and pa > ph:
+                if pa == ra and ph != rh:
+                    tb["wgoals"] += 1
+                elif ph == rh and pa != ra:
+                    tb["lgoals"] += 1
+
+    def sort_key(uid: int):
+        champ = 1 if champion_picks.get(uid) == official_team_id else 0
+        tb = tiebreak[uid]
+        return (-points[uid], -champ, -tb["exact"], -tb["correct"], -tb["wgoals"], -tb["lgoals"], user_names[uid].lower())
+
+    result: List[RankingEvolutionItem] = []
+    for match in matches:
+        for bet in bets_by_match.get(match.id, []):
+            points[bet.user_id] += calculate_points_for_bet(match, bet)
+            update_tiebreak(tiebreak[bet.user_id], match, bet)
+
+        order = sorted(user_names.keys(), key=sort_key)
+        position = order.index(user_id) + 1
+
+        result.append(RankingEvolutionItem(
+            match_id=match.id,
+            home_team_name=match.home_team.name,
+            home_team_code=match.home_team.fifa_code,
+            away_team_name=match.away_team.name,
+            away_team_code=match.away_team.fifa_code,
+            home_score=match.home_score,
+            away_score=match.away_score,
+            kickoff_at_utc=match.kickoff_at_utc,
+            position=position,
+            points=points[user_id],
+            total_participants=len(user_names),
+        ))
+
+    return result
 
 
 @app.get("/bets/public", response_model=List[PublicBetOut])

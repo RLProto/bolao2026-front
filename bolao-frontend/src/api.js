@@ -364,7 +364,8 @@ async function leagueRequest(path, method = "GET", body = undefined) {
   return data;
 }
 
-export const fetchAllUsers    = ()               => leagueRequest("/users");
+export const fetchAllUsers       = ()               => leagueRequest("/users");
+export const fetchRankingEvolution = (userId)        => leagueRequest(`/ranking/evolution?user_id=${userId}`);
 export const fetchMyLeagues   = ()               => leagueRequest("/leagues/mine");
 export const createLeague     = (name)           => leagueRequest("/leagues", "POST", { name });
 export const addLeagueMember  = (id, userId)     => leagueRequest(`/leagues/${id}/members`, "POST", { user_id: userId });
