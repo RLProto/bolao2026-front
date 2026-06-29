@@ -1521,16 +1521,43 @@ select:focus {
   flex-shrink: 0;
 }
 
-/* No mobile, o grupo de toggles continua na PRIMEIRA linha (ao lado do
-   título, empurrado com margin-left:auto como um bloco só). Dentro do
-   grupo, os toggles empilham verticalmente (flex-direction: column),
-   cada um alinhado à direita — sem disputa de espaço entre eles. */
+/* No mobile, o título fica solo na 1ª linha. O grupo de toggles quebra
+   pra 2ª linha (flex-basis:100% no wrapper) e os 3 ficam lado a lado,
+   alinhados à direita — versões compactas do switch/label garantem que
+   os 3 cabem numa linha só. */
 @media (max-width: 719px) {
   .ranking-card-header-actions {
-    flex-direction: column;
-    flex-wrap: nowrap;
-    align-items: flex-end;
-    gap: 0.35rem;
+    flex-basis: 100%;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  .rank-bet-toggle {
+    gap: 0.25rem;
+  }
+
+  .rank-bet-toggle-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.02em;
+  }
+
+  .rank-bet-toggle .rank-bet-track {
+    width: 1.85rem;
+    height: 1.02rem;
+  }
+
+  .rank-bet-toggle .rank-bet-thumb {
+    width: 0.76rem;
+    height: 0.76rem;
+  }
+
+  .rank-bet-toggle .rank-bet-track.on .rank-bet-thumb {
+    transform: translateX(0.81rem);
+  }
+
+  .rank-match-picker {
+    flex-basis: 100%;
+    justify-content: flex-end;
   }
 }
 
