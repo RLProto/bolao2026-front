@@ -1568,6 +1568,11 @@ select:focus {
     flex-basis: 100%;
     justify-content: flex-end;
   }
+
+  .rank-exact-col-icon span {
+    position: relative;
+    top: -0.12rem;
+  }
 }
 
 .rank-bet-toggle-label {
