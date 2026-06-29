@@ -2951,7 +2951,7 @@ select:focus {
 @media (max-width: 719px) {
   .save-btn-float {
     position: sticky;
-    top: var(--topbar-h);
+    top: calc(var(--topbar-h) + 0.45rem);
     z-index: 20;
     height: auto;
     background: #020617;
@@ -2961,6 +2961,7 @@ select:focus {
   .save-btn-float .btn-save-all {
     position: static;
     width: 100%;
+    height: 41px;
     justify-content: center;
   }
   .matches-top-row {
