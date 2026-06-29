@@ -1502,6 +1502,11 @@ select:focus {
   padding-right: 0.25rem;
 }
 
+.ranking-table th.rank-exact-col-icon {
+  font-size: 1rem;
+  font-weight: 400;
+}
+
 /* ── Ranking: toggle de último palpite ── */
 .ranking-card-header-actions {
   display: flex;

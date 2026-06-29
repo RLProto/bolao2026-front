@@ -361,7 +361,7 @@ export default function RankingTab({
               <col style={{ width: "2.5rem" }} />
               <col />
               <col style={{ width: "3rem" }} />
-              {showExactScores && <col style={{ width: "3rem" }} />}
+              {showExactScores && <col style={{ width: "2.2rem" }} />}
               {showLastBet && <col style={{ width: "4rem" }} />}
             </colgroup>
             <thead>
@@ -369,7 +369,7 @@ export default function RankingTab({
                 <th>#</th>
                 <th>Nome</th>
                 <th>Pts</th>
-                {showExactScores && <th className="rank-exact-col" title="Placares exatos (18 pts)">Crav.</th>}
+                {showExactScores && <th className="rank-exact-col rank-exact-col-icon" title="Placares exatos (18 pts)">◎</th>}
                 {showLastBet && <BetColHeader />}
               </tr>
             </thead>
@@ -416,7 +416,7 @@ export default function RankingTab({
                 <col style={{ width: "2.5rem" }} />
                 <col />
                 <col style={{ width: "3rem" }} />
-                {showExactScores && <col style={{ width: "3rem" }} />}
+                {showExactScores && <col style={{ width: "2.2rem" }} />}
                 {showLastBet && <col style={{ width: "4rem" }} />}
               </colgroup>
               <thead>
@@ -424,7 +424,7 @@ export default function RankingTab({
                   <th>#</th>
                   <th>Nome</th>
                   <th>Pts</th>
-                  {showExactScores && <th className="rank-exact-col" title="Placares exatos (18 pts)">Crav.</th>}
+                  {showExactScores && <th className="rank-exact-col rank-exact-col-icon" title="Placares exatos (18 pts)">◎</th>}
                   {showLastBet && <BetColHeader />}
                 </tr>
               </thead>
@@ -461,7 +461,7 @@ export default function RankingTab({
                   <col style={{ width: "2.5rem" }} />
                   <col />
                   <col style={{ width: "3rem" }} />
-                  {showExactScores && <col style={{ width: "3rem" }} />}
+                  {showExactScores && <col style={{ width: "2.2rem" }} />}
                   <col style={{ width: "3rem" }} />
                   {showLastBet && <col style={{ width: "4rem" }} />}
                 </colgroup>
@@ -470,7 +470,7 @@ export default function RankingTab({
                     <th>#</th>
                     <th>Nome</th>
                     <th>Pts</th>
-                    {showExactScores && <th className="rank-exact-col" title="Placares exatos (18 pts)">Crav.</th>}
+                    {showExactScores && <th className="rank-exact-col rank-exact-col-icon" title="Placares exatos (18 pts)">◎</th>}
                     <th className="rank-overall-pos">Geral</th>
                     {showLastBet && <BetColHeader />}
                   </tr>
