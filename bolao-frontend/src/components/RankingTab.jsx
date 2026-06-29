@@ -152,10 +152,7 @@ export default function RankingTab({
 
   const BetToggle = () => (
     <label className="rank-bet-toggle" title="Mostrar palpite do último jogo">
-      <span className="rank-bet-toggle-label">
-        <span className="rank-bet-toggle-label-full">Palpites</span>
-        <span className="rank-bet-toggle-label-icon">⚽</span>
-      </span>
+      <span className="rank-bet-toggle-label">Palpites</span>
       <span
         className={`rank-bet-track${showLastBet ? " on" : ""}`}
         onClick={() => setShowLastBet((v) => !v)}
@@ -171,10 +168,7 @@ export default function RankingTab({
 
   const ExactScoresToggle = () => (
     <label className="rank-bet-toggle" title="Mostrar número de placares exatos (18 pts)">
-      <span className="rank-bet-toggle-label">
-        <span className="rank-bet-toggle-label-full">Cravadas</span>
-        <span className="rank-bet-toggle-label-icon">🎯</span>
-      </span>
+      <span className="rank-bet-toggle-label">Cravadas</span>
       <span
         className={`rank-bet-track${showExactScores ? " on" : ""}`}
         onClick={() => setShowExactScores((v) => !v)}
@@ -190,10 +184,7 @@ export default function RankingTab({
 
   const ChampionToggle = () => (
     <label className="rank-bet-toggle" title="Mostrar bandeira do campeão escolhido">
-      <span className="rank-bet-toggle-label">
-        <span className="rank-bet-toggle-label-full">Campeão</span>
-        <span className="rank-bet-toggle-label-icon">👑</span>
-      </span>
+      <span className="rank-bet-toggle-label">Campeão</span>
       <span
         className={`rank-bet-track${showChampionFlag ? " on" : ""}`}
         onClick={() => setShowChampionFlag((v) => !v)}
