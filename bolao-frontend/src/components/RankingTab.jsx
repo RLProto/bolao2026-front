@@ -348,7 +348,6 @@ export default function RankingTab({
       {selectedLeagueId === "geral" && ranking.length > 0 && (
         <div className="ranking-card">
           <div className="ranking-card-header">
-            <span className="ranking-card-icon">🏆</span>
             <h2 className="section-title">Ranking geral</h2>
             <div className="ranking-card-header-actions">
               <ExactScoresToggle />
