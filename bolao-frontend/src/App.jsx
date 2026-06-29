@@ -1000,12 +1000,58 @@ function App() {
 
         {page === "prize" && (
           <section className="section">
-            <div className="info-card">
-              <h2>Premiação</h2>
-              <p>
-                Descreva aqui a premiação combinada para as primeiras posições
-                do ranking.
-              </p>
+            <div className="rules-page">
+              <div className="rules-hero">
+                <p className="rules-eyebrow">Bolão da Rafa</p>
+                <h2 className="rules-title">Premiação</h2>
+                <p className="rules-subtitle">
+                  Os prêmios para os melhores colocados em cada ranking.
+                </p>
+              </div>
+
+              <div className="rules-divider"><span>ranking geral</span></div>
+
+              <div className="score-tiers">
+                {[
+                  { place: "1º", color: "gold",   icon: "🏆", name: "Viagem de 5 dias SP → Caribe com acompanhante", desc: "Passagens + hotel all inclusive." },
+                  { place: "2º", color: "silver", icon: "📱", name: "iPhone 17 256GB", desc: "" },
+                  { place: "3º", color: "bronze", icon: "📺", name: "TV 65 polegadas ou Óculos Meta", desc: "" },
+                  { place: "4º", color: "blue",   icon: "☕", name: "Cafeteira espresso com moedor", desc: "" },
+                  { place: "5º", color: "purple", icon: "🛴", name: "Patinete elétrico", desc: "" },
+                ].map(({ place, color, icon, name, desc }) => (
+                  <div key={`geral-${place}`} className={`score-tier tier-${color}`}>
+                    <div className="tier-badge">
+                      <span className="tier-pts">{place}</span>
+                      <span className="tier-pts-label">lugar</span>
+                    </div>
+                    <div className="tier-body">
+                      <div className="tier-name">{icon} {name}</div>
+                      {desc && <div className="tier-desc">{desc}</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="rules-divider"><span>ranking mata-mata</span></div>
+
+              <div className="score-tiers">
+                {[
+                  { place: "1º", color: "gold",   icon: "🎮", name: "Nintendo Switch Lite, AirPods ou Robô Aspirador", desc: "" },
+                  { place: "2º", color: "silver", icon: "🧳", name: "2 malas de bordo", desc: "" },
+                  { place: "3º", color: "bronze", icon: "👕", name: "Camiseta da seleção brasileira", desc: "" },
+                ].map(({ place, color, icon, name, desc }) => (
+                  <div key={`mata-${place}`} className={`score-tier tier-${color}`}>
+                    <div className="tier-badge">
+                      <span className="tier-pts">{place}</span>
+                      <span className="tier-pts-label">lugar</span>
+                    </div>
+                    <div className="tier-body">
+                      <div className="tier-name">{icon} {name}</div>
+                      {desc && <div className="tier-desc">{desc}</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
         )}

@@ -2574,6 +2574,9 @@ select:focus {
 .tier-green  { border-left-color: #4ade80; }
 .tier-blue   { border-left-color: #60a5fa; }
 .tier-orange { border-left-color: #fb923c; }
+.tier-silver { border-left-color: #cbd5e1; }
+.tier-bronze { border-left-color: #c2703d; }
+.tier-purple { border-left-color: #a855f7; }
 
 /* badge: number + "pts" stacked */
 .tier-badge {
@@ -2610,6 +2613,12 @@ select:focus {
 .tier-blue   .tier-pts-label { color: #60a5fa; }
 .tier-orange .tier-pts { color: #fb923c; }
 .tier-orange .tier-pts-label { color: #fb923c; }
+.tier-silver .tier-pts { color: #cbd5e1; }
+.tier-silver .tier-pts-label { color: #cbd5e1; }
+.tier-bronze .tier-pts { color: #c2703d; }
+.tier-bronze .tier-pts-label { color: #c2703d; }
+.tier-purple .tier-pts { color: #c084fc; }
+.tier-purple .tier-pts-label { color: #c084fc; }
 
 .tier-body { flex: 1; }
 
