@@ -23,6 +23,8 @@ export default function RankingTab({
   const [mataMataError, setMataMataError] = useState("");
   const [mataMataLoaded, setMataMataLoaded] = useState(false);
 
+  const [showExactScores, setShowExactScores] = useState(false);
+
   const [showChampionFlag, setShowChampionFlag] = useState(false);
   const [championPicks, setChampionPicks] = useState([]);
   const [championPicksLoading, setChampionPicksLoading] = useState(false);
@@ -164,6 +166,22 @@ export default function RankingTab({
     </label>
   );
 
+  const ExactScoresToggle = () => (
+    <label className="rank-bet-toggle" title="Mostrar número de placares exatos (18 pts)">
+      <span className="rank-bet-toggle-label">Cravadas</span>
+      <span
+        className={`rank-bet-track${showExactScores ? " on" : ""}`}
+        onClick={() => setShowExactScores((v) => !v)}
+        role="switch"
+        aria-checked={showExactScores}
+        tabIndex={0}
+        onKeyDown={(e) => e.key === " " && setShowExactScores((v) => !v)}
+      >
+        <span className="rank-bet-thumb" />
+      </span>
+    </label>
+  );
+
   const ChampionToggle = () => (
     <label className="rank-bet-toggle" title="Mostrar bandeira do campeão escolhido">
       <span className="rank-bet-toggle-label">Campeão</span>
@@ -261,6 +279,9 @@ export default function RankingTab({
           <td>
             <span className={`rank-pts ${ptsColorClass(index)}`}>{r.total_points}</span>
           </td>
+          {showExactScores && (
+            <td className="rank-exact-col">{r.exact_scores ?? 0}</td>
+          )}
           {showOverall && (
             <td className="rank-overall-pos">{r.overallPos}°</td>
           )}
@@ -330,6 +351,7 @@ export default function RankingTab({
             <span className="ranking-card-icon">🏆</span>
             <h2 className="section-title">Ranking geral</h2>
             <div className="ranking-card-header-actions">
+              <ExactScoresToggle />
               <ChampionToggle />
               {lastLockedMatches.length > 0 && <BetToggle />}
               {showLastBet && <MatchPicker />}
@@ -340,6 +362,7 @@ export default function RankingTab({
               <col style={{ width: "2.5rem" }} />
               <col />
               <col style={{ width: "3rem" }} />
+              {showExactScores && <col style={{ width: "2.3rem" }} />}
               {showLastBet && <col style={{ width: "4rem" }} />}
             </colgroup>
             <thead>
@@ -347,6 +370,7 @@ export default function RankingTab({
                 <th>#</th>
                 <th>Nome</th>
                 <th>Pts</th>
+                {showExactScores && <th className="rank-exact-col" title="Placares exatos (18 pts)">🎯</th>}
                 {showLastBet && <BetColHeader />}
               </tr>
             </thead>
@@ -363,6 +387,7 @@ export default function RankingTab({
           <div className="ranking-card-header">
             <h2 className="section-title">Ranking Mata-mata</h2>
             <div className="ranking-card-header-actions">
+              <ExactScoresToggle />
               {lastLockedMatches.length > 0 && <BetToggle />}
               {showLastBet && <MatchPicker />}
             </div>
@@ -392,6 +417,7 @@ export default function RankingTab({
                 <col style={{ width: "2.5rem" }} />
                 <col />
                 <col style={{ width: "3rem" }} />
+                {showExactScores && <col style={{ width: "2.3rem" }} />}
                 {showLastBet && <col style={{ width: "4rem" }} />}
               </colgroup>
               <thead>
@@ -399,6 +425,7 @@ export default function RankingTab({
                   <th>#</th>
                   <th>Nome</th>
                   <th>Pts</th>
+                  {showExactScores && <th className="rank-exact-col" title="Placares exatos (18 pts)">🎯</th>}
                   {showLastBet && <BetColHeader />}
                 </tr>
               </thead>
@@ -419,6 +446,7 @@ export default function RankingTab({
               <span className="ranking-card-icon">🏅</span>
               <h2 className="section-title">{selectedLeague.name}</h2>
               <div className="ranking-card-header-actions">
+                <ExactScoresToggle />
                 <ChampionToggle />
                 {lastLockedMatches.length > 0 && <BetToggle />}
                 {showLastBet && <MatchPicker />}
@@ -434,6 +462,7 @@ export default function RankingTab({
                   <col style={{ width: "2.5rem" }} />
                   <col />
                   <col style={{ width: "3rem" }} />
+                  {showExactScores && <col style={{ width: "2.3rem" }} />}
                   <col style={{ width: "3rem" }} />
                   {showLastBet && <col style={{ width: "4rem" }} />}
                 </colgroup>
@@ -442,6 +471,7 @@ export default function RankingTab({
                     <th>#</th>
                     <th>Nome</th>
                     <th>Pts</th>
+                    {showExactScores && <th className="rank-exact-col" title="Placares exatos (18 pts)">🎯</th>}
                     <th className="rank-overall-pos">Geral</th>
                     {showLastBet && <BetColHeader />}
                   </tr>

@@ -1492,6 +1492,16 @@ select:focus {
   text-align: center;
 }
 
+.ranking-table td.rank-exact-col,
+.ranking-table th.rank-exact-col {
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
 /* ── Ranking: toggle de último palpite ── */
 .ranking-card-header-actions {
   display: flex;
