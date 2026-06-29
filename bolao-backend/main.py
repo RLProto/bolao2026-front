@@ -932,6 +932,7 @@ def get_public_champion_picks(
         db.query(ChampionPick)
         .join(User, User.id == ChampionPick.user_id)
         .join(Team, Team.id == ChampionPick.team_id)
+        .options(joinedload(ChampionPick.user), joinedload(ChampionPick.team))
         .filter(User.profile != HIDDEN_FROM_RANKING_PROFILE)
         .order_by(User.name.asc())
         .all()
