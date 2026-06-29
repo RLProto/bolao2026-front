@@ -239,7 +239,7 @@ export default function RankingTab({
       <th className="rank-bet-col">Ult.</th>
     );
 
-  const RankingRows = ({ rows, showOverall = false, showBetCol = showLastBet }) =>
+  const RankingRows = ({ rows, showOverall = false, showBetCol = showLastBet, showChampion = true }) =>
     rows.map((r, index) => {
       const isMe = r.user_id === session.id;
       const isLast = index === rows.length - 1;
@@ -250,7 +250,8 @@ export default function RankingTab({
         : index === 2 ? "rank-3"
         : "";
       const bet = showBetCol ? betsMap.get(r.user_id) : null;
-      const championPick = showChampionFlag ? championPickByUser.get(r.user_id) : null;
+      const showChampionCol = showChampion && showChampionFlag;
+      const championPick = showChampionCol ? championPickByUser.get(r.user_id) : null;
       return (
         <tr key={r.user_id} className={rowClass}>
           <td className="rank-pos-cell">
@@ -261,7 +262,7 @@ export default function RankingTab({
               <span className="rank-name-text">{r.user_name}</span>
               {isMe && <span className="rank-you-badge">você</span>}
               {isLast && <span title="Lanterna">🔦</span>}
-              {showChampionFlag && (
+              {showChampionCol && (
                 <span
                   className="rank-champion-flag rank-bet-flag-wrap"
                   title={championPick ? `Campeão: ${championPick.team_name}` : "Sem palpite de campeão"}
@@ -429,7 +430,7 @@ export default function RankingTab({
                 </tr>
               </thead>
               <tbody>
-                <RankingRows rows={mataMataRanking} />
+                <RankingRows rows={mataMataRanking} showChampion={false} />
               </tbody>
             </table>
           )}
