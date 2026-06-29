@@ -1537,10 +1537,15 @@ select:focus {
 
   .rank-bet-toggle {
     flex-basis: auto;
+    gap: 0.25rem;
   }
 
-  .rank-bet-toggle-label {
-    font-size: 0.66rem;
+  .rank-bet-toggle-label-full {
+    display: none;
+  }
+
+  .rank-bet-toggle-label-icon {
+    display: inline-block;
   }
 
   .rank-match-picker {
@@ -1555,6 +1560,12 @@ select:focus {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-muted);
+}
+
+.rank-bet-toggle-label-icon {
+  display: none;
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .rank-bet-flag-wrap .team-flag,
