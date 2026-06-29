@@ -1013,19 +1013,19 @@ function App() {
 
               <div className="score-tiers">
                 {[
-                  { place: "1º", color: "gold",   icon: "🏆", name: "Viagem de 5 dias SP → Caribe com acompanhante", desc: "Passagens + hotel all inclusive." },
-                  { place: "2º", color: "silver", icon: "📱", name: "iPhone 17 256GB", desc: "" },
-                  { place: "3º", color: "bronze", icon: "📺", name: "TV 65 polegadas ou Óculos Meta", desc: "" },
-                  { place: "4º", color: "blue",   icon: "☕", name: "Cafeteira espresso com moedor", desc: "" },
-                  { place: "5º", color: "purple", icon: "🛴", name: "Patinete elétrico", desc: "" },
-                ].map(({ place, color, icon, name, desc }) => (
+                  { place: "1º", color: "gold",   name: "Viagem de 5 dias SP → Caribe com acompanhante", desc: "Passagens + hotel all inclusive." },
+                  { place: "2º", color: "silver", name: "iPhone 17 256GB", desc: "" },
+                  { place: "3º", color: "bronze", name: "TV 65 polegadas ou Óculos Meta", desc: "" },
+                  { place: "4º", color: "blue",   name: "Cafeteira espresso com moedor", desc: "" },
+                  { place: "5º", color: "purple", name: "Patinete elétrico", desc: "" },
+                ].map(({ place, color, name, desc }) => (
                   <div key={`geral-${place}`} className={`score-tier tier-${color}`}>
                     <div className="tier-badge">
                       <span className="tier-pts">{place}</span>
                       <span className="tier-pts-label">lugar</span>
                     </div>
                     <div className="tier-body">
-                      <div className="tier-name">{icon} {name}</div>
+                      <div className="tier-name">{name}</div>
                       {desc && <div className="tier-desc">{desc}</div>}
                     </div>
                   </div>
@@ -1036,17 +1036,17 @@ function App() {
 
               <div className="score-tiers">
                 {[
-                  { place: "1º", color: "gold",   icon: "🎮", name: "Nintendo Switch Lite, AirPods ou Robô Aspirador", desc: "" },
-                  { place: "2º", color: "silver", icon: "🧳", name: "2 malas de bordo", desc: "" },
-                  { place: "3º", color: "bronze", icon: "👕", name: "Camiseta da seleção brasileira", desc: "" },
-                ].map(({ place, color, icon, name, desc }) => (
+                  { place: "1º", color: "gold",   name: "Nintendo Switch Lite, AirPods ou Robô Aspirador", desc: "" },
+                  { place: "2º", color: "silver", name: "2 malas de bordo", desc: "" },
+                  { place: "3º", color: "bronze", name: "Camiseta da seleção brasileira", desc: "" },
+                ].map(({ place, color, name, desc }) => (
                   <div key={`mata-${place}`} className={`score-tier tier-${color}`}>
                     <div className="tier-badge">
                       <span className="tier-pts">{place}</span>
                       <span className="tier-pts-label">lugar</span>
                     </div>
                     <div className="tier-body">
-                      <div className="tier-name">{icon} {name}</div>
+                      <div className="tier-name">{name}</div>
                       {desc && <div className="tier-desc">{desc}</div>}
                     </div>
                   </div>

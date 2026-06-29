@@ -2669,12 +2669,12 @@ select:focus {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 0.65rem;
-  font-weight: 700;
+  font-size: 0.72rem;
+  font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--text-soft);
-  opacity: 0.45;
+  color: #e2e8f0;
+  opacity: 0.9;
 }
 .rules-divider::before,
 .rules-divider::after {
