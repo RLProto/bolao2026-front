@@ -1521,16 +1521,26 @@ select:focus {
   flex-shrink: 0;
 }
 
-/* No mobile, o toggle fica colado ao título e só o seletor de bandeiras
-   quebra pra linha de baixo, alinhado à direita */
+/* No mobile, os toggles ficam todos numa linha só, abaixo do título,
+   lado a lado e alinhados à direita. O seletor de bandeiras (quando
+   aparece) quebra pra sua própria linha embaixo dos toggles. */
 @media (max-width: 719px) {
   .ranking-card-header-actions {
-    display: contents;
+    display: flex;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.45rem;
+    margin-left: 0;
   }
 
   .rank-bet-toggle {
-    flex-basis: 100%;
-    justify-content: flex-end;
+    flex-basis: auto;
+  }
+
+  .rank-bet-toggle-label {
+    font-size: 0.66rem;
   }
 
   .rank-match-picker {
