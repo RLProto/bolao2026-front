@@ -49,7 +49,7 @@ async function drawEvolutionCanvas(data, userName) {
   const P = 60;
   const HEADER_H = 70;
   const CHART_AREA_H = 480;
-  const FOOTER_H = 30;
+  const FOOTER_H = 14;
   const H = HEADER_H + CHART_AREA_H + FOOTER_H;
 
   const canvas = document.createElement("canvas");
@@ -158,12 +158,6 @@ async function drawEvolutionCanvas(data, userName) {
     W / 2,
     HEADER_H + CHART_AREA_H + 4
   );
-  ctx.textAlign = "left";
-
-  ctx.fillStyle = "#8899AA";
-  ctx.font = "400 12px -apple-system, system-ui, sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText("bolaodarafa.com", W / 2, H - 12);
   ctx.textAlign = "left";
 
   return canvas;
