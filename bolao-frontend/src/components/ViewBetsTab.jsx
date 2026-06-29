@@ -210,7 +210,7 @@ export default function ViewBetsTab({
                       <tr key={p.user_id}>
                         <td>{p.user_name}</td>
                         <td>
-                          <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                          <span style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "0.5rem" }}>
                             <FlagIcon code={p.team_code} name={p.team_name} />
                             {p.team_name}
                           </span>
