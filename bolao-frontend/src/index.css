@@ -1505,6 +1505,10 @@ select:focus {
 .ranking-table th.rank-exact-col-icon {
   font-size: 1.4rem;
   font-weight: 400;
+  line-height: 1;
+  vertical-align: middle;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 /* ── Ranking: toggle de último palpite ── */
