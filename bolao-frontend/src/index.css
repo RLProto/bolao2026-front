@@ -1521,29 +1521,16 @@ select:focus {
   flex-shrink: 0;
 }
 
-/* No mobile, cada toggle ocupa sua própria linha (flex-basis:100%),
-   empilhados um abaixo do outro, todos alinhados à direita. Como cada
-   um fica sozinho na linha, o alinhamento não disputa espaço com os
-   outros (era esse o bug da tentativa anterior). */
+/* No mobile, o grupo de toggles continua na PRIMEIRA linha (ao lado do
+   título, empurrado com margin-left:auto como um bloco só). Dentro do
+   grupo, os toggles empilham verticalmente (flex-direction: column),
+   cada um alinhado à direita — sem disputa de espaço entre eles. */
 @media (max-width: 719px) {
   .ranking-card-header-actions {
-    display: flex;
-    flex-basis: 100%;
-    flex-wrap: wrap;
+    flex-direction: column;
+    flex-wrap: nowrap;
     align-items: flex-end;
-    justify-content: flex-end;
     gap: 0.35rem;
-    margin-left: 0;
-  }
-
-  .rank-bet-toggle {
-    flex-basis: 100%;
-    justify-content: flex-end;
-  }
-
-  .rank-match-picker {
-    flex-basis: 100%;
-    justify-content: flex-end;
   }
 }
 
