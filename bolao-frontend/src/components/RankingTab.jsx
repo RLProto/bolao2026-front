@@ -369,7 +369,7 @@ export default function RankingTab({
                 <th>#</th>
                 <th>Nome</th>
                 <th>Pts</th>
-                {showExactScores && <th className="rank-exact-col" title="Placares exatos (18 pts)">🎯</th>}
+                {showExactScores && <th className="rank-exact-col" title="Placares exatos (18 pts)"><span className="rank-exact-icon">🎯</span></th>}
                 {showLastBet && <BetColHeader />}
               </tr>
             </thead>
@@ -424,7 +424,7 @@ export default function RankingTab({
                   <th>#</th>
                   <th>Nome</th>
                   <th>Pts</th>
-                  {showExactScores && <th className="rank-exact-col" title="Placares exatos (18 pts)">🎯</th>}
+                  {showExactScores && <th className="rank-exact-col" title="Placares exatos (18 pts)"><span className="rank-exact-icon">🎯</span></th>}
                   {showLastBet && <BetColHeader />}
                 </tr>
               </thead>
@@ -470,7 +470,7 @@ export default function RankingTab({
                     <th>#</th>
                     <th>Nome</th>
                     <th>Pts</th>
-                    {showExactScores && <th className="rank-exact-col" title="Placares exatos (18 pts)">🎯</th>}
+                    {showExactScores && <th className="rank-exact-col" title="Placares exatos (18 pts)"><span className="rank-exact-icon">🎯</span></th>}
                     <th className="rank-overall-pos">Geral</th>
                     {showLastBet && <BetColHeader />}
                   </tr>

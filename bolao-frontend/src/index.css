@@ -1502,6 +1502,12 @@ select:focus {
   padding-right: 0.25rem;
 }
 
+.rank-exact-icon {
+  display: inline-block;
+  filter: grayscale(1);
+  opacity: 0.6;
+}
+
 /* ── Ranking: toggle de último palpite ── */
 .ranking-card-header-actions {
   display: flex;
