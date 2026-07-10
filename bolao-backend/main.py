@@ -4,7 +4,8 @@ import hashlib
 import os
 import secrets
 import smtplib
-from email.mime.text import MIMEText
+import email.policy
+from email.message import EmailMessage
 
 from fastapi import FastAPI, Depends, HTTPException, Header, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -283,10 +284,11 @@ def send_reset_email(to_email: str, reset_link: str):
         print("==============================")
         return
 
-    msg = MIMEText(body, "plain", "utf-8")
+    msg = EmailMessage(policy=email.policy.SMTP)
     msg["Subject"] = subject
     msg["From"] = SMTP_FROM
     msg["To"] = to_email
+    msg.set_content(body)
 
     with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
         server.starttls()
@@ -1384,10 +1386,11 @@ def send_league_invite_email(to_email: str, to_name: str, league_name: str, crea
     if not (SMTP_HOST and SMTP_USER and SMTP_PASS and SMTP_FROM):
         print(f"==== CONVITE LIGA (DEV) ==== Para: {to_email} | Liga: {league_name}")
         return
-    msg = MIMEText(body, "plain", "utf-8")
+    msg = EmailMessage(policy=email.policy.SMTP)
     msg["Subject"] = subject
     msg["From"] = SMTP_FROM
     msg["To"] = to_email
+    msg.set_content(body)
     try:
         with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
             server.starttls()
