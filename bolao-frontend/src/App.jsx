@@ -1,7 +1,6 @@
 // src/App.jsx
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  registerUser,
   loginUser,
   requestPasswordReset,
   resetPassword,
@@ -630,7 +629,6 @@ function App() {
         <main className="main">
           <AuthView
             onAuthSuccess={handleAuthSuccess}
-            registerUser={registerUser}
             loginUser={loginUser}
             requestPasswordReset={requestPasswordReset}
           />

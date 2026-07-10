@@ -1,68 +1,17 @@
 // src/components/AuthView.jsx
 import React, { useState } from "react";
 
-const NAME_CONNECTORS = new Set(["e", "de", "da", "do", "dos", "das", "di", "du"]);
-
-function validateName(name) {
-  const trimmed = name.trim();
-  if (!trimmed) return null;
-
-  const words = trimmed.split(/\s+/).filter(Boolean);
-
-  if (words.length < 2) {
-    return "Digite nome e sobrenome, ou dois nomes para duplas (ex: João e Maria).";
-  }
-
-  const realWords = words.filter(w => !NAME_CONNECTORS.has(w.toLowerCase()));
-
-  if (realWords.length < 2) {
-    return "Digite pelo menos dois nomes distintos.";
-  }
-
-  for (const word of realWords) {
-    if (/^[A-Z]{2,3}$/.test(word)) {
-      return "Evite siglas — use apelido + sobrenome (ex: Guga Proto).";
-    }
-    if (word.length < 2) {
-      return "Cada parte do nome deve ter pelo menos 2 letras.";
-    }
-  }
-
-  return null;
-}
-
-function getPasswordStrength(pw) {
-  if (!pw) return { level: 0, label: "", color: "" };
-  if (pw.length < 8) return { level: 1, label: "Muito fraca", color: "#ef4444" };
-  const hasLetter = /[a-zA-Z]/.test(pw);
-  const hasDigit = /\d/.test(pw);
-  const hasSpecial = /[^a-zA-Z0-9]/.test(pw);
-  const isLong = pw.length >= 12;
-  if (hasLetter && hasDigit && (hasSpecial || isLong)) {
-    return { level: 3, label: "Forte", color: "#22c55e" };
-  }
-  if (hasLetter && hasDigit) {
-    return { level: 2, label: "Média", color: "#eab308" };
-  }
-  return { level: 1, label: "Fraca", color: "#ef4444" };
-}
-
 export default function AuthView({
   onAuthSuccess,
-  registerUser,
   loginUser,
   requestPasswordReset,
 }) {
-  const [authMode, setAuthMode] = useState("login"); // login | register | reset
+  const [authMode, setAuthMode] = useState("login"); // login | reset
 
   // Campos de autenticação
-  const [authName, setAuthName] = useState("");
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [showAuthPassword, setShowAuthPassword] = useState(false);
-  const [authCode, setAuthCode] = useState("");
-
-  const [nameError, setNameError] = useState("");
 
   // Mensagens
   const [authError, setAuthError] = useState("");
@@ -83,21 +32,9 @@ export default function AuthView({
     setAuthError("");
     setAuthMessage("");
 
-    if (
-      !authEmail ||
-      !authPassword ||
-      (authMode === "register" && (!authName || !authCode))
-    ) {
+    if (!authEmail || !authPassword) {
       setAuthError("Preencha todos os campos.");
       return;
-    }
-
-    if (authMode === "register") {
-      const nameErr = validateName(authName);
-      if (nameErr) {
-        setNameError(nameErr);
-        return;
-      }
     }
 
     if (authPassword.length < 8) {
@@ -108,24 +45,9 @@ export default function AuthView({
     setAuthLoading(true);
 
     try {
-      let data;
-
-      if (authMode === "register") {
-        data = await registerUser(
-          authName.trim(),
-          authEmail.trim(),
-          authPassword,
-          authCode.trim()
-        );
-        setAuthMessage("Cadastro realizado com sucesso! Você já está logado.");
-      } else {
-        data = await loginUser(authEmail.trim(), authPassword);
-      }
-
+      const data = await loginUser(authEmail.trim(), authPassword);
       onAuthSuccess(data);
-
       setAuthPassword("");
-      setAuthCode("");
     } catch (err) {
       setAuthError(err.message || "Erro na autenticação");
     } finally {
@@ -174,55 +96,7 @@ export default function AuthView({
       <div className="auth-layout">
         {authMode !== "reset" && (
           <div className="auth-card">
-            <div className="auth-toggle">
-              <button
-                className={`pill ${authMode === "login" ? "active" : ""}`}
-                type="button"
-                onClick={() => {
-                  setAuthMode("login");
-                  setAuthError("");
-                  setAuthMessage("");
-                }}
-              >
-                Entrar
-              </button>
-              <button
-                className={`pill ${authMode === "register" ? "active" : ""}`}
-                type="button"
-                onClick={() => {
-                  setAuthMode("register");
-                  setAuthError("");
-                  setAuthMessage("");
-                }}
-              >
-                Criar conta
-              </button>
-            </div>
-
             <form onSubmit={handleAuthSubmit} className="form">
-              {authMode === "register" && (
-                <div className="form-group">
-                  <label>Nome completo</label>
-                  <input
-                    type="text"
-                    value={authName}
-                    onChange={(e) => {
-                      setAuthName(e.target.value);
-                      if (nameError) setNameError(validateName(e.target.value) || "");
-                    }}
-                    onBlur={(e) => setNameError(validateName(e.target.value) || "")}
-                    placeholder="Ex: João Silva"
-                    required
-                  />
-                  {nameError ? (
-                    <p className="field-error">{nameError}</p>
-                  ) : (
-                    <p className="field-hint">
-                      Use de preferência nome + sobrenome. Apelidos são bem-vindos, desde que acompanhados de um complemento.
-                    </p>
-                  )}
-                </div>
-              )}
 
               <div className="form-group">
                 <label>Email</label>
@@ -245,22 +119,6 @@ export default function AuthView({
                     placeholder="Mínimo 8 caracteres"
                     required
                   />
-                  {authMode === "register" && authPassword.length > 0 && (() => {
-                    const { level, label, color } = getPasswordStrength(authPassword);
-                    return (
-                      <div className="pw-strength" aria-live="polite">
-                        <div className="pw-strength-bar">
-                          <div
-                            className="pw-strength-fill"
-                            style={{ width: `${(level / 3) * 100}%`, background: color }}
-                          />
-                        </div>
-                        <span className="pw-strength-text" style={{ color }}>
-                          {label}
-                        </span>
-                      </div>
-                    );
-                  })()}
 
                   <button
                     type="button"
@@ -297,21 +155,6 @@ export default function AuthView({
                 </div>
               </div>
 
-              {authMode === "register" && (
-                <div className="form-group">
-                  <label>Código de acesso</label>
-                  <input
-                    type="text"
-                    value={authCode}
-                    onChange={(e) => setAuthCode(e.target.value)}
-                    placeholder="Informe seu código"
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    spellCheck={false}
-                    required
-                  />
-                </div>
-              )}
 
               {authError && <div className="alert alert-error">{authError}</div>}
               {authMessage && (
@@ -323,28 +166,22 @@ export default function AuthView({
                 disabled={authLoading}
                 type="submit"
               >
-                {authLoading
-                  ? "Enviando..."
-                  : authMode === "login"
-                  ? "Entrar"
-                  : "Criar conta"}
+                {authLoading ? "Enviando..." : "Entrar"}
               </button>
             </form>
 
-            {authMode === "login" && (
-              <button
-                className="link-button"
-                type="button"
-                onClick={() => {
-                  setAuthMode("reset");
-                  setResetEmail(authEmail || "");
-                  setResetMessage("");
-                  setResetError("");
-                }}
-              >
-                Esqueceu a senha?
-              </button>
-            )}
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => {
+                setAuthMode("reset");
+                setResetEmail(authEmail || "");
+                setResetMessage("");
+                setResetError("");
+              }}
+            >
+              Esqueceu a senha?
+            </button>
           </div>
         )}
 
@@ -370,7 +207,12 @@ export default function AuthView({
 
               {resetError && <div className="alert alert-error">{resetError}</div>}
               {resetMessage && (
-                <div className="alert alert-success">{resetMessage}</div>
+                <>
+                  <div className="alert alert-success">{resetMessage}</div>
+                  <p style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.55)", margin: "0.25rem 0 0", textAlign: "center", lineHeight: 1.45 }}>
+                    Não recebeu? Verifique a pasta de <strong>lixo eletrônico</strong> ou <strong>spam</strong>.
+                  </p>
+                </>
               )}
 
               <button
