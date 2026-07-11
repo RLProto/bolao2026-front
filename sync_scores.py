@@ -59,9 +59,14 @@ SCORE_STATUSES = {
     'STATUS_FINAL',
 }
 
-# Períodos ESPN para futebol: 1=1ºT, 2=2ºT (90min+acréscimos), 3/4=prorrogação, 5=pênaltis.
-# Só aceitamos placar dos períodos de tempo normal — prorrogação e pênaltis são ignorados.
-REGULATION_PERIODS = {1, 2}
+# Palavras-chave nos campos de descrição do ESPN que indicam prorrogação ou pênaltis
+ET_KEYWORDS = ('extra time', 'overtime', 'penalty', 'penalties', 'shootout')
+
+# Memória de placares do tempo normal, por match_id.
+# Populado quando STATUS_FULL_TIME/FINAL é detectado durante o tempo normal.
+# Persiste entre iterações do loop — impede que placar de prorrogação
+# sobrescreva o resultado de 90min mesmo que o ESPN não sinalize ET corretamente.
+_regulation_scores = {}
 
 # ── ESPN ────────────────────────────────────────────────────────────────────
 def fetch_espn_date(date_str):
@@ -71,9 +76,13 @@ def fetch_espn_date(date_str):
         return json.loads(r.read())
 
 def fetch_espn():
-    """Busca hoje e amanhã (UTC) para cobrir jogos que cruzam a meia-noite americana."""
+    """Busca ontem, hoje e amanhã (UTC) para cobrir jogos que cruzam a meia-noite UTC."""
     today = datetime.now(timezone.utc)
-    dates = [today.strftime('%Y%m%d'), (today + timedelta(days=1)).strftime('%Y%m%d')]
+    dates = [
+        (today - timedelta(days=1)).strftime('%Y%m%d'),
+        today.strftime('%Y%m%d'),
+        (today + timedelta(days=1)).strftime('%Y%m%d'),
+    ]
     all_events = []
     seen = set()
     for d in dates:
@@ -86,17 +95,19 @@ def fetch_espn():
     return {'events': all_events}
 
 def parse_events(data):
-    """Retorna lista de dicts com home_abbr, away_abbr, home_score, away_score, status, period.
+    """Retorna lista de dicts com home_abbr, away_abbr, home_score, away_score, status, in_regulation.
 
-    Jogos em prorrogação ou pênaltis (period >= 3) são marcados com
-    in_regulation=False e ficam congelados no placar do tempo normal.
+    in_regulation=False quando:
+    - period >= 3 (ESPN sinaliza corretamente prorrogação/pênaltis), OU
+    - description/shortDetail/detail contém palavras-chave de prorrogação/pênaltis
     """
     results = []
     for event in data.get('events', []):
         if not event.get('competitions'):
             continue
         comp = event['competitions'][0]
-        status_name = comp['status']['type']['name']
+        status_type = comp['status']['type']
+        status_name = status_type['name']
         if status_name not in SCORE_STATUSES:
             continue
         teams = comp['competitors']
@@ -109,8 +120,20 @@ def parse_events(data):
             away_score = int(away['score'])
         except (KeyError, ValueError, TypeError):
             continue
+
         period = comp['status'].get('period')
-        in_regulation = period is None or period in REGULATION_PERIODS
+
+        # Concatena todos os campos de descrição para detectar ET/pênaltis por texto
+        status_text = ' '.join([
+            status_type.get('description', ''),
+            status_type.get('shortDetail', ''),
+            status_type.get('detail', ''),
+        ]).lower()
+
+        is_extra_period = period is not None and period >= 3
+        is_et_by_text = any(kw in status_text for kw in ET_KEYWORDS)
+        in_regulation = not is_extra_period and not is_et_by_text
+
         results.append({
             'home_abbr': home['team']['abbreviation'].upper(),
             'away_abbr': away['team']['abbreviation'].upper(),
@@ -147,6 +170,7 @@ def update_match_score(cur, match_id, home_score, away_score):
 
 # ── Sync ────────────────────────────────────────────────────────────────────
 def sync_once():
+    global _regulation_scores
     now = datetime.now(timezone.utc).strftime('%H:%M:%S')
 
     try:
@@ -185,32 +209,39 @@ def sync_once():
             if not espn:
                 continue
 
+            # Filtro 1: ESPN sinalizou explicitamente prorrogação/pênaltis (period>=3 ou keyword)
             if not espn['in_regulation']:
-                # Jogo foi para prorrogação/pênaltis — mantém o placar do tempo normal já salvo.
-                print(f"[{now}] Jogo {match_id} ({home_code} x {away_code}) em prorrogação/pênaltis "
-                      f"(period={espn['period']}) — placar do tempo normal mantido.")
+                print(f"[{now}] Jogo {match_id} ({home_code} x {away_code}): prorrogação/pênaltis "
+                      f"detectado (period={espn['period']}, status={espn['status']}) — placar mantido.")
                 continue
 
             new_home = espn['home_score']
             new_away = espn['away_score']
 
+            # Filtro 2: STATUS_FULL_TIME/FINAL visto durante tempo normal → registra placar regulamentar.
+            # A partir daí, qualquer placar diferente é prorrogação mesmo que ESPN não sinalize direito.
+            if espn['status'] in ('STATUS_FULL_TIME', 'STATUS_FINAL'):
+                if match_id not in _regulation_scores:
+                    _regulation_scores[match_id] = (new_home, new_away)
+                    print(f"[{now}] Jogo {match_id} ({home_code} x {away_code}): "
+                          f"placar regulamentar registrado — {new_home}x{new_away}.")
+
+            if match_id in _regulation_scores:
+                reg_h, reg_a = _regulation_scores[match_id]
+                if (new_home, new_away) != (reg_h, reg_a):
+                    print(f"[{now}] Jogo {match_id} ({home_code} x {away_code}): placar congelado em "
+                          f"{reg_h}x{reg_a} — ESPN reportou {new_home}x{new_away} após tempo normal.")
+                    continue
+
             if new_home == db_home and new_away == db_away:
                 continue  # sem mudança
 
-            # Guard 1: bloqueia reset ESPN para 0x0 ao entrar na prorrogação.
-            # VAR pode regredir um gol (ex: 2x1→1x1), mas nunca zera ambos os times.
+            # Guard final: ESPN zerou ambos com placar já definido → reset de prorrogação.
+            # VAR cancela um gol por vez, nunca zera os dois times simultaneamente.
             if db_home is not None and (db_home + db_away) > 0 and new_home == 0 and new_away == 0:
                 print(f"[{now}] Jogo {match_id} ({home_code} x {away_code}): ESPN zerou placar "
                       f"{db_home}x{db_away} -> 0x0 [{espn['status']}] — reset de prorrogação. Ignorado.")
                 continue
-
-            # Guard 2: após 115min do kickoff com placar já definido, congela (tempo normal certamente encerrou)
-            if db_home is not None:
-                minutes_elapsed = (datetime.now(timezone.utc) - kickoff).total_seconds() / 60
-                if minutes_elapsed > 125:
-                    print(f"[{now}] Jogo {match_id} ({home_code} x {away_code}): {minutes_elapsed:.0f}min "
-                          f"após kickoff — prorrogação assumida, placar congelado em {db_home}x{db_away}.")
-                    continue
 
             update_match_score(cur, match_id, new_home, new_away)
             prev = f"{db_home}x{db_away}" if db_home is not None else "sem placar"
