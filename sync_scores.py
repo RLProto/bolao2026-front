@@ -197,10 +197,11 @@ def sync_once():
             if new_home == db_home and new_away == db_away:
                 continue  # sem mudança
 
-            # Guard 1: placar nunca pode regredir — ESPN reseta para 0x0 ao entrar na prorrogação
-            if db_home is not None and (new_home + new_away) < (db_home + db_away):
-                print(f"[{now}] Jogo {match_id} ({home_code} x {away_code}): placar regrediu "
-                      f"{db_home}x{db_away} -> {new_home}x{new_away} [{espn['status']}] — prorrogação/erro ESPN. Ignorado.")
+            # Guard 1: bloqueia reset ESPN para 0x0 ao entrar na prorrogação.
+            # VAR pode regredir um gol (ex: 2x1→1x1), mas nunca zera ambos os times.
+            if db_home is not None and (db_home + db_away) > 0 and new_home == 0 and new_away == 0:
+                print(f"[{now}] Jogo {match_id} ({home_code} x {away_code}): ESPN zerou placar "
+                      f"{db_home}x{db_away} -> 0x0 [{espn['status']}] — reset de prorrogação. Ignorado.")
                 continue
 
             # Guard 2: após 115min do kickoff com placar já definido, congela (tempo normal certamente encerrou)
