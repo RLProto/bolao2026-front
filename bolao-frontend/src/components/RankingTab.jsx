@@ -1,7 +1,7 @@
 // src/components/RankingTab.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import FlagIcon from "./FlagIcon";
-import { fetchPublicBets, fetchRanking, fetchPublicChampionPicks } from "../api";
+import { fetchPublicBets, fetchRanking, fetchPublicChampionPicks, fetchChampionBonusRanking } from "../api";
 
 export default function RankingTab({
   ranking,
@@ -30,9 +30,15 @@ export default function RankingTab({
   const [championPicksLoading, setChampionPicksLoading] = useState(false);
   const [championPicksLoaded, setChampionPicksLoaded] = useState(false);
 
-  // Busca os palpites de campeão só na primeira vez que o toggle é ativado
+  const [bonusRanking, setBonusRanking] = useState([]);
+  const [bonusAliveIds, setBonusAliveIds] = useState(new Set());
+  const [bonusLoading, setBonusLoading] = useState(false);
+  const [bonusError, setBonusError] = useState("");
+  const [bonusLoaded, setBonusLoaded] = useState(false);
+
+  // Busca os palpites de campeão quando o toggle é ativado ou quando entra no ranking de bônus
   useEffect(() => {
-    if (!showChampionFlag || championPicksLoaded) return;
+    if ((!showChampionFlag && selectedLeagueId !== "champion_bonus") || championPicksLoaded) return;
     let cancelled = false;
     setChampionPicksLoading(true);
     fetchPublicChampionPicks()
@@ -40,12 +46,31 @@ export default function RankingTab({
       .catch(() => { if (!cancelled) setChampionPicks([]); })
       .finally(() => { if (!cancelled) setChampionPicksLoading(false); });
     return () => { cancelled = true; };
-  }, [showChampionFlag, championPicksLoaded]);
+  }, [showChampionFlag, selectedLeagueId, championPicksLoaded]);
 
   const championPickByUser = useMemo(
     () => new Map(championPicks.map((p) => [p.user_id, p])),
     [championPicks]
   );
+
+  // Busca o ranking com bônus de campeão só na primeira vez que a aba é selecionada
+  useEffect(() => {
+    if (selectedLeagueId !== "champion_bonus" || bonusLoaded) return;
+    let cancelled = false;
+    setBonusLoading(true);
+    setBonusError("");
+    fetchChampionBonusRanking()
+      .then((data) => {
+        if (!cancelled) {
+          setBonusRanking(data.ranking || []);
+          setBonusAliveIds(new Set(data.alive_team_ids || []));
+          setBonusLoaded(true);
+        }
+      })
+      .catch((e) => { if (!cancelled) setBonusError(e.message); })
+      .finally(() => { if (!cancelled) setBonusLoading(false); });
+    return () => { cancelled = true; };
+  }, [selectedLeagueId, bonusLoaded]);
 
   // Busca o ranking de mata-mata só na primeira vez que a aba é selecionada
   useEffect(() => {
@@ -310,11 +335,12 @@ export default function RankingTab({
           value={selectedLeagueId}
           onChange={(e) => {
             const v = e.target.value;
-            setSelectedLeagueId(v === "geral" || v === "mata_mata" ? v : Number(v));
+            setSelectedLeagueId(v === "geral" || v === "mata_mata" || v === "champion_bonus" ? v : Number(v));
           }}
         >
           <option value="geral">Ranking Geral</option>
           <option value="mata_mata">Ranking Mata-mata</option>
+          <option value="champion_bonus">Geral + 40pts Campeão</option>
           {leagues.map((l) => (
             <option key={l.id} value={l.id}>{l.name}</option>
           ))}
@@ -431,6 +457,89 @@ export default function RankingTab({
               </thead>
               <tbody>
                 <RankingRows rows={mataMataRanking} showChampion={false} />
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {/* ── Vista Geral + 40pts Campeão ── */}
+      {selectedLeagueId === "champion_bonus" && (
+        <div className="ranking-card">
+          <div className="ranking-card-header">
+            <h2 className="section-title">Geral + 40pts Campeão</h2>
+            <div className="ranking-card-header-actions">
+              <ExactScoresToggle />
+            </div>
+          </div>
+          <p style={{ margin: "0 0 0.75rem 0", padding: "0 0.1rem", fontSize: "0.82rem", color: "var(--text-soft)", lineHeight: 1.45 }}>
+            +40 pts para quem apostou num campeão ainda vivo no torneio.
+          </p>
+          {bonusLoading ? (
+            <div className="loading-state">
+              <span className="spinner" aria-hidden="true" />
+              Carregando ranking...
+            </div>
+          ) : bonusError ? (
+            <div className="alert alert-error error-with-retry">
+              {bonusError}
+              <button className="btn ghost small retry-btn" onClick={() => setBonusLoaded(false)}>
+                Tentar novamente
+              </button>
+            </div>
+          ) : bonusRanking.length === 0 ? (
+            <p className="empty-state">Nenhum dado disponível.</p>
+          ) : (
+            <table className="ranking-table">
+              <colgroup>
+                <col style={{ width: "2.5rem" }} />
+                <col />
+                <col style={{ width: "3rem" }} />
+                {showExactScores && <col style={{ width: "2.2rem" }} />}
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Nome</th>
+                  <th>Pts</th>
+                  {showExactScores && <th className="rank-exact-col rank-exact-col-icon" title="Placares exatos (18 pts)"><span>◎</span></th>}
+                </tr>
+              </thead>
+              <tbody>
+                {bonusRanking.map((r, index) => {
+                  const isMe = r.user_id === session.id;
+                  const isLast = index === bonusRanking.length - 1;
+                  const rowClass = isMe ? "me-row"
+                    : index === 0 ? "rank-1"
+                    : index === 1 ? "rank-2"
+                    : index === 2 ? "rank-3"
+                    : "";
+                  const championPick = championPickByUser.get(r.user_id);
+                  return (
+                    <tr key={r.user_id} className={rowClass}>
+                      <td className="rank-pos-cell">{posIcon(index)}</td>
+                      <td>
+                        <div className="rank-name-cell">
+                          <span className="rank-name-text">{r.user_name}</span>
+                          {isMe && <span className="rank-you-badge">você</span>}
+                          {isLast && <span title="Lanterna">🔦</span>}
+                          {r.champion_alive && championPick && (
+                            <span
+                              className="rank-champion-flag rank-bet-flag-wrap"
+                              title={`Campeão vivo: ${championPick.team_name} +40pts`}
+                            >
+                              <FlagIcon code={championPick.team_code} name={championPick.team_name} />
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td>
+                        <span className={`rank-pts ${ptsColorClass(index)}`}>{r.total_points}</span>
+                      </td>
+                      {showExactScores && <td className="rank-exact-col">{r.exact_scores ?? 0}</td>}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
