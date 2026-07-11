@@ -207,7 +207,7 @@ def sync_once():
             # Guard 2: após 115min do kickoff com placar já definido, congela (tempo normal certamente encerrou)
             if db_home is not None:
                 minutes_elapsed = (datetime.now(timezone.utc) - kickoff).total_seconds() / 60
-                if minutes_elapsed > 115:
+                if minutes_elapsed > 125:
                     print(f"[{now}] Jogo {match_id} ({home_code} x {away_code}): {minutes_elapsed:.0f}min "
                           f"após kickoff — prorrogação assumida, placar congelado em {db_home}x{db_away}.")
                     continue
