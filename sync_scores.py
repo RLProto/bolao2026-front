@@ -48,7 +48,9 @@ if _db_ipv4:
 ESPN_BASE = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard'
 POLL_INTERVAL = 60  # segundos entre cada chamada no modo --loop
 
-# Status ESPN que indicam jogo ativo ou encerrado (score válido)
+# Status ESPN que indicam jogo ativo ou encerrado (score válido).
+# Inclui status de prorrogação/pênaltis para que o bot enxergue o jogo
+# e possa logar corretamente — o filtro in_regulation bloqueia updates nesses casos.
 SCORE_STATUSES = {
     'STATUS_IN_PROGRESS',
     'STATUS_FIRST_HALF',
@@ -57,6 +59,11 @@ SCORE_STATUSES = {
     'STATUS_END_PERIOD',
     'STATUS_FULL_TIME',
     'STATUS_FINAL',
+    'STATUS_EXTRA_TIME',
+    'STATUS_OVERTIME',
+    'STATUS_PENALTIES',
+    'STATUS_FULL_PEN',
+    'STATUS_SHOOTOUT',
 }
 
 # Palavras-chave nos campos de descrição do ESPN que indicam prorrogação ou pênaltis
