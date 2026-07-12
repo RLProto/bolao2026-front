@@ -52,11 +52,17 @@ const MatchCard = React.memo(function MatchCard({
   const pts = hasResult ? calculatePoints(m.home_score, m.away_score, predHome, predAway) : null;
   const ptStyle = pts != null ? POINTS_STYLE[pts] : null;
 
+  const isFinal = m.stage === 'Final';
+
   return (
     <div
-      className={`match-card ${m.is_locked ? "locked" : ""} ${isDirty && !m.is_locked ? "unsaved" : ""}`}
+      className={`match-card ${m.is_locked ? "locked" : ""} ${isDirty && !m.is_locked ? "unsaved" : ""} ${isFinal ? "match-card--final" : ""}`}
       style={{
         "--card-i": cardIndex,
+        ...(isFinal && !ptStyle && {
+          borderColor: '#C9A84C',
+          borderWidth: '2px',
+        }),
         ...(ptStyle && {
           borderColor: ptStyle.border,
           borderWidth: "2px",
@@ -66,7 +72,7 @@ const MatchCard = React.memo(function MatchCard({
       }}
     >
       <div className="match-header">
-        <span className="match-stage">{m.stage}</span>
+        <span className="match-stage">{isFinal ? "🏆 Final" : m.stage}</span>
         <span className="match-datetime">{formatDateTime(m.kickoff_at_utc)}</span>
       </div>
 

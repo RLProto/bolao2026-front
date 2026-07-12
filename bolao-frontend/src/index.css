@@ -773,6 +773,28 @@ select:focus {
   border-color: rgba(34, 197, 94, 0.5);
 }
 
+@keyframes gold-glow {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(201,168,76,0.4), 0 0 18px rgba(201,168,76,0.18), 0 8px 32px rgba(0,0,0,0.6); }
+  50%       { box-shadow: 0 0 0 1px rgba(201,168,76,0.7), 0 0 32px rgba(201,168,76,0.35), 0 8px 32px rgba(0,0,0,0.6); }
+}
+
+.match-card--final {
+  background: radial-gradient(circle at top left, rgba(201,168,76,0.12), transparent 60%), var(--card-bg);
+  animation: fadeUp 0.35s ease both, gold-glow 2.5s ease-in-out infinite;
+  animation-delay: calc(var(--card-i, 0) * 35ms), 0s;
+}
+
+.match-card--final:hover {
+  box-shadow: 0 20px 48px rgba(0,0,0,0.8), 0 0 0 1px rgba(201,168,76,0.7), 0 0 40px rgba(201,168,76,0.3);
+  border-color: #C9A84C;
+}
+
+.match-card--final .match-stage {
+  color: #C9A84C;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
 .match-card.locked {
   opacity: 0.6;
   border-color: rgba(148, 163, 184, 0.12);
