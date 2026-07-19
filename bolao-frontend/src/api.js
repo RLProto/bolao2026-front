@@ -112,15 +112,6 @@ export async function fetchRanking(scope = "geral") {
   return data;
 }
 
-export async function fetchChampionBonusRanking() {
-  const res = await fetch(`${API_URL}/ranking/champion-bonus`, {
-    headers: { "Content-Type": "application/json" },
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.detail || "Erro ao carregar ranking com bônus");
-  return data;
-}
-
 export async function saveBetsBulk(matches, predictions) {
   const session = getSession();
   if (!session) {
